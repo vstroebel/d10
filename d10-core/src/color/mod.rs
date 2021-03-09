@@ -3,12 +3,14 @@ mod srgb;
 mod hsl;
 mod hsv;
 mod yuv;
+mod iter;
 
 pub use rgb::{RGB, Intensity};
 pub use srgb::{SRGB, gamma_to_linear, linear_to_gamma};
 pub use hsv::HSV;
 pub use hsl::HSL;
 pub use yuv::YUV;
+pub use iter::{ColorIter, ColorIterRef};
 
 // Minimal error to detect identical colors channel values
 //
