@@ -1,0 +1,9 @@
+[package]
+name = "d10"
+version = "0.1.0"
+authors = ["Volker Ströbel <volkerstroebel@mysurdity.de>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+d10-core = { path = "../d10-core" }
