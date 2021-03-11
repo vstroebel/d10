@@ -1,4 +1,4 @@
-use crate::{RGB, PixelBuffer, D10Result};
+use crate::{ops, RGB, PixelBuffer, D10Result};
 use std::path::Path;
 
 #[derive(Clone)]
@@ -33,6 +33,17 @@ impl Image {
         Image {
             buffer,
             bg_color: None,
+        }
+    }
+
+    pub fn new_from_raw_with_meta(orig_image: &Image, width: u32, height: u32, data: Vec<RGB>) -> Image {
+        Image::new_from_buffer_with_meta(orig_image, PixelBuffer::new_from_raw(width, height, data).expect("New buffer"))
+    }
+
+    pub fn new_from_buffer_with_meta(orig_image: &Image, buffer: PixelBuffer<RGB>) -> Image {
+        Image {
+            buffer,
+            bg_color: orig_image.bg_color,
         }
     }
 
@@ -99,19 +110,19 @@ impl Image {
     }
 
     pub fn map_colors<F: FnMut(&RGB) -> RGB>(&self, func: F) -> Image {
-        Image::new_from_buffer_with_meta(self, self.buffer.map_colors(func))
+        Self::new_from_buffer_with_meta(self, self.buffer.map_colors(func))
     }
 
     pub fn try_map_colors<E, F: FnMut(&RGB) -> Result<RGB, E>>(&self, func: F) -> Result<Image, E> {
-        Ok(Image::new_from_buffer_with_meta(self, self.buffer.try_map_colors(func)?))
+        Ok(Self::new_from_buffer_with_meta(self, self.buffer.try_map_colors(func)?))
     }
 
     pub fn map_colors_enumerated<F: Fn(u32, u32, &RGB) -> RGB>(&self, func: F) -> Image {
-        Image::new_from_buffer_with_meta(self, self.buffer.map_colors_enumerated(func))
+        Self::new_from_buffer_with_meta(self, self.buffer.map_colors_enumerated(func))
     }
 
     pub fn try_map_colors_enumerated<E, F: Fn(u32, u32, &RGB) -> Result<RGB, E>>(&self, func: F) -> Result<Image, E> {
-        Ok(Image::new_from_buffer_with_meta(self, self.buffer.try_map_colors_enumerated(func)?))
+        Ok(Self::new_from_buffer_with_meta(self, self.buffer.try_map_colors_enumerated(func)?))
     }
 
     pub fn get_pixel(&self, x: u32, y: u32) -> &RGB {
@@ -132,5 +143,59 @@ impl Image {
 
     pub fn is_in_image(&self, x: i32, y: i32) -> bool {
         self.buffer.is_in_image(x, y)
+    }
+
+    pub fn flip_horizontal(&self) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::flip_horizontal(&self.buffer))
+    }
+
+    pub fn flip_vertical(&self) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::flip_vertical(&self.buffer))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Image;
+    use crate::RGB;
+
+    fn flip_rotate_test_image() -> Image {
+        Image::new_from_raw(3, 2, vec![
+            RGB::WHITE, RGB::BLACK, RGB::YELLOW,
+            RGB::RED, RGB::GREEN, RGB::BLUE
+        ])
+    }
+
+    #[test]
+    fn flip_horizontal() {
+        let img_in = flip_rotate_test_image();
+
+        let img_out = img_in.flip_horizontal();
+
+        assert_eq!(img_in.get_pixel(0, 0), img_out.get_pixel(2, 0));
+        assert_eq!(img_in.get_pixel(1, 0), img_out.get_pixel(1, 0));
+        assert_eq!(img_in.get_pixel(2, 0), img_out.get_pixel(0, 0));
+
+        assert_eq!(img_in.get_pixel(0, 1), img_out.get_pixel(2, 1));
+        assert_eq!(img_in.get_pixel(1, 1), img_out.get_pixel(1, 1));
+        assert_eq!(img_in.get_pixel(2, 1), img_out.get_pixel(0, 1));
+    }
+
+    #[test]
+    fn flip_vertical() {
+        let img_in = flip_rotate_test_image();
+
+        let img_out = img_in.flip_vertical();
+
+        assert_eq!(img_in.width(), img_out.width());
+        assert_eq!(img_in.height(), img_out.height());
+
+        assert_eq!(img_in.get_pixel(0, 0), img_out.get_pixel(0, 1));
+        assert_eq!(img_in.get_pixel(1, 0), img_out.get_pixel(1, 1));
+        assert_eq!(img_in.get_pixel(2, 0), img_out.get_pixel(2, 1));
+
+        assert_eq!(img_in.get_pixel(0, 1), img_out.get_pixel(0, 0));
+        assert_eq!(img_in.get_pixel(1, 1), img_out.get_pixel(1, 0));
+        assert_eq!(img_in.get_pixel(2, 1), img_out.get_pixel(2, 0));
     }
 }
