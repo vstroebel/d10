@@ -152,6 +152,18 @@ impl Image {
     pub fn flip_vertical(&self) -> Image {
         Self::new_from_buffer_with_meta(self, ops::flip_vertical(&self.buffer))
     }
+
+    pub fn rotate90(&self) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::rotate90(&self.buffer))
+    }
+
+    pub fn rotate180(&self) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::rotate180(&self.buffer))
+    }
+
+    pub fn rotate270(&self) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::rotate270(&self.buffer))
+    }
 }
 
 #[cfg(test)]
@@ -197,5 +209,59 @@ mod tests {
         assert_eq!(img_in.get_pixel(0, 1), img_out.get_pixel(0, 0));
         assert_eq!(img_in.get_pixel(1, 1), img_out.get_pixel(1, 0));
         assert_eq!(img_in.get_pixel(2, 1), img_out.get_pixel(2, 0));
+    }
+
+    #[test]
+    fn rotate90() {
+        let img_in = flip_rotate_test_image();
+
+        let img_out = img_in.rotate90();
+
+        assert_eq!(img_in.width(), img_out.height());
+        assert_eq!(img_in.height(), img_out.width());
+
+        assert_eq!(img_in.get_pixel(0, 0), img_out.get_pixel(1, 0));
+        assert_eq!(img_in.get_pixel(1, 0), img_out.get_pixel(1, 1));
+        assert_eq!(img_in.get_pixel(2, 0), img_out.get_pixel(1, 2));
+
+        assert_eq!(img_in.get_pixel(0, 1), img_out.get_pixel(0, 0));
+        assert_eq!(img_in.get_pixel(1, 1), img_out.get_pixel(0, 1));
+        assert_eq!(img_in.get_pixel(2, 1), img_out.get_pixel(0, 2));
+    }
+
+    #[test]
+    fn rotate180() {
+        let img_in = flip_rotate_test_image();
+
+        let img_out = img_in.rotate180();
+
+        assert_eq!(img_in.width(), img_out.width());
+        assert_eq!(img_in.height(), img_out.height());
+
+        assert_eq!(img_in.get_pixel(0, 0), img_out.get_pixel(2, 1));
+        assert_eq!(img_in.get_pixel(1, 0), img_out.get_pixel(1, 1));
+        assert_eq!(img_in.get_pixel(2, 0), img_out.get_pixel(0, 1));
+
+        assert_eq!(img_in.get_pixel(0, 1), img_out.get_pixel(2, 0));
+        assert_eq!(img_in.get_pixel(1, 1), img_out.get_pixel(1, 0));
+        assert_eq!(img_in.get_pixel(2, 1), img_out.get_pixel(0, 0));
+    }
+
+    #[test]
+    fn rotate270() {
+        let img_in = flip_rotate_test_image();
+
+        let img_out = img_in.rotate270();
+
+        assert_eq!(img_in.width(), img_out.height());
+        assert_eq!(img_in.height(), img_out.width());
+
+        assert_eq!(img_in.get_pixel(0, 0), img_out.get_pixel(0, 2));
+        assert_eq!(img_in.get_pixel(1, 0), img_out.get_pixel(0, 1));
+        assert_eq!(img_in.get_pixel(2, 0), img_out.get_pixel(0, 0));
+
+        assert_eq!(img_in.get_pixel(0, 1), img_out.get_pixel(1, 2));
+        assert_eq!(img_in.get_pixel(1, 1), img_out.get_pixel(1, 1));
+        assert_eq!(img_in.get_pixel(2, 1), img_out.get_pixel(1, 0));
     }
 }
