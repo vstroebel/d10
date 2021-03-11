@@ -7,3 +7,4 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 d10-core = { path = "../d10-core" }
+d10-codecs = { path = "../d10-codecs" }
