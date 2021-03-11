@@ -1,6 +1,7 @@
 use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::Color;
 
+/// Rotate buffer 90 degrees clockwise
 pub fn rotate90<C>(buffer: &PixelBuffer<C>) -> PixelBuffer<C> where C: Color {
     let mut result = vec![Default::default(); buffer.data().len()];
 
@@ -15,6 +16,7 @@ pub fn rotate90<C>(buffer: &PixelBuffer<C>) -> PixelBuffer<C> where C: Color {
     PixelBuffer::new_from_raw(buffer.height(), buffer.width(), result).unwrap()
 }
 
+/// Rotate buffer 180 degrees clockwise
 pub fn rotate180<C>(buffer: &PixelBuffer<C>) -> PixelBuffer<C> where C: Color {
     let mut result = vec![Default::default(); buffer.data().len()];
 
@@ -29,6 +31,7 @@ pub fn rotate180<C>(buffer: &PixelBuffer<C>) -> PixelBuffer<C> where C: Color {
     PixelBuffer::new_from_raw(buffer.width(), buffer.height(), result).unwrap()
 }
 
+/// Rotate buffer 270 degrees clockwise
 pub fn rotate270<C>(buffer: &PixelBuffer<C>) -> PixelBuffer<C> where C: Color {
     let mut result = vec![Default::default(); buffer.data().len()];
 

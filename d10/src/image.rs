@@ -141,26 +141,32 @@ impl Image {
         self.buffer.get_pixel_optional(x, y)
     }
 
+    /// Check whether the x/y coordinates are within the image dimensions
     pub fn is_in_image(&self, x: i32, y: i32) -> bool {
         self.buffer.is_in_image(x, y)
     }
 
+    /// Flip image horizontally
     pub fn flip_horizontal(&self) -> Image {
         Self::new_from_buffer_with_meta(self, ops::flip_horizontal(&self.buffer))
     }
 
+    /// Flip image vertically
     pub fn flip_vertical(&self) -> Image {
         Self::new_from_buffer_with_meta(self, ops::flip_vertical(&self.buffer))
     }
 
+    /// Rotate image 90 degrees clockwise
     pub fn rotate90(&self) -> Image {
         Self::new_from_buffer_with_meta(self, ops::rotate90(&self.buffer))
     }
 
+    /// Rotate image 180 degrees clockwise
     pub fn rotate180(&self) -> Image {
         Self::new_from_buffer_with_meta(self, ops::rotate180(&self.buffer))
     }
 
+    /// Rotate image 270 degrees clockwise
     pub fn rotate270(&self) -> Image {
         Self::new_from_buffer_with_meta(self, ops::rotate270(&self.buffer))
     }

@@ -194,6 +194,7 @@ impl<T: Color> PixelBuffer<T> {
         }
     }
 
+    /// Check whether the x/y coordinates are within the buffer dimensions
     pub fn is_in_image(&self, x: i32, y: i32) -> bool {
         x >= 0 && x < self.width as i32 && y >= 0 && y < self.height as i32
     }
