@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "d10-core",
+    "d10-codecs",
     "d10"
 ]
