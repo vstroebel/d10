@@ -170,6 +170,13 @@ impl Image {
     pub fn rotate270(&self) -> Image {
         Self::new_from_buffer_with_meta(self, ops::rotate270(&self.buffer))
     }
+
+    /// Detect edges in the image with a sobel kernel
+    ///
+    /// If `normalize` is true the resulting color channel values will be between 0.0 and 1.0
+    pub fn sobel_edge_detection(&self, normalize: bool) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::sobel_edge_detection(&self.buffer, normalize))
+    }
 }
 
 #[cfg(test)]
