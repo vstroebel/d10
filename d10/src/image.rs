@@ -37,7 +37,7 @@ impl Image {
     }
 
     pub fn new_from_raw_with_meta(orig_image: &Image, width: u32, height: u32, data: Vec<RGB>) -> Image {
-        Image::new_from_buffer_with_meta(orig_image, PixelBuffer::new_from_raw(width, height, data).expect("New buffer"))
+        Self::new_from_buffer_with_meta(orig_image, PixelBuffer::new_from_raw(width, height, data).expect("New buffer"))
     }
 
     pub fn new_from_buffer_with_meta(orig_image: &Image, buffer: PixelBuffer<RGB>) -> Image {
@@ -49,12 +49,12 @@ impl Image {
 
     pub fn open<P>(path: P) -> D10Result<Image> where P: AsRef<Path> {
         let buffer = crate::codecs::decode_file(path)?.buffer;
-        Ok(Image::new_from_buffer(buffer))
+        Ok(Self::new_from_buffer(buffer))
     }
 
     pub fn read_from_buffer(buffer: &[u8]) -> D10Result<Image> {
         let buffer = crate::codecs::decode_buffer(buffer)?.buffer;
-        Ok(Image::new_from_buffer(buffer))
+        Ok(Self::new_from_buffer(buffer))
     }
 
     pub fn save(&self, path: &str) -> D10Result<()> {
