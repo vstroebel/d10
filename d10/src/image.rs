@@ -1,5 +1,6 @@
 use crate::{ops, RGB, PixelBuffer, D10Result};
 use std::path::Path;
+use d10_ops::FilterMode;
 
 #[derive(Clone)]
 pub struct Image {
@@ -177,12 +178,18 @@ impl Image {
     pub fn sobel_edge_detection(&self, normalize: bool) -> Image {
         Self::new_from_buffer_with_meta(self, ops::sobel_edge_detection(&self.buffer, normalize))
     }
+
+    /// Resize image
+    pub fn resize(&self, new_width: u32, new_height: u32, filter: FilterMode) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::resize(&self.buffer, new_width, new_height, filter))
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::Image;
     use crate::RGB;
+    use d10_ops::FilterMode;
 
     fn flip_rotate_test_image() -> Image {
         Image::new_from_raw(3, 2, vec![
@@ -276,5 +283,14 @@ mod tests {
         assert_eq!(img_in.get_pixel(0, 1), img_out.get_pixel(1, 2));
         assert_eq!(img_in.get_pixel(1, 1), img_out.get_pixel(1, 1));
         assert_eq!(img_in.get_pixel(2, 1), img_out.get_pixel(1, 0));
+    }
+
+    #[test]
+    fn resize() {
+        let img_in = flip_rotate_test_image();
+
+        let img_out = img_in.resize(30, 21, FilterMode::Nearest);
+        assert_eq!(img_out.width(), 30);
+        assert_eq!(img_out.height(), 21);
     }
 }
