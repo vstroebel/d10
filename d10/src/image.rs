@@ -296,5 +296,9 @@ mod tests {
         let img_out = img_in.resize(30, 21, FilterMode::Bilinear);
         assert_eq!(img_out.width(), 30);
         assert_eq!(img_out.height(), 21);
+
+        let img_out = img_in.resize(30, 21, FilterMode::Bicubic);
+        assert_eq!(img_out.width(), 30);
+        assert_eq!(img_out.height(), 21);
     }
 }
