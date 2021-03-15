@@ -3,10 +3,10 @@ mod utils;
 use utils::*;
 
 use d10_core::pixelbuffer::PixelBuffer;
-use d10_core::color::{Color, RGB, SRGB};
+use d10_core::color::RGB;
 use d10_core::errors::{D10Result, D10Error};
 
-use image::{DynamicImage, GenericImageView, ImageError, ImageBuffer, Rgba, ColorType};
+use image::{ImageError, ImageBuffer, Rgba, ColorType};
 use image::io::Reader;
 use image::codecs::jpeg::JpegEncoder;
 use image::codecs::png::PngEncoder;
@@ -40,78 +40,6 @@ pub enum Format {
         compression: PNGCompressionType,
         filter: PNGFilterType,
     },
-}
-
-fn read_into_buffer(img: DynamicImage) -> D10Result<PixelBuffer<RGB>> {
-    let width = img.width();
-    let height = img.height();
-
-    use image::DynamicImage::*;
-
-    let data = match img {
-        ImageRgb8(img) => img.pixels().map(|pixel| SRGB {
-            data: [f32::from(pixel[0]) / 255.0,
-                f32::from(pixel[1]) / 255.0,
-                f32::from(pixel[2]) / 255.0,
-                1.0]
-        }.to_rgb()).collect(),
-        ImageRgba8(img) => img.pixels().map(|pixel| SRGB {
-            data: [f32::from(pixel[0]) / 255.0,
-                f32::from(pixel[1]) / 255.0,
-                f32::from(pixel[2]) / 255.0,
-                f32::from(pixel[3]) / 255.0]
-        }.to_rgb()).collect(),
-        ImageBgr8(img) => img.pixels().map(|pixel| SRGB {
-            data: [f32::from(pixel[2]) / 255.0,
-                f32::from(pixel[1]) / 255.0,
-                f32::from(pixel[0]) / 255.0,
-                1.0]
-        }.to_rgb()).collect(),
-        ImageBgra8(img) => img.pixels().map(|pixel| SRGB {
-            data: [f32::from(pixel[2]) / 255.0,
-                f32::from(pixel[1]) / 255.0,
-                f32::from(pixel[0]) / 255.0,
-                f32::from(pixel[2]) / 255.0]
-        }.to_rgb()).collect(),
-        ImageRgb16(img) => img.pixels().map(|pixel| SRGB {
-            data: [f32::from(pixel[0]) / 65535.0,
-                f32::from(pixel[1]) / 65535.0,
-                f32::from(pixel[2]) / 65535.0,
-                0.0]
-        }.to_rgb()).collect(),
-        ImageRgba16(img) => img.pixels().map(|pixel| SRGB {
-            data: [f32::from(pixel[0]) / 65535.0,
-                f32::from(pixel[1]) / 65535.0,
-                f32::from(pixel[2]) / 65535.0,
-                f32::from(pixel[3]) / 65535.0]
-        }.to_rgb()).collect(),
-        ImageLuma8(img) => img.pixels().map(|pixel| SRGB {
-            data: [f32::from(pixel[0]) / 255.0,
-                f32::from(pixel[0]) / 255.0,
-                f32::from(pixel[0]) / 255.0,
-                1.0]
-        }.to_rgb()).collect(),
-        ImageLumaA8(img) => img.pixels().map(|pixel| SRGB {
-            data: [f32::from(pixel[0]) / 255.0,
-                f32::from(pixel[0]) / 255.0,
-                f32::from(pixel[0]) / 255.0,
-                f32::from(pixel[1]) / 255.0, ]
-        }.to_rgb()).collect(),
-        ImageLuma16(img) => img.pixels().map(|pixel| SRGB {
-            data: [f32::from(pixel[0]) / 65535.0,
-                f32::from(pixel[0]) / 65535.0,
-                f32::from(pixel[0]) / 65535.0,
-                1.0]
-        }.to_rgb()).collect(),
-        ImageLumaA16(img) => img.pixels().map(|pixel| SRGB {
-            data: [f32::from(pixel[0]) / 65535.0,
-                f32::from(pixel[0]) / 65535.0,
-                f32::from(pixel[0]) / 65535.0,
-                f32::from(pixel[1]) / 65535.0]
-        }.to_rgb()).collect(),
-    };
-
-    PixelBuffer::new_from_raw(width, height, data)
 }
 
 pub struct DecodedImage {
