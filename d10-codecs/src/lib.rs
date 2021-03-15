@@ -22,8 +22,12 @@ pub use image::codecs::png::FilterType as PNGFilterType;
 pub enum PNGColorType {
     L8,
     LA8,
+    L16,
+    LA16,
     RGB8,
     RGBA8,
+    RGB16,
+    RGBA16,
 }
 
 pub enum Format {
@@ -143,7 +147,7 @@ pub fn save_to_file<P>(path: P, buffer: &PixelBuffer<RGB>, format: Format) -> D1
 }
 
 fn save_to_file_auto<P>(path: P, buffer: &PixelBuffer<RGB>) -> D10Result<()> where P: AsRef<Path> {
-    let out = to_rgba32_vec(buffer);
+    let out = to_rgba8_vec(buffer);
 
     let out: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::from_vec(buffer.width(), buffer.height(), out)
         .ok_or_else(|| D10Error::OpenError("Unable to create buffer".to_owned()))?;
@@ -158,7 +162,7 @@ fn save_to_file_auto<P>(path: P, buffer: &PixelBuffer<RGB>) -> D10Result<()> whe
 }
 
 fn save_to_file_jpeg<P>(path: P, buffer: &PixelBuffer<RGB>, quality: u8) -> D10Result<()> where P: AsRef<Path> {
-    let out = to_rgb24_vec(buffer);
+    let out = to_rgb8_vec(buffer);
 
     let mut result = File::open(path)?;
 
@@ -169,12 +173,21 @@ fn save_to_file_jpeg<P>(path: P, buffer: &PixelBuffer<RGB>, quality: u8) -> D10R
     }
 }
 
-fn save_to_file_png<P>(path: P, buffer: &PixelBuffer<RGB>, color_type: PNGColorType, compression: PNGCompressionType, filter: PNGFilterType) -> D10Result<()> where P: AsRef<Path> {
+fn save_to_file_png<P>(path: P,
+                       buffer: &PixelBuffer<RGB>,
+                       color_type: PNGColorType,
+                       compression: PNGCompressionType,
+                       filter: PNGFilterType) -> D10Result<()>
+    where P: AsRef<Path> {
     let (out, color_type) = match color_type {
         PNGColorType::L8 => (to_l8_vec(buffer), ColorType::L8),
         PNGColorType::LA8 => (to_la8_vec(buffer), ColorType::La8),
-        PNGColorType::RGB8 => (to_rgb24_vec(buffer), ColorType::Rgb8),
-        PNGColorType::RGBA8 => (to_rgba32_vec(buffer), ColorType::Rgba8)
+        PNGColorType::L16 => (to_l16_be_vec(buffer), ColorType::L16),
+        PNGColorType::LA16 => (to_la16_be_vec(buffer), ColorType::La16),
+        PNGColorType::RGB8 => (to_rgb8_vec(buffer), ColorType::Rgb8),
+        PNGColorType::RGBA8 => (to_rgba8_vec(buffer), ColorType::Rgba8),
+        PNGColorType::RGB16 => (to_rgb16_be_vec(buffer), ColorType::Rgba16),
+        PNGColorType::RGBA16 => (to_rgba16_be_vec(buffer), ColorType::Rgba16)
     };
 
     let mut result = File::open(path)?;
