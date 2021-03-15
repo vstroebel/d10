@@ -1,6 +1,7 @@
 use crate::{ops, RGB, PixelBuffer, D10Result};
 use std::path::Path;
 use d10_ops::FilterMode;
+use d10_codecs::Format;
 
 #[derive(Clone)]
 pub struct Image {
@@ -59,7 +60,11 @@ impl Image {
     }
 
     pub fn save(&self, path: &str) -> D10Result<()> {
-        crate::codecs::save_to_file(path, &self.buffer)
+        self.save_with_format(path, Format::Auto)
+    }
+
+    pub fn save_with_format(&self, path: &str, format: Format) -> D10Result<()> {
+        crate::codecs::save_to_file(path, &self.buffer, format)
     }
 
     pub fn width(&self) -> u32 {

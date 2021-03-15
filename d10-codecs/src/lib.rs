@@ -2,11 +2,20 @@ use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::{Color, RGB, SRGB};
 use d10_core::errors::{D10Result, D10Error};
 
-use image::{DynamicImage, GenericImageView, ImageError, ImageBuffer, Rgba};
+use image::{DynamicImage, GenericImageView, ImageError, ImageBuffer, Rgba, ColorType};
 use image::io::Reader;
+use image::codecs::jpeg::JpegEncoder;
 
 use std::path::Path;
 use std::io::{Cursor, Read, Seek, BufRead};
+use std::fs::File;
+
+pub enum Format {
+    Auto,
+    JPEG {
+        quality: u8
+    },
+}
 
 fn read_into_buffer(img: DynamicImage) -> D10Result<PixelBuffer<RGB>> {
     let width = img.width();
@@ -104,7 +113,14 @@ fn decode<T>(reader: Reader<T>) -> D10Result<DecodedImage> where T: Read + Seek 
     })
 }
 
-pub fn save_to_file<P>(path: P, buffer: &PixelBuffer<RGB>) -> D10Result<()> where P: AsRef<Path> {
+pub fn save_to_file<P>(path: P, buffer: &PixelBuffer<RGB>, format: Format) -> D10Result<()> where P: AsRef<Path> {
+    match format {
+        Format::JPEG { quality } => save_to_file_jpeg(path, buffer, quality),
+        Format::Auto => save_to_file_auto(path, buffer)
+    }
+}
+
+fn save_to_file_auto<P>(path: P, buffer: &PixelBuffer<RGB>) -> D10Result<()> where P: AsRef<Path> {
     let mut out: Vec<u8> = Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 4);
 
     for color in buffer.data().iter() {
@@ -115,7 +131,7 @@ pub fn save_to_file<P>(path: P, buffer: &PixelBuffer<RGB>) -> D10Result<()> wher
         out.push((color.blue().min(1.0).max(0.0) * 255.0) as u8);
         out.push((color.alpha().min(1.0).max(0.0) * 255.0) as u8);
     }
-
+    
     let out: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::from_vec(buffer.width(), buffer.height(), out)
         .ok_or_else(|| D10Error::OpenError("Unable to create buffer".to_owned()))?;
 
@@ -126,4 +142,24 @@ pub fn save_to_file<P>(path: P, buffer: &PixelBuffer<RGB>) -> D10Result<()> wher
     })?;
 
     Ok(())
+}
+
+fn save_to_file_jpeg<P>(path: P, buffer: &PixelBuffer<RGB>, quality: u8) -> D10Result<()> where P: AsRef<Path> {
+    let mut out: Vec<u8> = Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 3);
+
+    for color in buffer.data().iter() {
+        let color = color.to_srgb();
+
+        out.push((color.red().min(1.0).max(0.0) * 255.0) as u8);
+        out.push((color.green().min(1.0).max(0.0) * 255.0) as u8);
+        out.push((color.blue().min(1.0).max(0.0) * 255.0) as u8);
+    }
+
+    let mut result = File::open(path)?;
+
+    if let Err(err) = JpegEncoder::new_with_quality(&mut result, quality).encode(&out, buffer.width(), buffer.height(), ColorType::Rgb8) {
+        Err(D10Error::SaveError(format!("Save error: {:?}", err)))
+    } else {
+        Ok(())
+    }
 }
