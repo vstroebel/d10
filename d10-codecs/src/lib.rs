@@ -1,3 +1,7 @@
+mod utils;
+
+use utils::as_u8;
+
 use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::{Color, RGB, SRGB};
 use d10_core::errors::{D10Result, D10Error};
@@ -9,6 +13,7 @@ use image::codecs::jpeg::JpegEncoder;
 use std::path::Path;
 use std::io::{Cursor, Read, Seek, BufRead};
 use std::fs::File;
+
 
 pub enum Format {
     Auto,
@@ -126,12 +131,12 @@ fn save_to_file_auto<P>(path: P, buffer: &PixelBuffer<RGB>) -> D10Result<()> whe
     for color in buffer.data().iter() {
         let color = color.to_srgb();
 
-        out.push((color.red().min(1.0).max(0.0) * 255.0) as u8);
-        out.push((color.green().min(1.0).max(0.0) * 255.0) as u8);
-        out.push((color.blue().min(1.0).max(0.0) * 255.0) as u8);
-        out.push((color.alpha().min(1.0).max(0.0) * 255.0) as u8);
+        out.push(as_u8(color.red()));
+        out.push(as_u8(color.green()));
+        out.push(as_u8(color.blue()));
+        out.push(as_u8(color.alpha()));
     }
-    
+
     let out: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::from_vec(buffer.width(), buffer.height(), out)
         .ok_or_else(|| D10Error::OpenError("Unable to create buffer".to_owned()))?;
 
@@ -150,9 +155,9 @@ fn save_to_file_jpeg<P>(path: P, buffer: &PixelBuffer<RGB>, quality: u8) -> D10R
     for color in buffer.data().iter() {
         let color = color.to_srgb();
 
-        out.push((color.red().min(1.0).max(0.0) * 255.0) as u8);
-        out.push((color.green().min(1.0).max(0.0) * 255.0) as u8);
-        out.push((color.blue().min(1.0).max(0.0) * 255.0) as u8);
+        out.push(as_u8(color.red()));
+        out.push(as_u8(color.green()));
+        out.push(as_u8(color.blue()));
     }
 
     let mut result = File::open(path)?;
