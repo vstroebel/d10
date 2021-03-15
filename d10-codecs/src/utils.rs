@@ -58,3 +58,18 @@ pub(crate) fn to_rgba32_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
     out
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_as_u8() {
+        assert_eq!(as_u8(0.0), 0);
+        assert_eq!(as_u8(-0.5), 0);
+
+        assert_eq!(as_u8(1.0), 255);
+        assert_eq!(as_u8(1.5), 255);
+
+        assert_eq!(as_u8(0.5), 127);
+    }
+}
