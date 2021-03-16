@@ -201,6 +201,13 @@ impl Image {
     pub fn resize(&self, new_width: u32, new_height: u32, filter: FilterMode) -> Image {
         Self::new_from_buffer_with_meta(self, ops::resize(&self.buffer, new_width, new_height, filter))
     }
+
+    /// Returns a new image with a simulated jpeg quality
+    ///
+    /// If `preserve_alpha` is not set all alpha values will be set to 1.0
+    pub fn with_jpeg_quality(&self, quality: u8, preserve_alpha: bool) -> D10Result<Image> {
+        Ok(Self::new_from_buffer_with_meta(self, ops::jpeg_quality(&self.buffer, quality, preserve_alpha)?))
+    }
 }
 
 #[cfg(test)]
@@ -209,7 +216,7 @@ mod tests {
     use crate::RGB;
     use d10_ops::FilterMode;
 
-    fn flip_rotate_test_image() -> Image {
+    fn test_image_3_2() -> Image {
         Image::new_from_raw(3, 2, vec![
             RGB::WHITE, RGB::BLACK, RGB::YELLOW,
             RGB::RED, RGB::GREEN, RGB::BLUE
@@ -218,7 +225,7 @@ mod tests {
 
     #[test]
     fn flip_horizontal() {
-        let img_in = flip_rotate_test_image();
+        let img_in = test_image_3_2();
 
         let img_out = img_in.flip_horizontal();
 
@@ -233,7 +240,7 @@ mod tests {
 
     #[test]
     fn flip_vertical() {
-        let img_in = flip_rotate_test_image();
+        let img_in = test_image_3_2();
 
         let img_out = img_in.flip_vertical();
 
@@ -251,7 +258,7 @@ mod tests {
 
     #[test]
     fn rotate90() {
-        let img_in = flip_rotate_test_image();
+        let img_in = test_image_3_2();
 
         let img_out = img_in.rotate90();
 
@@ -269,7 +276,7 @@ mod tests {
 
     #[test]
     fn rotate180() {
-        let img_in = flip_rotate_test_image();
+        let img_in = test_image_3_2();
 
         let img_out = img_in.rotate180();
 
@@ -287,7 +294,7 @@ mod tests {
 
     #[test]
     fn rotate270() {
-        let img_in = flip_rotate_test_image();
+        let img_in = test_image_3_2();
 
         let img_out = img_in.rotate270();
 
@@ -305,7 +312,7 @@ mod tests {
 
     #[test]
     fn resize() {
-        let img_in = flip_rotate_test_image();
+        let img_in = test_image_3_2();
 
         let img_out = img_in.resize(30, 21, FilterMode::Nearest);
         assert_eq!(img_out.width(), 30);
@@ -318,5 +325,24 @@ mod tests {
         let img_out = img_in.resize(30, 21, FilterMode::Bicubic);
         assert_eq!(img_out.width(), 30);
         assert_eq!(img_out.height(), 21);
+    }
+
+    #[test]
+    fn with_jpeg_quality() {
+        let img_in = test_image_3_2();
+
+        let img_out = img_in.with_jpeg_quality(100, true).expect("New image");
+
+        assert_eq!(img_in.width(), img_out.width());
+        assert_eq!(img_in.height(), img_out.height());
+
+        for (c1, c2) in img_in.data().iter().zip(img_out.data().iter()) {
+            for i in 0..=2 {
+                let diff = (c1.data[i] - c2.data[i]).abs();
+
+                // Not exact but if it fails it's definitely not a quality of 100
+                assert!(diff < 0.1)
+            }
+        }
     }
 }
