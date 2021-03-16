@@ -206,6 +206,16 @@ impl Image {
         Self::new_from_buffer_with_meta(self, ops::resize(&self.buffer, new_width, new_height, filter))
     }
 
+    /// Resize image using the given percentage
+    pub fn resize_pct(&self, pct_100: f32, filter: FilterMode) -> Image {
+        let factor = pct_100 / 100.0;
+
+        let width = ((self.width() as f32) * factor).round() as u32;
+        let height = ((self.height() as f32) * factor).round() as u32;
+
+        self.resize(width.max(1), height.max(1), filter)
+    }
+
     /// Returns a new image with a simulated jpeg quality
     ///
     /// If `preserve_alpha` is not set all alpha values will be set to 1.0
@@ -329,6 +339,23 @@ mod tests {
         let img_out = img_in.resize(30, 21, FilterMode::Bicubic);
         assert_eq!(img_out.width(), 30);
         assert_eq!(img_out.height(), 21);
+    }
+
+    #[test]
+    fn resize_pct() {
+        let img_in = test_image_3_2();
+
+        let img_out = img_in.resize_pct(200.0, FilterMode::Nearest);
+        assert_eq!(img_out.width(), 3 * 2);
+        assert_eq!(img_out.height(), 2 * 2);
+
+        let img_out = img_in.resize_pct(33.3, FilterMode::Nearest);
+        assert_eq!(img_out.width(), 1);
+        assert_eq!(img_out.height(), 1);
+
+        let img_out = img_in.resize_pct(1.0, FilterMode::Nearest);
+        assert_eq!(img_out.width(), 1);
+        assert_eq!(img_out.height(), 1);
     }
 
     #[test]
