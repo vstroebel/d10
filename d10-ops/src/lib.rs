@@ -7,6 +7,7 @@ mod jpeg_quality;
 mod random_noise;
 mod salt_n_pepper_noise;
 mod gaussian_blur;
+mod unsharp;
 
 pub use flip::{flip_vertical, flip_horizontal};
 pub use rotate_90::{rotate90, rotate180, rotate270};
@@ -17,3 +18,4 @@ pub use jpeg_quality::jpeg_quality;
 pub use random_noise::{random_noise, add_random_noise};
 pub use salt_n_pepper_noise::{salt_n_pepper_noise, add_salt_n_pepper_noise};
 pub use gaussian_blur::gaussian_blur;
+pub use unsharp::unsharp;

@@ -309,23 +309,25 @@ impl PixelBuffer<RGB> {
     }
 
     pub fn apply_kernel(&self, kernel: &Kernel) -> PixelBuffer<RGB> {
+        self.map_colors_enumerated(|x, y, _| self.get_kernel_value(x, y, kernel))
+    }
+
+    pub fn get_kernel_value(&self, image_x: u32, image_y: u32, kernel: &Kernel) -> RGB {
         let offset_x = kernel.get_offset_x();
         let offset_y = kernel.get_offset_y();
 
-        self.map_colors_enumerated(|image_x, image_y, _| {
-            let mut data = [0.0; 4];
+        let mut data = [0.0; 4];
 
-            for (x, y, kernel_value) in kernel.enumerate() {
-                let color = self.get_pixel_clamped((image_x + x) as i32 - offset_x, (image_y + y) as i32 - offset_y);
+        for (x, y, kernel_value) in kernel.enumerate() {
+            let color = self.get_pixel_clamped((image_x + x) as i32 - offset_x, (image_y + y) as i32 - offset_y);
 
-                for (value, color_value) in data.iter_mut().zip(color.data.iter()) {
-                    *value += color_value * kernel_value;
-                }
+            for (value, color_value) in data.iter_mut().zip(color.data.iter()) {
+                *value += color_value * kernel_value;
             }
+        }
 
-            RGB {
-                data
-            }
-        })
+        RGB {
+            data
+        }
     }
 }

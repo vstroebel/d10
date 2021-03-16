@@ -247,6 +247,11 @@ impl Image {
     pub fn gaussian_blur(&self, radius: u32, sigma: f32) -> Image {
         Self::new_from_buffer_with_meta(self, ops::gaussian_blur(&self.buffer, radius, sigma))
     }
+
+    /// Return a new image with unsharp mask applied
+    pub fn unsharp(&self, radius: u32, sigma: f32, factor: f32) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::unsharp(&self.buffer, radius, sigma, factor))
+    }
 }
 
 #[cfg(test)]
@@ -441,6 +446,18 @@ mod tests {
         let img_in = test_image_3_2();
 
         let img_out = img_in.gaussian_blur(1, 0.5);
+
+        assert_eq!(img_in.width(), img_out.width());
+        assert_eq!(img_in.height(), img_out.height());
+    }
+
+    #[test]
+    fn unsharp() {
+        //TODO:  Add test if image is sharpened
+
+        let img_in = test_image_3_2();
+
+        let img_out = img_in.unsharp(1, 0.5, 0.5);
 
         assert_eq!(img_in.width(), img_out.width());
         assert_eq!(img_in.height(), img_out.height());
