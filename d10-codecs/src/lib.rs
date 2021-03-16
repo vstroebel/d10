@@ -42,6 +42,21 @@ pub enum Format {
     },
 }
 
+impl Format {
+    pub fn jpeg_default() -> Self {
+        Self::JPEG {
+            quality: 85
+        }
+    }
+    pub fn png_default() -> Self {
+        Self::PNG {
+            color_type: PNGColorType::RGBA8,
+            compression: PNGCompressionType::Default,
+            filter: PNGFilterType::Sub,
+        }
+    }
+}
+
 pub struct DecodedImage {
     pub buffer: PixelBuffer<RGB>
 }
