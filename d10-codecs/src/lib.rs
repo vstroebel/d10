@@ -92,7 +92,7 @@ fn save_to_file_auto<P>(path: P, buffer: &PixelBuffer<RGB>) -> D10Result<()> whe
 fn save_to_file_jpeg<P>(path: P, buffer: &PixelBuffer<RGB>, quality: u8) -> D10Result<()> where P: AsRef<Path> {
     let out = to_rgb8_vec(buffer);
 
-    let mut result = File::open(path)?;
+    let mut result = File::create(path)?;
 
     if let Err(err) = JpegEncoder::new_with_quality(&mut result, quality).encode(&out, buffer.width(), buffer.height(), ColorType::Rgb8) {
         Err(D10Error::SaveError(format!("Save error: {:?}", err)))
@@ -118,7 +118,7 @@ fn save_to_file_png<P>(path: P,
         PNGColorType::RGBA16 => (to_rgba16_be_vec(buffer), ColorType::Rgba16)
     };
 
-    let mut result = File::open(path)?;
+    let mut result = File::create(path)?;
 
     if let Err(err) = PngEncoder::new_with_quality(&mut result, compression, filter)
         .encode(&out, buffer.width(), buffer.height(), color_type) {
