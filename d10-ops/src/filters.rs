@@ -1,6 +1,7 @@
 use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::RGB;
 
+#[derive(Copy, Clone, Debug)]
 pub enum FilterMode {
     Nearest,
     Bilinear,
