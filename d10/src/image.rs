@@ -232,6 +232,16 @@ impl Image {
     pub fn add_random_noise(&mut self, alpha: f32) {
         ops::add_random_noise(&mut self.buffer, alpha);
     }
+
+    /// Return a new image with salt n pepper noise
+    pub fn salt_n_pepper_noise(&self, threshold: f32) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::salt_n_pepper_noise(&self.buffer, threshold))
+    }
+
+    /// Add salt n pepper noise to the image
+    pub fn add_salt_n_pepper_noise(&mut self, threshold: f32) {
+        ops::add_salt_n_pepper_noise(&mut self.buffer, threshold);
+    }
 }
 
 #[cfg(test)]
@@ -389,6 +399,22 @@ mod tests {
 
     #[test]
     fn random_noise() {
+        //TODO:  Add real test that checks if there is actually a noise added
+
+        let img_in = test_image_3_2();
+
+        let img_out = img_in.random_noise(0.5);
+
+        assert_eq!(img_in.width(), img_out.width());
+        assert_eq!(img_in.height(), img_out.height());
+
+        let mut img_in = test_image_3_2();
+
+        img_in.add_random_noise(0.5);
+    }
+
+    #[test]
+    fn salt_n_pepper_noise() {
         //TODO:  Add real test that checks if there is actually a noise added
 
         let img_in = test_image_3_2();
