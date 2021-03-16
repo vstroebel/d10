@@ -89,6 +89,14 @@ pub fn save_to_file<P>(path: P, buffer: &PixelBuffer<RGB>, format: Format) -> D1
     }
 }
 
+pub fn save<W>(w: &mut W, buffer: &PixelBuffer<RGB>, format: Format) -> D10Result<()> where W: Write {
+    match format {
+        Format::JPEG { quality } => save_jpeg(w, buffer, quality),
+        Format::PNG { color_type, compression, filter } => save_png(w, buffer, color_type, compression, filter),
+        Format::Auto => save_png(w, buffer, PNGColorType::RGBA8, PNGCompressionType::Default, PNGFilterType::Sub)
+    }
+}
+
 fn save_to_file_auto<P>(path: P, buffer: &PixelBuffer<RGB>) -> D10Result<()> where P: AsRef<Path> {
     let out = to_rgba8_vec(buffer);
 
