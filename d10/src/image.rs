@@ -18,7 +18,7 @@ impl Image {
         }
     }
 
-    pub fn new_with_color(width: u32, height: u32, color: &RGB) -> Image {
+    pub fn new_with_color(width: u32, height: u32, color: RGB) -> Image {
         Image {
             buffer: PixelBuffer::new_with_color(width, height, color).expect("New image"),
             bg_color: None,
@@ -152,7 +152,7 @@ impl Image {
         self.buffer.get_pixel(x, y)
     }
 
-    pub fn set_pixel(&mut self, x: u32, y: u32, color: &RGB) {
+    pub fn set_pixel(&mut self, x: u32, y: u32, color: RGB) {
         self.buffer.set_pixel(x, y, color);
     }
 

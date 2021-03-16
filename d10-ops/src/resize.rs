@@ -76,19 +76,19 @@ mod tests {
     }
 
     fn check_resize(color: RGB, filter: FilterMode) {
-        let img_in = PixelBuffer::new_with_color(100, 100, &color).unwrap();
+        let img_in = PixelBuffer::new_with_color(100, 100, color).unwrap();
         let img_out = resize(&img_in, 133, 166, filter);
         check_color(&img_out, color);
         assert_eq!(img_out.width(), 133);
         assert_eq!(img_out.height(), 166);
 
-        let img_in = PixelBuffer::new_with_color(100, 100, &color).unwrap();
+        let img_in = PixelBuffer::new_with_color(100, 100, color).unwrap();
         let img_out = resize(&img_in, 66, 33, filter);
         check_color(&img_out, color);
         assert_eq!(img_out.width(), 66);
         assert_eq!(img_out.height(), 33);
 
-        let img_in = PixelBuffer::new_with_color(100, 100, &color).unwrap();
+        let img_in = PixelBuffer::new_with_color(100, 100, color).unwrap();
         let img_out = resize(&img_in, 9, 8, filter);
         check_color(&img_out, color);
         assert_eq!(img_out.width(), 9);

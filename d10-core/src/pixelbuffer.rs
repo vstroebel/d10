@@ -31,16 +31,16 @@ impl<T: Color> PixelBuffer<T> {
     /// As of now this will abort the application if there is an Out-Of-Memory error
     /// during buffer allocation.
     pub fn new(width: u32, height: u32) -> D10Result<PixelBuffer<T>> {
-        Self::new_with_color(width, height, &T::default())
+        Self::new_with_color(width, height, T::default())
     }
 
-    pub fn new_with_color(width: u32, height: u32, color: &T) -> D10Result<PixelBuffer<T>> {
+    pub fn new_with_color(width: u32, height: u32, color: T) -> D10Result<PixelBuffer<T>> {
         validate_size(width, height)?;
 
         Ok(PixelBuffer {
             width,
             height,
-            data: vec![*color; (width * height) as usize],
+            data: vec![color; (width * height) as usize],
         })
     }
 
@@ -174,10 +174,10 @@ impl<T: Color> PixelBuffer<T> {
         &self.data[(x + y * self.width) as usize]
     }
 
-    pub fn set_pixel(&mut self, x: u32, y: u32, color: &T) {
+    pub fn set_pixel(&mut self, x: u32, y: u32, color: T) {
         assert!(x < self.width);
         assert!(y < self.height);
-        self.data[(x + y * self.width) as usize] = *color;
+        self.data[(x + y * self.width) as usize] = color;
     }
 
     pub fn get_pixel_clamped(&self, x: i32, y: i32) -> &T {
