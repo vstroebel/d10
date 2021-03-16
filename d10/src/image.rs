@@ -60,11 +60,15 @@ impl Image {
         Ok(Self::new_from_buffer(buffer))
     }
 
-    pub fn save(&self, path: &str) -> D10Result<()> {
+    pub fn save<P>(&self, path: P) -> D10Result<()>
+        where P: AsRef<Path>
+    {
         self.save_with_format(path, Format::Auto)
     }
 
-    pub fn save_with_format(&self, path: &str, format: Format) -> D10Result<()> {
+    pub fn save_with_format<P>(&self, path: P, format: Format) -> D10Result<()>
+        where P: AsRef<Path>
+    {
         crate::codecs::save_to_file(path, &self.buffer, format)
     }
 
