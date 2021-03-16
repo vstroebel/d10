@@ -242,6 +242,11 @@ impl Image {
     pub fn add_salt_n_pepper_noise(&mut self, threshold: f32) {
         ops::add_salt_n_pepper_noise(&mut self.buffer, threshold);
     }
+
+    /// Return a new image with gaussian blur
+    pub fn gaussian_blur(&self, radius: u32, sigma: f32) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::gaussian_blur(&self.buffer, radius, sigma))
+    }
 }
 
 #[cfg(test)]
@@ -427,5 +432,17 @@ mod tests {
         let mut img_in = test_image_3_2();
 
         img_in.add_random_noise(0.5);
+    }
+
+    #[test]
+    fn gaussian_blur() {
+        //TODO:  Add test if image is blurry
+
+        let img_in = test_image_3_2();
+
+        let img_out = img_in.gaussian_blur(1, 0.5);
+
+        assert_eq!(img_in.width(), img_out.width());
+        assert_eq!(img_in.height(), img_out.height());
     }
 }
