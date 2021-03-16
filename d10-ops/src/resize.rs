@@ -61,3 +61,66 @@ pub fn resize(buffer: &PixelBuffer<RGB>, new_width: u32, new_height: u32, filter
         FilterMode::Bicubic => resize_bicubic(buffer, new_width, new_height),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    //NOTE: All of this test only check if images with only one color don't have any visual corruptions
+    //      Testing the algorithms itself should be done in external integration tests
+
+    fn check_color(buffer: &PixelBuffer<RGB>, color: RGB) {
+        for (x, y, c) in buffer.enumerate() {
+            assert_eq!(c, color, "Bad color at position {}x{}: Expected {:?} got {:?}", x, y, color, c)
+        }
+    }
+
+    fn check_resize(color: RGB, filter: FilterMode) {
+        let img_in = PixelBuffer::new_with_color(100, 100, &color).unwrap();
+        let img_out = resize(&img_in, 133, 166, filter);
+        check_color(&img_out, color);
+        assert_eq!(img_out.width(), 133);
+        assert_eq!(img_out.height(), 166);
+
+        let img_in = PixelBuffer::new_with_color(100, 100, &color).unwrap();
+        let img_out = resize(&img_in, 66, 33, filter);
+        check_color(&img_out, color);
+        assert_eq!(img_out.width(), 66);
+        assert_eq!(img_out.height(), 33);
+
+        let img_in = PixelBuffer::new_with_color(100, 100, &color).unwrap();
+        let img_out = resize(&img_in, 9, 8, filter);
+        check_color(&img_out, color);
+        assert_eq!(img_out.width(), 9);
+        assert_eq!(img_out.height(), 8);
+    }
+
+    fn check_resize_colors(filter: FilterMode) {
+        check_resize(RGB::BLACK, filter);
+        check_resize(RGB::WHITE, filter);
+        check_resize(RGB::RED, filter);
+        check_resize(RGB::GREEN, filter);
+        check_resize(RGB::BLUE, filter);
+        check_resize(RGB::CYAN, filter);
+        check_resize(RGB::MAGENTA, filter);
+        check_resize(RGB::YELLOW, filter);
+        check_resize(RGB::new(0.5, 0.5, 0.5), filter);
+        check_resize(RGB::new(1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0), filter);
+        check_resize(RGB::new(2.0 / 3.0, 2.0 / 3.0, 2.0 / 3.0), filter);
+    }
+
+    #[test]
+    fn test_nearest() {
+        check_resize_colors(FilterMode::Nearest);
+    }
+
+    #[test]
+    fn test_bilinear() {
+        check_resize_colors(FilterMode::Bilinear);
+    }
+
+    #[test]
+    fn test_bicubic() {
+        check_resize_colors(FilterMode::Bicubic);
+    }
+}
