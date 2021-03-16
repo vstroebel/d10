@@ -12,7 +12,7 @@ use image::codecs::jpeg::JpegEncoder;
 use image::codecs::png::PngEncoder;
 
 use std::path::Path;
-use std::io::{Cursor, Read, Seek, BufRead};
+use std::io::{Cursor, Read, Seek, BufRead, Write};
 use std::fs::File;
 
 //TODO: Wrap types to not export image crate internals
@@ -83,8 +83,8 @@ fn decode<T>(reader: Reader<T>) -> D10Result<DecodedImage> where T: Read + Seek 
 
 pub fn save_to_file<P>(path: P, buffer: &PixelBuffer<RGB>, format: Format) -> D10Result<()> where P: AsRef<Path> {
     match format {
-        Format::JPEG { quality } => save_to_file_jpeg(path, buffer, quality),
-        Format::PNG { color_type, compression, filter } => save_to_file_png(path, buffer, color_type, compression, filter),
+        Format::JPEG { quality } => save_jpeg(&mut File::create(path)?, buffer, quality),
+        Format::PNG { color_type, compression, filter } => save_png(&mut File::create(path)?, buffer, color_type, compression, filter),
         Format::Auto => save_to_file_auto(path, buffer)
     }
 }
@@ -104,24 +104,22 @@ fn save_to_file_auto<P>(path: P, buffer: &PixelBuffer<RGB>) -> D10Result<()> whe
     Ok(())
 }
 
-fn save_to_file_jpeg<P>(path: P, buffer: &PixelBuffer<RGB>, quality: u8) -> D10Result<()> where P: AsRef<Path> {
+fn save_jpeg<W>(w: &mut W, buffer: &PixelBuffer<RGB>, quality: u8) -> D10Result<()> where W: Write {
     let out = to_rgb8_vec(buffer);
 
-    let mut result = File::create(path)?;
-
-    if let Err(err) = JpegEncoder::new_with_quality(&mut result, quality).encode(&out, buffer.width(), buffer.height(), ColorType::Rgb8) {
+    if let Err(err) = JpegEncoder::new_with_quality(w, quality).encode(&out, buffer.width(), buffer.height(), ColorType::Rgb8) {
         Err(D10Error::SaveError(format!("Save error: {:?}", err)))
     } else {
         Ok(())
     }
 }
 
-fn save_to_file_png<P>(path: P,
-                       buffer: &PixelBuffer<RGB>,
-                       color_type: PNGColorType,
-                       compression: PNGCompressionType,
-                       filter: PNGFilterType) -> D10Result<()>
-    where P: AsRef<Path> {
+fn save_png<W>(w: &mut W,
+               buffer: &PixelBuffer<RGB>,
+               color_type: PNGColorType,
+               compression: PNGCompressionType,
+               filter: PNGFilterType) -> D10Result<()>
+    where W: Write {
     let (out, color_type) = match color_type {
         PNGColorType::L8 => (to_l8_vec(buffer), ColorType::L8),
         PNGColorType::LA8 => (to_la8_vec(buffer), ColorType::La8),
@@ -133,12 +131,11 @@ fn save_to_file_png<P>(path: P,
         PNGColorType::RGBA16 => (to_rgba16_be_vec(buffer), ColorType::Rgba16)
     };
 
-    let mut result = File::create(path)?;
-
-    if let Err(err) = PngEncoder::new_with_quality(&mut result, compression, filter)
+    if let Err(err) = PngEncoder::new_with_quality(w, compression, filter)
         .encode(&out, buffer.width(), buffer.height(), color_type) {
         Err(D10Error::SaveError(format!("Save error: {:?}", err)))
     } else {
         Ok(())
     }
 }
+
