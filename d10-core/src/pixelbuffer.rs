@@ -92,7 +92,7 @@ impl<T: Color> PixelBuffer<T> {
             .map(move |(i, v)| (i as u32 % width, i as u32 / width, v))
     }
 
-    pub fn mod_colors<F: Fn(&T) -> T>(&mut self, func: F) {
+    pub fn mod_colors<F: FnMut(&T) -> T>(&mut self, mut func: F) {
         for pixel in self.data.iter_mut() {
             let new_color = func(pixel);
 
@@ -100,7 +100,7 @@ impl<T: Color> PixelBuffer<T> {
         }
     }
 
-    pub fn try_mod_colors<E, F: Fn(&T) -> Result<T, E>>(&mut self, func: F) -> Result<(), E> {
+    pub fn try_mod_colors<E, F: FnMut(&T) -> Result<T, E>>(&mut self, mut func: F) -> Result<(), E> {
         for pixel in self.data.iter_mut() {
             let new_color = func(pixel)?;
 
