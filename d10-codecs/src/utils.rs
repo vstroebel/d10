@@ -2,6 +2,7 @@ use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::{Color, RGB, SRGB};
 use d10_core::errors::D10Result;
 use image::{DynamicImage, GenericImageView};
+use byteorder::{BigEndian, WriteBytesExt};
 
 /// Convert color channel value between 0.0 and 1.0 into an u8
 pub(crate) fn as_u8(value: f32) -> u8 {
@@ -11,16 +12,6 @@ pub(crate) fn as_u8(value: f32) -> u8 {
 /// Convert color channel value between 0.0 and 1.0 into an u16
 pub(crate) fn as_u16(value: f32) -> u16 {
     (value * 65535.0).clamp(0.0, 65535.0) as u16
-}
-
-/// Convert color channel value between 0.0 and 1.0 into an big endian tuple of u8
-pub(crate) fn as_u16_be(value: f32) -> (u8, u8) {
-    let value = as_u16(value);
-
-    let v1 = (value >> 8) as u8;
-    let v2 = (value & 0x00ff) as u8;
-
-    (v1, v2)
 }
 
 pub(crate) fn to_l8_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
@@ -81,9 +72,7 @@ pub(crate) fn to_l16_be_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
     for color in buffer.data().iter() {
         let color = color.to_gray().to_srgb();
 
-        let (v1, v2) = as_u16_be(color.red());
-        out.push(v1);
-        out.push(v2);
+        out.write_u16::<BigEndian>(as_u16(color.red())).unwrap();
     }
 
     out
@@ -96,13 +85,8 @@ pub(crate) fn to_la16_be_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
     for color in buffer.data().iter() {
         let color = color.to_gray().to_srgb();
 
-        let (v1, v2) = as_u16_be(color.red());
-        out.push(v1);
-        out.push(v2);
-
-        let (v1, v2) = as_u16_be(color.alpha());
-        out.push(v1);
-        out.push(v2);
+        out.write_u16::<BigEndian>(as_u16(color.red())).unwrap();
+        out.write_u16::<BigEndian>(as_u16(color.alpha())).unwrap();
     }
 
     out
@@ -114,17 +98,9 @@ pub(crate) fn to_rgb16_be_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
     for color in buffer.data().iter() {
         let color = color.to_srgb();
 
-        let (v1, v2) = as_u16_be(color.red());
-        out.push(v1);
-        out.push(v2);
-
-        let (v1, v2) = as_u16_be(color.green());
-        out.push(v1);
-        out.push(v2);
-
-        let (v1, v2) = as_u16_be(color.blue());
-        out.push(v1);
-        out.push(v2);
+        out.write_u16::<BigEndian>(as_u16(color.red())).unwrap();
+        out.write_u16::<BigEndian>(as_u16(color.green())).unwrap();
+        out.write_u16::<BigEndian>(as_u16(color.blue())).unwrap();
     }
 
     out
@@ -136,21 +112,10 @@ pub(crate) fn to_rgba16_be_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
     for color in buffer.data().iter() {
         let color = color.to_srgb();
 
-        let (v1, v2) = as_u16_be(color.red());
-        out.push(v1);
-        out.push(v2);
-
-        let (v1, v2) = as_u16_be(color.green());
-        out.push(v1);
-        out.push(v2);
-
-        let (v1, v2) = as_u16_be(color.blue());
-        out.push(v1);
-        out.push(v2);
-
-        let (v1, v2) = as_u16_be(color.alpha());
-        out.push(v1);
-        out.push(v2);
+        out.write_u16::<BigEndian>(as_u16(color.red())).unwrap();
+        out.write_u16::<BigEndian>(as_u16(color.green())).unwrap();
+        out.write_u16::<BigEndian>(as_u16(color.blue())).unwrap();
+        out.write_u16::<BigEndian>(as_u16(color.alpha())).unwrap();
     }
 
     out
@@ -252,16 +217,5 @@ mod tests {
         assert_eq!(as_u16(1.5), 65535);
 
         assert_eq!(as_u16(0.5), 32767);
-    }
-
-    #[test]
-    fn test_as_u16_be() {
-        assert_eq!(as_u16_be(0.0), (0, 0));
-        assert_eq!(as_u16_be(-0.5), (0, 0));
-
-        assert_eq!(as_u16_be(1.0), (255, 255));
-        assert_eq!(as_u16_be(1.5), (255, 255));
-
-        assert_eq!(as_u16_be(0.5), (127, 255));
     }
 }
