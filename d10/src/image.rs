@@ -222,6 +222,16 @@ impl Image {
     pub fn with_jpeg_quality(&self, quality: u8, preserve_alpha: bool) -> D10Result<Image> {
         Ok(Self::new_from_buffer_with_meta(self, ops::jpeg_quality(&self.buffer, quality, preserve_alpha)?))
     }
+
+    /// Add random noise to the image
+    pub fn random_noise(&self, alpha: f32) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::random_noise(&self.buffer, alpha))
+    }
+
+    /// Add random noise to the image
+    pub fn add_random_noise(&mut self, alpha: f32) {
+        ops::add_random_noise(&mut self.buffer, alpha);
+    }
 }
 
 #[cfg(test)]
@@ -375,5 +385,21 @@ mod tests {
                 assert!(diff < 0.1)
             }
         }
+    }
+
+    #[test]
+    fn random_noise() {
+        //TODO:  Add real test that checks if there is actually a noise added
+
+        let img_in = test_image_3_2();
+
+        let img_out = img_in.random_noise(0.5);
+
+        assert_eq!(img_in.width(), img_out.width());
+        assert_eq!(img_in.height(), img_out.height());
+
+        let mut img_in = test_image_3_2();
+
+        img_in.add_random_noise(0.5);
     }
 }
