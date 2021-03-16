@@ -309,6 +309,14 @@ impl Color for RGB {
     fn data(&self) -> &[f32] {
         &self.data
     }
+
+    fn map_color_channels<F: FnMut(f32) -> f32>(&self, mut func: F) -> Self {
+        Self::new_with_alpha(
+            func(self.data[0]),
+            func(self.data[1]),
+            func(self.data[2]),
+            self.data[3])
+    }
 }
 
 impl PartialEq for RGB {

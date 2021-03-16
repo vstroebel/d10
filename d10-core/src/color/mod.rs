@@ -142,4 +142,7 @@ pub trait Color: Copy + Clone + Default + PartialEq {
     fn has_transparency(&self) -> bool {
         (1.0 - self.alpha()).abs() > EPSILON
     }
+
+    /// Map all color channels and return a new color with the same alpha value
+    fn map_color_channels<F: FnMut(f32) -> f32>(&self, func: F) -> Self;
 }

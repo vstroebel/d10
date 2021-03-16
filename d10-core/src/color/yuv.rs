@@ -69,6 +69,14 @@ impl Color for YUV {
     fn alpha(&self) -> f32 {
         self.data[3]
     }
+
+    fn map_color_channels<F: FnMut(f32) -> f32>(&self, mut func: F) -> Self {
+        Self::new_with_alpha(
+            func(self.data[0]),
+            func(self.data[1]),
+            func(self.data[2]),
+            self.data[3])
+    }
 }
 
 impl PartialEq for YUV {
