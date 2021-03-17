@@ -161,7 +161,7 @@ pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug + Disp
 pub(crate) fn format_color<C: Color>(color: &C, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     let with_alpha = color.has_transparency();
 
-    let mut result = String::with_capacity(20);
+    let mut result = String::with_capacity(28);
 
     result.push_str(color.type_name());
     if with_alpha {
