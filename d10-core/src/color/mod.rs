@@ -147,4 +147,6 @@ pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug {
 
     /// Map all color channels and return a new color with the same alpha value
     fn map_color_channels<F: FnMut(f32) -> f32>(&self, func: F) -> Self;
+
+    fn type_name(&self) -> &'static str;
 }

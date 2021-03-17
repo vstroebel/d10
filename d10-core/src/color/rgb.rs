@@ -317,6 +317,10 @@ impl Color for RGB {
             func(self.data[2]),
             self.data[3])
     }
+
+    fn type_name(&self) -> &'static str {
+        "rgb"
+    }
 }
 
 impl PartialEq for RGB {
@@ -333,6 +337,7 @@ impl PartialEq for RGB {
 #[cfg(test)]
 mod tests {
     use super::RGB;
+    use crate::color::Color;
 
     #[test]
     fn test_with_gamma() {
@@ -392,5 +397,10 @@ mod tests {
 
         assert_eq!(RGB::new(0.1, 0.2, 0.3).with_level(0.05, 1.05, 1.0),
                    RGB::new(0.05, 0.15, 0.25));
+    }
+
+    #[test]
+    fn type_name(){
+        assert_eq!(RGB::default().type_name(), "rgb");
     }
 }

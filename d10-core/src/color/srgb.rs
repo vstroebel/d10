@@ -62,6 +62,10 @@ impl Color for SRGB {
             func(self.data[2]),
             self.data[3])
     }
+
+    fn type_name(&self) -> &'static str {
+        "srgb"
+    }
 }
 
 impl PartialEq for SRGB {
@@ -90,5 +94,15 @@ pub fn linear_to_gamma(value: f32) -> f32 {
         1.055 * value.powf(1.0 / 2.4) - 0.055
     } else {
         12.92 * value
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::color::{Color, SRGB};
+
+    #[test]
+    fn type_name() {
+        assert_eq!(SRGB::default().type_name(), "srgb");
     }
 }

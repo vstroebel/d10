@@ -105,6 +105,10 @@ impl Color for HSV {
             func(self.data[2]),
             self.data[3])
     }
+
+    fn type_name(&self) -> &'static str {
+        "hsv"
+    }
 }
 
 impl PartialEq for HSV {
@@ -153,5 +157,10 @@ mod tests {
             assert_eq!(HSV::new(from.0, from.1, from.2).to_rgb(), RGB::new(to.0, to.1, to.2),
                        "Error in conversion from {:?} to {:?}", from, to);
         }
+    }
+
+    #[test]
+    fn type_name() {
+        assert_eq!(HSV::default().type_name(), "hsv");
     }
 }

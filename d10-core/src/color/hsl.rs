@@ -101,6 +101,10 @@ impl Color for HSL {
             func(self.data[2]),
             self.data[3])
     }
+
+    fn type_name(&self) -> &'static str {
+        "hsl"
+    }
 }
 
 impl PartialEq for HSL {
@@ -149,5 +153,10 @@ mod tests {
             assert_eq!(HSL::new(from.0, from.1, from.2).to_rgb(), RGB::new(to.0, to.1, to.2),
                        "Error in conversion from {:?} to {:?}", from, to);
         }
+    }
+
+    #[test]
+    fn type_name() {
+        assert_eq!(HSL::default().type_name(), "hsl");
     }
 }
