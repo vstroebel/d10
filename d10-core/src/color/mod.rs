@@ -12,6 +12,8 @@ pub use hsl::HSL;
 pub use yuv::YUV;
 pub use iter::{ColorIter, ColorIterRef};
 
+use std::fmt::Debug;
+
 // Minimal error to detect identical colors channel values
 //
 // The precision is based on `2.pow(15)` because we want to be somewhere near 16 Bit per channel
@@ -22,7 +24,7 @@ pub(crate) fn clamp(value: f32) -> f32 {
     value.min(1.0).max(0.0)
 }
 
-pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync {
+pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug {
     fn to_rgb(&self) -> RGB;
 
     fn alpha(&self) -> f32;
