@@ -1,4 +1,6 @@
 use super::{Color, RGB, EPSILON};
+use std::fmt::Display;
+use crate::color::format_color;
 
 #[derive(Debug, Copy, Clone)]
 pub struct HSL {
@@ -118,6 +120,12 @@ impl PartialEq for HSL {
     }
 }
 
+impl Display for HSL {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        format_color(self, f)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::color::{RGB, HSL, Color};
@@ -158,5 +166,14 @@ mod tests {
     #[test]
     fn type_name() {
         assert_eq!(HSL::default().type_name(), "hsl");
+    }
+
+    #[test]
+    fn to_string() {
+        assert_eq!(HSL::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(), "hsl(0.0, 0.0, 0.0)");
+        assert_eq!(HSL::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(), "hsl(1.0, 1.0, 1.0)");
+        assert_eq!(HSL::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "hsla(0.0, 0.0, 0.0, 0.0)");
+        assert_eq!(HSL::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "hsla(0.3, 0.6, 0.9, 0.5)");
+        assert_eq!(HSL::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "hsla(0.33, 0.666, 0.999, 0.5555)");
     }
 }

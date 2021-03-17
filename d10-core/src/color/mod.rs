@@ -12,7 +12,7 @@ pub use hsl::HSL;
 pub use yuv::YUV;
 pub use iter::{ColorIter, ColorIterRef};
 
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 
 // Minimal error to detect identical colors channel values
 //
@@ -24,7 +24,7 @@ pub(crate) fn clamp(value: f32) -> f32 {
     value.min(1.0).max(0.0)
 }
 
-pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug {
+pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug + Display {
     fn to_rgb(&self) -> RGB;
 
     fn alpha(&self) -> f32;
@@ -150,3 +150,51 @@ pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug {
 
     fn type_name(&self) -> &'static str;
 }
+
+// A generic implementation to format a color as a CSS alike string use to implement the Display trait
+//
+// TODO: Improve performance by directly writing parts to the formatter
+pub(crate) fn format_color<C: Color>(color: &C, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let with_alpha = color.has_transparency();
+
+    let mut result = String::with_capacity(20);
+
+    result.push_str(color.type_name());
+    if with_alpha {
+        result.push('a');
+    }
+
+    result.push('(');
+
+    fn format_f32(v: f32) -> String {
+        let v = (v * 10_000f32).round() / 10_000f32;
+
+        let mut v = v.to_string();
+        if !v.contains('.') {
+            v.push_str(".0");
+        }
+
+        v
+    }
+
+    let data = color.data();
+
+    for v in &data[..data.len() - 1] {
+        result.push_str(&format_f32(*v));
+        result.push_str(", ");
+    }
+
+    if with_alpha {
+        result.push_str(&format_f32(color.alpha()));
+    } else {
+        result.pop();
+        result.pop();
+    }
+
+    result.push(')');
+
+    f.write_str(&result)?;
+
+    Ok(())
+}
+

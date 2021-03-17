@@ -1,4 +1,5 @@
-use crate::color::{Color, RGB, clamp, EPSILON};
+use crate::color::{Color, RGB, clamp, EPSILON, format_color};
+use std::fmt::Display;
 
 #[derive(Debug, Copy, Clone)]
 pub struct SRGB {
@@ -79,6 +80,12 @@ impl PartialEq for SRGB {
     }
 }
 
+impl Display for SRGB {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        format_color(self, f)
+    }
+}
+
 /// Convert a single component value from sRGB to linear RGB
 pub fn gamma_to_linear(value: f32) -> f32 {
     if value > 0.04045 {
@@ -104,5 +111,14 @@ mod tests {
     #[test]
     fn type_name() {
         assert_eq!(SRGB::default().type_name(), "srgb");
+    }
+
+    #[test]
+    fn to_string() {
+        assert_eq!(SRGB::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(), "srgb(0.0, 0.0, 0.0)");
+        assert_eq!(SRGB::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(), "srgb(1.0, 1.0, 1.0)");
+        assert_eq!(SRGB::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "srgba(0.0, 0.0, 0.0, 0.0)");
+        assert_eq!(SRGB::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "srgba(0.3, 0.6, 0.9, 0.5)");
+        assert_eq!(SRGB::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "srgba(0.33, 0.666, 0.999, 0.5555)");
     }
 }

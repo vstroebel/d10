@@ -1,4 +1,6 @@
 use super::{Color, RGB, SRGB, EPSILON};
+use std::fmt::Display;
+use crate::color::format_color;
 
 #[derive(Debug, Copy, Clone)]
 pub struct YUV {
@@ -94,6 +96,12 @@ impl PartialEq for YUV {
     }
 }
 
+impl Display for YUV {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        format_color(self, f)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::color::{RGB, YUV, Color};
@@ -136,5 +144,14 @@ mod tests {
     #[test]
     fn type_name() {
         assert_eq!(YUV::default().type_name(), "yuv");
+    }
+
+    #[test]
+    fn to_string() {
+        assert_eq!(YUV::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(), "yuv(0.0, 0.0, 0.0)");
+        assert_eq!(YUV::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(), "yuv(1.0, 1.0, 1.0)");
+        assert_eq!(YUV::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "yuva(0.0, 0.0, 0.0, 0.0)");
+        assert_eq!(YUV::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "yuva(0.3, 0.6, 0.9, 0.5)");
+        assert_eq!(YUV::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "yuva(0.33, 0.666, 0.999, 0.5555)");
     }
 }

@@ -2,6 +2,8 @@ use crate::errors::D10Error;
 use super::{Color, clamp, EPSILON, HSL};
 
 use std::convert::TryFrom;
+use std::fmt::Display;
+use crate::color::format_color;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Intensity {
@@ -334,6 +336,12 @@ impl PartialEq for RGB {
     }
 }
 
+impl Display for RGB {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        format_color(self, f)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::RGB;
@@ -400,7 +408,16 @@ mod tests {
     }
 
     #[test]
-    fn type_name(){
+    fn type_name() {
         assert_eq!(RGB::default().type_name(), "rgb");
+    }
+
+    #[test]
+    fn to_string() {
+        assert_eq!(RGB::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(), "rgb(0.0, 0.0, 0.0)");
+        assert_eq!(RGB::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(), "rgb(1.0, 1.0, 1.0)");
+        assert_eq!(RGB::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "rgba(0.0, 0.0, 0.0, 0.0)");
+        assert_eq!(RGB::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "rgba(0.3, 0.6, 0.9, 0.5)");
+        assert_eq!(RGB::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "rgba(0.33, 0.666, 0.999, 0.5555)");
     }
 }
