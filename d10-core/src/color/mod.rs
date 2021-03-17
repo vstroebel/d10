@@ -22,7 +22,7 @@ pub(crate) fn clamp(value: f32) -> f32 {
     value.min(1.0).max(0.0)
 }
 
-pub trait Color: Copy + Clone + Default + PartialEq {
+pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync {
     fn to_rgb(&self) -> RGB;
 
     fn alpha(&self) -> f32;
