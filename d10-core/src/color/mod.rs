@@ -24,7 +24,11 @@ pub(crate) fn clamp(value: f32) -> f32 {
     value.min(1.0).max(0.0)
 }
 
-pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug + Display {
+/// A trait that must be implemented by all color types
+///
+/// As of now this type is sealed to prevent incompatibilities with future changes.
+/// This restriction might be removed when the crate is heading towards 1.0.
+pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug + Display + private::Sealed {
     fn to_rgb(&self) -> RGB;
 
     fn alpha(&self) -> f32;
@@ -198,3 +202,10 @@ pub(crate) fn format_color<C: Color>(color: &C, f: &mut std::fmt::Formatter<'_>)
     Ok(())
 }
 
+mod private {
+    use crate::color::Color;
+
+    pub trait Sealed {}
+
+    impl<T: Color> Sealed for T {}
+}
