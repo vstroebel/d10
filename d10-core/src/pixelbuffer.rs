@@ -331,3 +331,132 @@ impl PixelBuffer<RGB> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::pixelbuffer::PixelBuffer;
+    use crate::color::RGB;
+
+    #[test]
+    fn new() {
+        let buffer: PixelBuffer<RGB> = PixelBuffer::new(13, 7).unwrap();
+
+        assert_eq!(buffer.width(), 13);
+        assert_eq!(buffer.height(), 7);
+
+        for c in buffer.data() {
+            assert_eq!(*c, RGB::default());
+        }
+    }
+
+    #[test]
+    fn new_with_color() {
+        let buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(7, 13, RGB::RED).unwrap();
+
+        assert_eq!(buffer.width(), 7);
+        assert_eq!(buffer.height(), 13);
+
+        for c in buffer.data() {
+            assert_eq!(*c, RGB::RED);
+        }
+    }
+
+    #[test]
+    fn new_from_raw() {
+        let raw = vec![RGB::BLUE; 7 * 13];
+
+        let buffer: PixelBuffer<RGB> = PixelBuffer::new_from_raw(7, 13, raw).unwrap();
+
+        assert_eq!(buffer.width(), 7);
+        assert_eq!(buffer.height(), 13);
+
+        for c in buffer.data() {
+            assert_eq!(*c, RGB::BLUE);
+        }
+    }
+
+    #[test]
+    fn data() {
+        let buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(7, 13, RGB::RED).unwrap();
+        let data = buffer.data();
+
+        assert_eq!(data.len(), 13 * 7);
+
+        for c in data {
+            assert_eq!(*c, RGB::RED);
+        }
+    }
+
+    #[test]
+    fn data_mut() {
+        let mut buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(13, 7, RGB::RED).unwrap();
+
+        assert_eq!(buffer.data_mut().len(), 7 * 13);
+
+        for c in buffer.data_mut() {
+            assert_eq!(*c, RGB::RED);
+        }
+
+        for c in buffer.data_mut() {
+            *c = RGB::BLUE;
+        }
+
+        for c in buffer.data_mut() {
+            assert_eq!(*c, RGB::BLUE);
+        }
+    }
+
+    #[test]
+    fn enumerate() {
+        let buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(13, 7, RGB::RED).unwrap();
+
+        let mut i = 0u32;
+
+        for (x, y, c) in buffer.enumerate() {
+            let test_x = i % 13;
+            let test_y = i / 13;
+
+            assert_eq!(x, test_x, "Expected x value of {} got {} at index {}", test_x, x, i);
+            assert_eq!(y, test_y, "Expected y value of {} got {} at index {}", test_y, y, i);
+            assert!(i < 13 * 7);
+            assert_eq!(c, RGB::RED);
+
+            i = i + 1;
+        }
+    }
+
+    #[test]
+    fn enumerate_mut() {
+        let mut buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(32, 64, RGB::RED).unwrap();
+
+        let mut i = 0u32;
+
+        for (x, y, c) in buffer.enumerate_mut() {
+            let test_x = i % 32;
+            let test_y = i / 32;
+
+            assert_eq!(x, test_x, "Expected x value of {} got {} at index {}", test_x, x, i);
+            assert_eq!(y, test_y, "Expected y value of {} got {} at index {}", test_y, y, i);
+            assert!(i < 32 * 64);
+            assert_eq!(*c, RGB::RED);
+
+            i = i + 1;
+
+            *c = RGB::new(1.0 / (x as f32), 1.0 / (y as f32), 1.0);
+        }
+
+        let mut i = 0u32;
+
+        for (x, y, c) in buffer.enumerate() {
+            let test_x = i % 32;
+            let test_y = i / 32;
+
+            assert_eq!(x, test_x, "Expected x value of {} got {} at index {}", test_x, x, i);
+            assert_eq!(y, test_y, "Expected y value of {} got {} at index {}", test_y, y, i);
+            assert!(i < 32 * 64);
+            assert_eq!(c, RGB::new(1.0 / (x as f32), 1.0 / (y as f32), 1.0));
+
+            i = i + 1;
+        }
+    }
+}
