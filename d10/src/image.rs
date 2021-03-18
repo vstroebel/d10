@@ -1,7 +1,7 @@
 use crate::{ops, RGB, PixelBuffer, D10Result};
 use std::path::Path;
 use d10_ops::FilterMode;
-use d10_codecs::Format;
+use d10_codecs::EncodingFormat;
 use std::io::Write;
 
 #[derive(Clone)]
@@ -66,19 +66,19 @@ impl Image {
         crate::codecs::save_to_file(path, &self.buffer, None)
     }
 
-    pub fn save_with_format<P>(&self, path: P, format: Format) -> D10Result<()>
+    pub fn save_with_format<P>(&self, path: P, format: EncodingFormat) -> D10Result<()>
         where P: AsRef<Path>
     {
         crate::codecs::save_to_file(path, &self.buffer, Some(format))
     }
 
-    pub fn save_to_writer<W>(&self, w: &mut W, format: Format) -> D10Result<()>
+    pub fn save_to_writer<W>(&self, w: &mut W, format: EncodingFormat) -> D10Result<()>
         where W: Write
     {
         crate::codecs::save(w, &self.buffer, format)
     }
 
-    pub fn save_to_buffer(&self, format: Format) -> D10Result<Vec<u8>> {
+    pub fn save_to_buffer(&self, format: EncodingFormat) -> D10Result<Vec<u8>> {
         let mut out = vec![];
         crate::codecs::save(&mut out, &self.buffer, format)?;
         Ok(out)

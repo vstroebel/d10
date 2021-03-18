@@ -18,6 +18,27 @@ use std::fs::File;
 pub use crate::png::{PNGColorType, PNGCompressionType, PNGFilterType};
 
 pub enum Format {
+    JPEG,
+    PNG,
+}
+
+impl Format {
+    pub fn from_path(path: &Path) -> D10Result<Format> {
+        let ext = path
+            .extension()
+            .ok_or_else(|| D10Error::SaveError(format!("Unknown file extension in path: {}", path.to_string_lossy())))?
+            .to_string_lossy()
+            .to_ascii_lowercase();
+
+        match ext.as_str() {
+            "jpg" | "jpeg" => Ok(Self::JPEG),
+            "png" => Ok(Self::PNG),
+            _ => Err(D10Error::SaveError(format!("Unknown file extension in path: {}", path.to_string_lossy())))
+        }
+    }
+}
+
+pub enum EncodingFormat {
     JPEG {
         quality: u8
     },
@@ -28,7 +49,14 @@ pub enum Format {
     },
 }
 
-impl Format {
+impl EncodingFormat {
+    pub fn format(&self) -> Format {
+        match self {
+            EncodingFormat::JPEG { .. } => Format::JPEG,
+            EncodingFormat::PNG { .. } => Format::PNG,
+        }
+    }
+
     pub fn jpeg_default() -> Self {
         Self::JPEG {
             quality: 85
@@ -43,17 +71,10 @@ impl Format {
         }
     }
 
-    pub fn from_path(path: &Path) -> D10Result<Format> {
-        let ext = path
-            .extension()
-            .ok_or_else(|| D10Error::SaveError(format!("Unknown file extension in path: {}", path.to_string_lossy())))?
-            .to_string_lossy()
-            .to_ascii_lowercase();
-
-        match ext.as_str() {
-            "png" => Ok(Format::png_default()),
-            "jpg" | "jpeg" => Ok(Format::jpeg_default()),
-            _ => Err(D10Error::SaveError(format!("Unknown file extension in path: {}", path.to_string_lossy())))
+    pub fn from_path(path: &Path) -> D10Result<EncodingFormat> {
+        match Format::from_path(path)? {
+            Format::JPEG => Ok(EncodingFormat::jpeg_default()),
+            Format::PNG => Ok(EncodingFormat::png_default())
         }
     }
 }
@@ -82,22 +103,22 @@ fn decode<T>(reader: Reader<T>) -> D10Result<DecodedImage> where T: Read + Seek 
     })
 }
 
-pub fn save_to_file<P>(path: P, buffer: &PixelBuffer<RGB>, format: Option<Format>) -> D10Result<()> where P: AsRef<Path> {
+pub fn save_to_file<P>(path: P, buffer: &PixelBuffer<RGB>, format: Option<EncodingFormat>) -> D10Result<()> where P: AsRef<Path> {
     let format = match format {
         Some(format) => format,
-        None => Format::from_path(path.as_ref())?
+        None => EncodingFormat::from_path(path.as_ref())?
     };
 
     match format {
-        Format::JPEG { quality } => jpeg::save_jpeg(&mut File::create(path)?, buffer, quality),
-        Format::PNG { color_type, compression, filter } => png::save_png(&mut File::create(path)?, buffer, color_type, compression, filter),
+        EncodingFormat::JPEG { quality } => jpeg::save_jpeg(&mut File::create(path)?, buffer, quality),
+        EncodingFormat::PNG { color_type, compression, filter } => png::save_png(&mut File::create(path)?, buffer, color_type, compression, filter),
     }
 }
 
-pub fn save<W>(w: &mut W, buffer: &PixelBuffer<RGB>, format: Format) -> D10Result<()> where W: Write {
+pub fn save<W>(w: &mut W, buffer: &PixelBuffer<RGB>, format: EncodingFormat) -> D10Result<()> where W: Write {
     match format {
-        Format::JPEG { quality } => jpeg::save_jpeg(w, buffer, quality),
-        Format::PNG { color_type, compression, filter } => png::save_png(w, buffer, color_type, compression, filter),
+        EncodingFormat::JPEG { quality } => jpeg::save_jpeg(w, buffer, quality),
+        EncodingFormat::PNG { color_type, compression, filter } => png::save_png(w, buffer, color_type, compression, filter),
     }
 }
 
