@@ -2,20 +2,17 @@ mod utils;
 mod jpeg;
 mod png;
 
-use utils::*;
-
 use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::RGB;
 use d10_core::errors::{D10Result, D10Error};
 
-use image::ImageError;
-use image::io::Reader;
-
 use std::path::Path;
-use std::io::{Cursor, Read, Seek, BufRead, Write};
+use std::io::{Cursor, Read, Seek, Write, SeekFrom, BufReader, BufRead};
 use std::fs::File;
 
 pub use crate::png::{PNGColorType, PNGCompressionType, PNGFilterType};
+use crate::jpeg::decode_jpeg;
+use crate::png::decode_png;
 
 pub enum Format {
     JPEG,
@@ -26,7 +23,7 @@ impl Format {
     pub fn from_path(path: &Path) -> D10Result<Format> {
         let ext = path
             .extension()
-            .ok_or_else(|| D10Error::SaveError(format!("Unknown file extension in path: {}", path.to_string_lossy())))?
+            .ok_or_else(|| D10Error::SaveError(format!("Missing file extension in path: {}", path.to_string_lossy())))?
             .to_string_lossy()
             .to_ascii_lowercase();
 
@@ -34,6 +31,20 @@ impl Format {
             "jpg" | "jpeg" => Ok(Self::JPEG),
             "png" => Ok(Self::PNG),
             _ => Err(D10Error::SaveError(format!("Unknown file extension in path: {}", path.to_string_lossy())))
+        }
+    }
+
+    pub fn from_reader<T>(reader: &mut T) -> D10Result<Format> where T: Read + Seek {
+        let mut buf = [0u8; 8];
+
+        let len = reader.read(&mut buf)?;
+
+        reader.seek(SeekFrom::Start(0))?;
+
+        match buf[0..len] {
+            [0xFF, 0xD8, 0xFF, ..] => Ok(Format::JPEG),
+            [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, ..] => Ok(Format::PNG),
+            _ => Err(D10Error::OpenError("Unable to detect format".to_owned())),
         }
     }
 }
@@ -84,23 +95,26 @@ pub struct DecodedImage {
 }
 
 pub fn decode_file<P>(path: P) -> D10Result<DecodedImage> where P: AsRef<Path> {
-    decode(Reader::open(path)?)
+    let format = Format::from_path(path.as_ref())?;
+
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+
+    decode(reader, format)
 }
 
 pub fn decode_buffer(buffer: &[u8]) -> D10Result<DecodedImage> {
-    decode(Reader::new(Cursor::new(buffer)).with_guessed_format()?)
+    let mut reader = Cursor::new(buffer);
+    let format = Format::from_reader(&mut reader)?;
+
+    decode(reader, format)
 }
 
-fn decode<T>(reader: Reader<T>) -> D10Result<DecodedImage> where T: Read + Seek + BufRead {
-    let img = reader.decode().map_err(|err| match err {
-        ImageError::IoError(err) => D10Error::IOError(err),
-        ImageError::Limits(l) => D10Error::Limits(format!("{:?}", l)),
-        err => D10Error::OpenError(format!("Open error: {:?}", err))
-    })?;
-
-    read_into_buffer(img).map(|buffer| DecodedImage {
-        buffer
-    })
+fn decode<T>(reader: T, format: Format) -> D10Result<DecodedImage> where T: Read + Seek + BufRead {
+    match format {
+        Format::JPEG => decode_jpeg(reader),
+        Format::PNG => decode_png(reader)
+    }
 }
 
 pub fn save_to_file<P>(path: P, buffer: &PixelBuffer<RGB>, format: Option<EncodingFormat>) -> D10Result<()> where P: AsRef<Path> {

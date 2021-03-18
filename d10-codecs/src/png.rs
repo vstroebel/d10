@@ -1,16 +1,17 @@
 use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::RGB;
 use d10_core::errors::{D10Result, D10Error};
-use image::ColorType;
+use image::{ColorType, ImageError, DynamicImage};
 
-use std::io::Write;
+use std::io::{Write, Seek, BufRead, Read};
 
 use crate::utils::*;
+use crate::DecodedImage;
 
 //TODO: Wrap types to not export image crate internals
 pub use image::codecs::png::CompressionType as PNGCompressionType;
 pub use image::codecs::png::FilterType as PNGFilterType;
-use image::codecs::png::PngEncoder;
+use image::codecs::png::{PngEncoder, PngDecoder};
 
 
 pub enum PNGColorType {
@@ -48,4 +49,24 @@ pub(crate) fn save_png<W>(w: &mut W,
     } else {
         Ok(())
     }
+}
+
+pub(crate) fn decode_png<T>(reader: T) -> D10Result<DecodedImage> where T: Read + Seek + BufRead {
+    let decoder = PngDecoder::new(reader)
+        .map_err(|err| match err {
+            ImageError::IoError(err) => D10Error::IOError(err),
+            ImageError::Limits(l) => D10Error::Limits(format!("{:?}", l)),
+            err => D10Error::OpenError(format!("Open error: {:?}", err))
+        })?;
+
+    let img = DynamicImage::from_decoder(decoder)
+        .map_err(|err| match err {
+            ImageError::IoError(err) => D10Error::IOError(err),
+            ImageError::Limits(l) => D10Error::Limits(format!("{:?}", l)),
+            err => D10Error::OpenError(format!("Decode error: {:?}", err))
+        })?;
+
+    read_into_buffer(img).map(|buffer| DecodedImage {
+        buffer
+    })
 }

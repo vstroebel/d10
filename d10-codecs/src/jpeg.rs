@@ -1,12 +1,13 @@
 use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::RGB;
 use d10_core::errors::{D10Result, D10Error};
-use std::io::Write;
+use std::io::{Write, Read, Seek, BufRead};
 
-use image::codecs::jpeg::JpegEncoder;
-use image::ColorType;
+use image::codecs::jpeg::{JpegEncoder, JpegDecoder};
+use image::{ColorType, ImageError, DynamicImage};
 
-use crate::utils::to_rgb8_vec;
+use crate::utils::{to_rgb8_vec, read_into_buffer};
+use crate::DecodedImage;
 
 pub(crate) fn save_jpeg<W>(w: &mut W, buffer: &PixelBuffer<RGB>, quality: u8) -> D10Result<()> where W: Write {
     let out = to_rgb8_vec(buffer);
@@ -20,4 +21,24 @@ pub(crate) fn save_jpeg<W>(w: &mut W, buffer: &PixelBuffer<RGB>, quality: u8) ->
     } else {
         Ok(())
     }
+}
+
+pub(crate) fn decode_jpeg<T>(reader: T) -> D10Result<DecodedImage> where T: Read + Seek + BufRead {
+    let decoder = JpegDecoder::new(reader)
+        .map_err(|err| match err {
+            ImageError::IoError(err) => D10Error::IOError(err),
+            ImageError::Limits(l) => D10Error::Limits(format!("{:?}", l)),
+            err => D10Error::OpenError(format!("Open error: {:?}", err))
+        })?;
+
+    let img = DynamicImage::from_decoder(decoder)
+        .map_err(|err| match err {
+            ImageError::IoError(err) => D10Error::IOError(err),
+            ImageError::Limits(l) => D10Error::Limits(format!("{:?}", l)),
+            err => D10Error::OpenError(format!("Decode error: {:?}", err))
+        })?;
+
+    read_into_buffer(img).map(|buffer| DecodedImage {
+        buffer
+    })
 }
