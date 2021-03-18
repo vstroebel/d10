@@ -117,7 +117,7 @@ impl Image {
     }
 
     pub fn mod_colors<F: Fn(&RGB) -> RGB>(&mut self, func: F) {
-        self.buffer.map_colors(func);
+        self.buffer.mod_colors(func);
     }
 
     pub fn try_mod_colors<E, F: Fn(&RGB) -> Result<RGB, E>>(&mut self, func: F) -> Result<(), E> {
