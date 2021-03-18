@@ -121,6 +121,14 @@ pub(crate) fn to_rgba16_be_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
     out
 }
 
+pub fn from_u8(v: u8) -> f32 {
+    f32::from(v) / 255.0
+}
+
+pub fn from_u16_be(v: [u8; 2]) -> f32 {
+    f32::from(u16::from_be_bytes(v)) / 65535.0
+}
+
 pub fn read_into_buffer(img: DynamicImage) -> D10Result<PixelBuffer<RGB>> {
     let width = img.width();
     let height = img.height();
