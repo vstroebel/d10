@@ -152,10 +152,11 @@ pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug + Disp
     /// Map all color channels and return a new color with the same alpha value
     fn map_color_channels<F: FnMut(f32) -> f32>(&self, func: F) -> Self;
 
+    /// Return a lowercase name of this colors type (i.e. "rgb" for RGB)
     fn type_name(&self) -> &'static str;
 }
 
-// A generic implementation to format a color as a CSS alike string use to implement the Display trait
+// A generic implementation to format a color as a CSS alike string used to implement the Display trait
 //
 // TODO: Improve performance by directly writing parts to the formatter
 pub(crate) fn format_color<C: Color>(color: &C, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
