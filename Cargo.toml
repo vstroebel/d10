@@ -3,5 +3,6 @@ members = [
     "d10-core",
     "d10-codecs",
     "d10-ops",
-    "d10"
+    "d10",
+    "d10-cli"
 ]
