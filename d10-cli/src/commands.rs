@@ -1,6 +1,10 @@
 use d10::{D10Error, Intensity, Image};
 
+use crate::log::Log;
+
+#[derive(Debug)]
 pub enum Cmd {
+    Silent,
     Open(String),
     Save(String),
     ToGray(Intensity),
@@ -14,6 +18,12 @@ pub enum Cmd {
     StretchSaturation(f32),
     Lightness(f32),
     HueRotate(f32),
+}
+
+impl Cmd {
+    fn ignore_in_log(&self) -> bool {
+        matches!(self, Cmd::Silent)
+    }
 }
 
 struct Context {
@@ -31,13 +41,24 @@ pub fn run(commands: &[Cmd]) -> Result<(), D10Error> {
         image: None
     };
 
-    execute(&mut ctx, commands)
+    let total = commands.iter().filter(|cmd| !cmd.ignore_in_log()).count();
+
+    let mut log = Log::new(total);
+
+    execute(&mut ctx, commands, &mut log)?;
+
+    Ok(())
 }
 
-fn execute(ctx: &mut Context, commands: &[Cmd]) -> Result<(), D10Error> {
+fn execute(ctx: &mut Context, commands: &[Cmd], log: &mut Log) -> Result<(), D10Error> {
     for cmd in commands {
+        if !cmd.ignore_in_log() {
+            log.log_command_step(cmd);
+        }
+
         use Cmd::*;
         match cmd {
+            Silent => log.disable(),
             Open(path) => execute_open(ctx, path)?,
             Save(path) => execute_save(ctx, path)?,
             ToGray(intensity) => execute_to_gray(ctx, *intensity)?,

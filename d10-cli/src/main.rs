@@ -1,4 +1,5 @@
 mod commands;
+mod log;
 
 use d10::Intensity;
 
@@ -19,6 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 fn create_args() -> Args {
     Args::new()
+        .none_arg("silent", || Silent)
         .string_arg("open", |v| Ok(Open(v)))
         .string_arg("save", |v| Ok(Save(v)))
         .string_arg("grayscale", |v| Ok(ToGray(parse_intensity(&v)?)))
