@@ -8,6 +8,7 @@ license = "MIT OR Apache-2.0"
 [[bin]]
 name = "d10"
 path = "src/main.rs"
+doc = false
 
 [dependencies]
 d10 = { path = "../d10" }
