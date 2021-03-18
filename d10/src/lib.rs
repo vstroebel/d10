@@ -10,4 +10,4 @@ pub use crate::core::pixelbuffer::*;
 mod image;
 
 pub use image::Image;
-pub use codecs::{EncodingFormat, PNGColorType, PNGCompressionType, PNGFilterType};
+pub use codecs::{EncodingFormat, PNGColorType, PNGCompressionType, PNGFilterType, BMPColorType};
