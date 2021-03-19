@@ -3,6 +3,7 @@ mod jpeg;
 mod png;
 mod gif;
 mod bmp;
+mod ico;
 
 use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::RGB;
@@ -14,11 +15,13 @@ use std::fs::File;
 
 pub use crate::png::{PNGColorType, PNGCompressionType, PNGFilterType};
 pub use crate::bmp::BMPColorType;
+pub use crate::ico::ICOColorType;
 
 use crate::jpeg::{decode_jpeg, save_jpeg};
 use crate::png::{decode_png, save_png};
 use crate::gif::{decode_gif, save_gif};
 use crate::bmp::{save_bmp, decode_bmp};
+use crate::ico::{save_ico, decode_ico};
 
 #[derive(Debug)]
 pub enum Format {
@@ -26,6 +29,7 @@ pub enum Format {
     PNG,
     GIF,
     BMP,
+    ICO,
 }
 
 impl Format {
@@ -41,6 +45,7 @@ impl Format {
             "png" => Ok(Self::PNG),
             "gif" => Ok(Self::GIF),
             "bmp" => Ok(Self::BMP),
+            "ico" => Ok(Self::ICO),
             _ => Err(D10Error::SaveError(format!("Unknown file extension in path: {}", path.to_string_lossy())))
         }
     }
@@ -58,6 +63,7 @@ impl Format {
             [0x47, 0x49, 0x46, 0x38, 0x37, 0x61, ..] => Ok(Format::GIF),
             [0x47, 0x49, 0x46, 0x38, 0x39, 0x61, ..] => Ok(Format::GIF),
             [0x42, 0x4D, ..] => Ok(Format::BMP),
+            [0x00, 0x00, 0x01, 0x00, ..] => Ok(Format::ICO),
             _ => Err(D10Error::OpenError("Unable to detect format".to_owned())),
         }
     }
@@ -76,6 +82,9 @@ pub enum EncodingFormat {
     BMP {
         color_type: BMPColorType
     },
+    ICO {
+        color_type: ICOColorType
+    },
 }
 
 impl EncodingFormat {
@@ -85,6 +94,7 @@ impl EncodingFormat {
             EncodingFormat::PNG { .. } => Format::PNG,
             EncodingFormat::GIF => Format::GIF,
             EncodingFormat::BMP { .. } => Format::BMP,
+            EncodingFormat::ICO { .. } => Format::ICO,
         }
     }
 
@@ -108,12 +118,19 @@ impl EncodingFormat {
         }
     }
 
+    pub fn ico_default() -> Self {
+        Self::ICO {
+            color_type: ICOColorType::RGBA8
+        }
+    }
+
     pub fn from_path(path: &Path) -> D10Result<EncodingFormat> {
         match Format::from_path(path)? {
             Format::JPEG => Ok(EncodingFormat::jpeg_default()),
             Format::PNG => Ok(EncodingFormat::png_default()),
             Format::GIF => Ok(EncodingFormat::GIF),
             Format::BMP => Ok(EncodingFormat::bmp_default()),
+            Format::ICO => Ok(EncodingFormat::ico_default()),
         }
     }
 }
@@ -144,6 +161,7 @@ fn decode<T>(reader: T, format: Format) -> D10Result<DecodedImage> where T: Read
         Format::PNG => decode_png(reader),
         Format::GIF => decode_gif(reader),
         Format::BMP => decode_bmp(reader),
+        Format::ICO => decode_ico(reader),
     }
 }
 
@@ -164,6 +182,7 @@ pub fn save<W>(w: &mut W, buffer: &PixelBuffer<RGB>, format: EncodingFormat) -> 
         EncodingFormat::PNG { color_type, compression, filter } => save_png(w, buffer, color_type, compression, filter),
         EncodingFormat::GIF => save_gif(w, buffer),
         EncodingFormat::BMP { color_type } => save_bmp(w, buffer, color_type),
+        EncodingFormat::ICO { color_type } => save_ico(w, buffer, color_type),
     }
 }
 
