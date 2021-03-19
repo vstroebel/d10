@@ -112,6 +112,10 @@ impl EncodingFormat {
         }
     }
 
+    pub fn gif_default() -> Self {
+        Self::GIF
+    }
+
     pub fn bmp_default() -> Self {
         Self::BMP {
             color_type: BMPColorType::RGBA8
@@ -128,7 +132,7 @@ impl EncodingFormat {
         match Format::from_path(path)? {
             Format::JPEG => Ok(EncodingFormat::jpeg_default()),
             Format::PNG => Ok(EncodingFormat::png_default()),
-            Format::GIF => Ok(EncodingFormat::GIF),
+            Format::GIF => Ok(EncodingFormat::gif_default()),
             Format::BMP => Ok(EncodingFormat::bmp_default()),
             Format::ICO => Ok(EncodingFormat::ico_default()),
         }
