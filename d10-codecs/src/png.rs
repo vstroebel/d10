@@ -27,11 +27,11 @@ fn encode_error(err: EncodingError) -> D10Error {
     D10Error::SaveError(format!("Error encoding image: {:?}", err))
 }
 
-pub(crate) fn save_png<W>(w: &mut W,
-                          buffer: &PixelBuffer<RGB>,
-                          color_type: PNGColorType,
-                          compression: PNGCompressionType,
-                          filter: PNGFilterType) -> D10Result<()>
+pub(crate) fn encode_png<W>(w: &mut W,
+                            buffer: &PixelBuffer<RGB>,
+                            color_type: PNGColorType,
+                            compression: PNGCompressionType,
+                            filter: PNGFilterType) -> D10Result<()>
     where W: Write {
     let (out, color_type, bit_depth) = match color_type {
         PNGColorType::L8 => (to_l8_vec(buffer), ColorType::Grayscale, BitDepth::Eight),

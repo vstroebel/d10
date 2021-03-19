@@ -16,7 +16,7 @@ pub enum BMPColorType {
     RGBA8,
 }
 
-pub(crate) fn save_bmp<W>(w: &mut W, buffer: &PixelBuffer<RGB>, color_type: BMPColorType) -> D10Result<()> where W: Write {
+pub(crate) fn encode_bmp<W>(w: &mut W, buffer: &PixelBuffer<RGB>, color_type: BMPColorType) -> D10Result<()> where W: Write {
     let (out, color_type) = match color_type {
         BMPColorType::L8 => (to_l8_vec(buffer), ColorType::L8),
         BMPColorType::LA8 => (to_la8_vec(buffer), ColorType::La8),

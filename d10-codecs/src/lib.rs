@@ -17,11 +17,11 @@ pub use crate::png::{PNGColorType, PNGCompressionType, PNGFilterType};
 pub use crate::bmp::BMPColorType;
 pub use crate::ico::ICOColorType;
 
-use crate::jpeg::{decode_jpeg, save_jpeg};
-use crate::png::{decode_png, save_png};
-use crate::gif::{decode_gif, save_gif};
-use crate::bmp::{save_bmp, decode_bmp};
-use crate::ico::{save_ico, decode_ico};
+use crate::jpeg::{decode_jpeg, encode_jpeg};
+use crate::png::{decode_png, encode_png};
+use crate::gif::{decode_gif, encode_gif};
+use crate::bmp::{decode_bmp, encode_bmp};
+use crate::ico::{decode_ico, encode_ico};
 
 #[derive(Debug)]
 pub enum Format {
@@ -165,7 +165,7 @@ fn decode<T>(reader: T, format: Format) -> D10Result<DecodedImage> where T: Read
     }
 }
 
-pub fn save_to_file<P>(path: P, buffer: &PixelBuffer<RGB>, format: Option<EncodingFormat>) -> D10Result<()> where P: AsRef<Path> {
+pub fn encode_to_file<P>(path: P, buffer: &PixelBuffer<RGB>, format: Option<EncodingFormat>) -> D10Result<()> where P: AsRef<Path> {
     let format = match format {
         Some(format) => format,
         None => EncodingFormat::from_path(path.as_ref())?
@@ -173,16 +173,16 @@ pub fn save_to_file<P>(path: P, buffer: &PixelBuffer<RGB>, format: Option<Encodi
 
     let mut w = BufWriter::new(File::create(path)?);
 
-    save(&mut w, buffer, format)
+    encode(&mut w, buffer, format)
 }
 
-pub fn save<W>(w: &mut W, buffer: &PixelBuffer<RGB>, format: EncodingFormat) -> D10Result<()> where W: Write {
+pub fn encode<W>(w: &mut W, buffer: &PixelBuffer<RGB>, format: EncodingFormat) -> D10Result<()> where W: Write {
     match format {
-        EncodingFormat::JPEG { quality } => save_jpeg(w, buffer, quality),
-        EncodingFormat::PNG { color_type, compression, filter } => save_png(w, buffer, color_type, compression, filter),
-        EncodingFormat::GIF => save_gif(w, buffer),
-        EncodingFormat::BMP { color_type } => save_bmp(w, buffer, color_type),
-        EncodingFormat::ICO { color_type } => save_ico(w, buffer, color_type),
+        EncodingFormat::JPEG { quality } => encode_jpeg(w, buffer, quality),
+        EncodingFormat::PNG { color_type, compression, filter } => encode_png(w, buffer, color_type, compression, filter),
+        EncodingFormat::GIF => encode_gif(w, buffer),
+        EncodingFormat::BMP { color_type } => encode_bmp(w, buffer, color_type),
+        EncodingFormat::ICO { color_type } => encode_ico(w, buffer, color_type),
     }
 }
 

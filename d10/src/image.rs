@@ -63,24 +63,24 @@ impl Image {
     pub fn save<P>(&self, path: P) -> D10Result<()>
         where P: AsRef<Path>
     {
-        crate::codecs::save_to_file(path, &self.buffer, None)
+        crate::codecs::encode_to_file(path, &self.buffer, None)
     }
 
     pub fn save_with_format<P>(&self, path: P, format: EncodingFormat) -> D10Result<()>
         where P: AsRef<Path>
     {
-        crate::codecs::save_to_file(path, &self.buffer, Some(format))
+        crate::codecs::encode_to_file(path, &self.buffer, Some(format))
     }
 
     pub fn save_to_writer<W>(&self, w: &mut W, format: EncodingFormat) -> D10Result<()>
         where W: Write
     {
-        crate::codecs::save(w, &self.buffer, format)
+        crate::codecs::encode(w, &self.buffer, format)
     }
 
     pub fn save_to_buffer(&self, format: EncodingFormat) -> D10Result<Vec<u8>> {
         let mut out = vec![];
-        crate::codecs::save(&mut out, &self.buffer, format)?;
+        crate::codecs::encode(&mut out, &self.buffer, format)?;
         Ok(out)
     }
 

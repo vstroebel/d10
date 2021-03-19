@@ -16,9 +16,9 @@ pub enum ICOColorType {
     RGBA8,
 }
 
-pub(crate) fn save_ico<W>(w: &mut W,
-                          buffer: &PixelBuffer<RGB>,
-                          color_type: ICOColorType) -> D10Result<()>
+pub(crate) fn encode_ico<W>(w: &mut W,
+                            buffer: &PixelBuffer<RGB>,
+                            color_type: ICOColorType) -> D10Result<()>
     where W: Write {
     let (out, color_type) = match color_type {
         ICOColorType::L8 => (to_l8_vec(buffer), ColorType::L8),

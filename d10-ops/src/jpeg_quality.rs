@@ -1,7 +1,7 @@
 use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::RGB;
 use d10_core::errors::D10Result;
-use d10_codecs::{save, EncodingFormat, decode_buffer};
+use d10_codecs::{encode, EncodingFormat, decode_buffer};
 
 /// Returns a new buffer with a simulated jpeg quality
 ///
@@ -9,7 +9,7 @@ use d10_codecs::{save, EncodingFormat, decode_buffer};
 pub fn jpeg_quality(buffer: &PixelBuffer<RGB>, quality: u8, preserve_alpha: bool) -> D10Result<PixelBuffer<RGB>> {
     let mut temp = vec![];
 
-    save(&mut temp, buffer, EncodingFormat::JPEG { quality })?;
+    encode(&mut temp, buffer, EncodingFormat::JPEG { quality })?;
 
     let mut out = decode_buffer(&temp)?.buffer;
 

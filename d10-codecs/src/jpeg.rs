@@ -9,7 +9,7 @@ use image::{ColorType, ImageError, DynamicImage};
 use crate::utils::{to_rgb8_vec, read_into_buffer};
 use crate::DecodedImage;
 
-pub(crate) fn save_jpeg<W>(w: &mut W, buffer: &PixelBuffer<RGB>, quality: u8) -> D10Result<()> where W: Write {
+pub(crate) fn encode_jpeg<W>(w: &mut W, buffer: &PixelBuffer<RGB>, quality: u8) -> D10Result<()> where W: Write {
     let out = to_rgb8_vec(buffer);
 
     if let Err(err) = JpegEncoder::new_with_quality(w, quality).encode(

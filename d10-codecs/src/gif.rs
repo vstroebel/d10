@@ -10,7 +10,7 @@ use crate::utils::{from_u8, to_rgba8_vec};
 use gif::{DecodeOptions, Frame, Encoder};
 use std::convert::TryInto;
 
-pub(crate) fn save_gif<W>(w: &mut W, buffer: &PixelBuffer<RGB>) -> D10Result<()>
+pub(crate) fn encode_gif<W>(w: &mut W, buffer: &PixelBuffer<RGB>) -> D10Result<()>
     where W: Write {
     let width = buffer.width().try_into().map_err(|_| D10Error::SaveError(format!("Unsupported width for gif: {}", buffer.width())))?;
     let height = buffer.height().try_into().map_err(|_| D10Error::SaveError(format!("Unsupported height for gif: {}", buffer.height())))?;
