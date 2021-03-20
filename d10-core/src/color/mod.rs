@@ -134,14 +134,8 @@ pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug + Disp
     }
 
     fn to_yuv(&self) -> YUV {
-        let rgb = self.to_srgb();
-
-        let y = 0.299 * rgb.red() + 0.587 * rgb.green() + 0.114 * rgb.blue();
-        let u = -0.147_141_19 * rgb.red() + -0.288_869_17 * rgb.green() + 0.436_010_36 * rgb.blue();
-        let v = 0.614_975_4 * rgb.red() + -0.514_965_1 * rgb.green() + -0.100_010_26 * rgb.blue();
-
         YUV {
-            data: [y, u, v, rgb.alpha()]
+            data: apply_matrix(&self.to_srgb().data, &yuv::RGB_TO_YUV)
         }
     }
 
@@ -201,6 +195,19 @@ pub(crate) fn format_color<C: Color>(color: &C, f: &mut std::fmt::Formatter<'_>)
     f.write_str(&result)?;
 
     Ok(())
+}
+
+/// Apply a 3x3 matrix to the color channels
+///
+/// This is a helper that is used to convert between colors if possible with a simple matrix.
+/// The alpha channel is not affected by the conversion
+pub(crate) fn apply_matrix(color: &[f32; 4], matrix: &[[f32; 3]; 3]) -> [f32; 4] {
+    [
+        color[0] * matrix[0][0] + color[1] * matrix[0][1] + color[2] * matrix[0][2],
+        color[0] * matrix[1][0] + color[1] * matrix[1][1] + color[2] * matrix[1][2],
+        color[0] * matrix[2][0] + color[1] * matrix[2][1] + color[2] * matrix[2][2],
+        color[3]
+    ]
 }
 
 mod private {

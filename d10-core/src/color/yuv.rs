@@ -1,6 +1,18 @@
 use super::{Color, RGB, SRGB, EPSILON};
 use std::fmt::Display;
-use crate::color::format_color;
+use crate::color::{format_color, apply_matrix};
+
+pub(crate) const RGB_TO_YUV: [[f32; 3]; 3] = [
+    [0.299, 0.587, 0.114],
+    [-0.147_141_19, -0.288_869_17, 0.436_010_36],
+    [0.614_975_4, -0.514_965_1, -0.100_010_26]
+];
+
+pub(crate) const YUV_TO_RGB: [[f32; 3]; 3] = [
+    [1.0, 0.0, 1.139_883],
+    [1.0, -0.394_642_32, -0.580_621_84],
+    [1.0, 2.032_061_8, 0.0]
+];
 
 #[derive(Debug, Copy, Clone)]
 pub struct YUV {
@@ -55,12 +67,8 @@ impl Color for YUV {
     }
 
     fn to_rgb(&self) -> RGB {
-        let red = self.y() + 1.139_883 * self.v();
-        let green = self.y() + -0.394_642_32 * self.u() + -0.580_621_84 * self.v();
-        let blue = self.y() + 2.032_061_8 * self.u();
-
         SRGB {
-            data: [red, green, blue, self.alpha()]
+            data: apply_matrix(&self.data, &YUV_TO_RGB)
         }.to_rgb()
     }
 
