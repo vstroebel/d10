@@ -26,6 +26,22 @@ impl SRGB {
     pub fn blue(&self) -> f32 {
         self.data[2]
     }
+
+    pub fn with_red(&self, red: f32) -> SRGB {
+        SRGB { data: [red, self.data[1], self.data[2], self.data[3]] }
+    }
+
+    pub fn with_green(&self, green: f32) -> SRGB {
+        SRGB { data: [self.data[0], green, self.data[2], self.data[3]] }
+    }
+
+    pub fn with_blue(&self, blue: f32) -> SRGB {
+        SRGB { data: [self.data[0], self.data[1], blue, self.data[3]] }
+    }
+
+    pub fn with_alpha(&self, alpha: f32) -> SRGB {
+        SRGB { data: [self.data[0], self.data[1], self.data[2], alpha] }
+    }
 }
 
 impl Default for SRGB {
