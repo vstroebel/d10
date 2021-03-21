@@ -213,6 +213,7 @@ pub(crate) fn apply_matrix(color: &[f32; 4], matrix: &[[f32; 3]; 3]) -> [f32; 4]
 mod private {
     use crate::color::Color;
 
+    // Using a non public trait is used to make it impossible for other crate to implement their own color type
     pub trait Sealed {}
 
     impl<T: Color> Sealed for T {}
