@@ -11,3 +11,4 @@ mod image;
 
 pub use image::Image;
 pub use codecs::{EncodingFormat, PNGColorType, PNGCompression, PNGFilterType, BMPColorType, ICOColorType};
+pub use ops::FilterMode;
