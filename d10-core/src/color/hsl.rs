@@ -100,12 +100,12 @@ impl Color for HSL {
         &self.data
     }
 
-    fn map_color_channels<F: FnMut(f32) -> f32>(&self, mut func: F) -> Self {
-        Self::new_with_alpha(
-            func(self.data[0]),
-            func(self.data[1]),
-            func(self.data[2]),
-            self.data[3])
+    fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(&self, mut func: F) -> Result<Self, E> {
+        Ok(Self::new_with_alpha(
+            func(self.data[0])?,
+            func(self.data[1])?,
+            func(self.data[2])?,
+            self.data[3]))
     }
 
     fn type_name(&self) -> &'static str {

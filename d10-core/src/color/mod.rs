@@ -146,7 +146,12 @@ pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug + Disp
     }
 
     /// Map all color channels and return a new color with the same alpha value
-    fn map_color_channels<F: FnMut(f32) -> f32>(&self, func: F) -> Self;
+    fn map_color_channels<F: FnMut(f32) -> f32>(&self, mut func: F) -> Self {
+        self.try_map_color_channels::<(), _>(|f| Ok(func(f))).unwrap()
+    }
+
+    /// Map all color channels and return a new color with the same alpha value
+    fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(&self, func: F) -> Result<Self, E>;
 
     /// Return a lowercase name of this colors type (i.e. "rgb" for RGB)
     fn type_name(&self) -> &'static str;
