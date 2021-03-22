@@ -36,6 +36,41 @@ class TestImage(unittest.TestCase):
         self.assertEqual(data[2], RGB(0.0, 1.0, 1.0))
         self.assertEqual(data[3], RGB(1.0, 0.0, 1.0))
 
+    def test_mapping_get(self):
+        colors = [
+            RGB(0.0, 0.0, 1.0), RGB(1.0, 0.0, 1.0),
+            RGB(0.0, 1.0, 1.0), RGB(1.0, 0.0, 1.0),
+        ]
+
+        image = Image.from_list(2, 2, colors)
+
+        self.assertEqual(image[0, 0], colors[0])
+        self.assertEqual(image[1, 0], colors[1])
+        self.assertEqual(image[0, 1], colors[2])
+        self.assertEqual(image[1, 1], colors[3])
+
+    def test_mapping_set(self):
+        colors = [
+            RGB(0.0, 0.0, 1.0), RGB(1.0, 0.0, 1.0),
+            RGB(0.0, 1.0, 1.0), RGB(1.0, 0.0, 1.0),
+        ]
+
+        image = Image(2, 2)
+
+        image[0, 0] = colors[0]
+        image[1, 0] = colors[1]
+        image[0, 1] = colors[2]
+        image[1, 1] = colors[3]
+
+        self.assertEqual(image[0, 0], colors[0])
+        self.assertEqual(image[1, 0], colors[1])
+        self.assertEqual(image[0, 1], colors[2])
+        self.assertEqual(image[1, 1], colors[3])
+
+    def test_mapping_len(self):
+        self.assertEqual(len(Image(2, 2)), 4)
+        self.assertEqual(len(Image(5, 2)), 10)
+
     def test_has_transparency(self):
         image = Image(4, 7, RGB(1.0, 1.0, 1.0))
 

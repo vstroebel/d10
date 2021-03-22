@@ -7,6 +7,8 @@ use d10::{Image as D10Image, RGB as D10RGB, EncodingFormat as D10EncodingFormat,
 use pyo3::types::PyFunction;
 use d10::ops::FilterMode;
 use std::convert::TryInto;
+use pyo3::PyMappingProtocol;
+use pyo3::exceptions::PyOSError;
 
 #[pyclass]
 pub struct Image {
@@ -220,6 +222,30 @@ impl From<D10Image> for Image {
         }
     }
 }
+
+#[pyproto]
+impl PyMappingProtocol for Image {
+    fn __len__(&self) -> PyResult<usize> {
+        Ok(self.inner.data().len())
+    }
+
+    fn __getitem__(&self, key: (i32, i32)) -> PyResult<RGB> {
+        let x = key.0;
+        let y = key.1;
+
+        self.get_pixel(x, y).ok_or_else(|| {
+            PyOSError::new_err(format!("Array not within range: {}x{}", y, x))
+        })
+    }
+
+    fn __setitem__(&mut self, key: (u32, u32), value: RGB) {
+        let x = key.0;
+        let y = key.1;
+
+        self.put_pixel(x, y, &value);
+    }
+}
+
 
 #[pyclass]
 pub struct EncodingFormat {
