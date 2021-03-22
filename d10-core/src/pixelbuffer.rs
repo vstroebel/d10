@@ -174,7 +174,7 @@ impl<T: Color> PixelBuffer<T> {
         &self.data[(x + y * self.width) as usize]
     }
 
-    pub fn set_pixel(&mut self, x: u32, y: u32, color: T) {
+    pub fn put_pixel(&mut self, x: u32, y: u32, color: T) {
         assert!(x < self.width);
         assert!(y < self.height);
         self.data[(x + y * self.width) as usize] = color;

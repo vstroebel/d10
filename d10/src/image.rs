@@ -152,8 +152,8 @@ impl Image {
         self.buffer.get_pixel(x, y)
     }
 
-    pub fn set_pixel(&mut self, x: u32, y: u32, color: RGB) {
-        self.buffer.set_pixel(x, y, color);
+    pub fn put_pixel(&mut self, x: u32, y: u32, color: RGB) {
+        self.buffer.put_pixel(x, y, color);
     }
 
     pub fn get_pixel_clamped(&self, x: i32, y: i32) -> &RGB {
