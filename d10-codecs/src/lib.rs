@@ -13,7 +13,7 @@ use std::path::Path;
 use std::io::{Cursor, Read, Seek, Write, SeekFrom, BufReader, BufRead, BufWriter};
 use std::fs::File;
 
-pub use crate::png::{PNGColorType, PNGCompressionType, PNGFilterType};
+pub use crate::png::{PNGColorType, PNGCompression, PNGFilterType};
 pub use crate::bmp::BMPColorType;
 pub use crate::ico::ICOColorType;
 
@@ -69,13 +69,14 @@ impl Format {
     }
 }
 
+#[derive(Clone, Debug)]
 pub enum EncodingFormat {
     JPEG {
         quality: u8
     },
     PNG {
         color_type: PNGColorType,
-        compression: PNGCompressionType,
+        compression: PNGCompression,
         filter: PNGFilterType,
     },
     GIF,
@@ -107,7 +108,7 @@ impl EncodingFormat {
     pub fn png_default() -> Self {
         Self::PNG {
             color_type: PNGColorType::RGBA8,
-            compression: PNGCompressionType::Default,
+            compression: PNGCompression::Default,
             filter: PNGFilterType::Sub,
         }
     }

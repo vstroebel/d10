@@ -3,15 +3,14 @@ use d10_core::color::{RGB, SRGB, Color};
 use d10_core::errors::{D10Result, D10Error};
 
 use std::io::{Write, Seek, BufRead, Read};
-
+use std::convert::TryFrom;
 use crate::utils::*;
 use crate::DecodedImage;
 
-//TODO: Wrap types to not export crate internals
-pub use png::{Compression as PNGCompressionType, FilterType as PNGFilterType};
-
+use png::{Compression, FilterType};
 use png::{ColorType, BitDepth, DecodingError, Encoder, EncodingError, Decoder};
 
+#[derive(Copy, Clone, Debug)]
 pub enum PNGColorType {
     L8,
     LA8,
@@ -23,6 +22,101 @@ pub enum PNGColorType {
     RGBA16,
 }
 
+impl TryFrom<&str> for PNGColorType {
+    type Error = D10Error;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        use PNGColorType::*;
+        match value {
+            "l8" => Ok(L8),
+            "la8" => Ok(LA8),
+            "l16" => Ok(L16),
+            "la16" => Ok(LA16),
+            "rgb8" => Ok(RGB8),
+            "rgba8" => Ok(RGBA8),
+            "rgb16" => Ok(RGB16),
+            "rgba16" => Ok(RGBA16),
+            _ => Err(D10Error::BadArgument(format!("Unknown png color type: {}", value)))
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum PNGFilterType {
+    NoFilter,
+    Sub,
+    Up,
+    Avg,
+    Paeth,
+}
+
+impl Into<FilterType> for PNGFilterType {
+    fn into(self) -> FilterType {
+        match self {
+            PNGFilterType::NoFilter => FilterType::NoFilter,
+            PNGFilterType::Sub => FilterType::Sub,
+            PNGFilterType::Up => FilterType::Up,
+            PNGFilterType::Avg => FilterType::Avg,
+            PNGFilterType::Paeth => FilterType::Paeth,
+        }
+    }
+}
+
+impl TryFrom<&str> for PNGFilterType {
+    type Error = D10Error;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        use PNGFilterType::*;
+        match value {
+            "no_filter" => Ok(NoFilter),
+            "sub" => Ok(Sub),
+            "up" => Ok(Up),
+            "avg" => Ok(Avg),
+            "paeth" => Ok(Paeth),
+            _ => Err(D10Error::BadArgument(format!("Unknown png filter type: {}", value)))
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum PNGCompression {
+    Default,
+    Fast,
+    Best,
+    Huffman,
+    Rle,
+}
+
+
+impl Into<Compression> for PNGCompression {
+    fn into(self) -> Compression {
+        match self {
+            PNGCompression::Default => Compression::Default,
+            PNGCompression::Fast => Compression::Fast,
+            PNGCompression::Best => Compression::Best,
+            PNGCompression::Huffman => Compression::Huffman,
+            PNGCompression::Rle => Compression::Rle,
+        }
+    }
+}
+
+
+impl TryFrom<&str> for PNGCompression {
+    type Error = D10Error;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        use PNGCompression::*;
+        match value {
+            "default" => Ok(Default),
+            "fast" => Ok(Fast),
+            "best" => Ok(Best),
+            "huffman" => Ok(Huffman),
+            "rle" => Ok(Rle),
+            _ => Err(D10Error::BadArgument(format!("Unknown png compression type: {}", value)))
+        }
+    }
+}
+
 fn encode_error(err: EncodingError) -> D10Error {
     D10Error::SaveError(format!("Error encoding image: {:?}", err))
 }
@@ -30,7 +124,7 @@ fn encode_error(err: EncodingError) -> D10Error {
 pub(crate) fn encode_png<W>(w: &mut W,
                             buffer: &PixelBuffer<RGB>,
                             color_type: PNGColorType,
-                            compression: PNGCompressionType,
+                            compression: PNGCompression,
                             filter: PNGFilterType) -> D10Result<()>
     where W: Write {
     let (out, color_type, bit_depth) = match color_type {
@@ -49,7 +143,7 @@ pub(crate) fn encode_png<W>(w: &mut W,
     encoder.set_color(color_type);
     encoder.set_depth(bit_depth);
     encoder.set_compression(compression);
-    encoder.set_filter(filter);
+    encoder.set_filter(filter.into());
 
     let mut writer = encoder.write_header().map_err(encode_error)?;
     writer.write_image_data(&out).map_err(encode_error)?;

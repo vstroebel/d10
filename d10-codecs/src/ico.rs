@@ -3,17 +3,35 @@ use d10_core::color::RGB;
 use d10_core::errors::{D10Result, D10Error};
 
 use std::io::{Write, Seek, BufRead, Read};
+use std::convert::TryFrom;
 
 use crate::utils::*;
 use crate::DecodedImage;
+
 use image::codecs::ico::{IcoEncoder, IcoDecoder};
 use image::{ColorType, ImageError, DynamicImage};
 
+#[derive(Copy, Clone, Debug)]
 pub enum ICOColorType {
     L8,
     LA8,
     RGB8,
     RGBA8,
+}
+
+impl TryFrom<&str> for ICOColorType {
+    type Error = D10Error;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        use ICOColorType::*;
+        match value {
+            "l8" => Ok(L8),
+            "la8" => Ok(LA8),
+            "rgb8" => Ok(RGB8),
+            "rgba8" => Ok(RGBA8),
+            _ => Err(D10Error::BadArgument(format!("Unknown ico color type: {}", value)))
+        }
+    }
 }
 
 pub(crate) fn encode_ico<W>(w: &mut W,
