@@ -1,0 +1,19 @@
+[package]
+name = "d10-python"
+version = "0.1.0"
+authors = ["Volker Ströbel <volkerstroebel@mysurdity.de>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+
+[lib]
+name = "d10"
+crate-type = ["cdylib"]
+doc = false
+
+# There are no rust based tests yet and compilation will fail
+# See https://github.com/PyO3/pyo3/issues/341
+test = false
+
+[dependencies]
+pyo3 = { version = "0.13", features = ["extension-module"] }
+d10 = { path = '../d10' }
