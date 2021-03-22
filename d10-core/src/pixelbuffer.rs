@@ -305,7 +305,7 @@ impl<T: Color> PixelBuffer<T> {
 
 impl PixelBuffer<RGB> {
     pub fn is_grayscale(&self) -> bool {
-        self.data.iter().any(RGB::is_grayscale)
+        self.data.iter().all(RGB::is_grayscale)
     }
 
     pub fn apply_kernel(&self, kernel: &Kernel) -> PixelBuffer<RGB> {
@@ -458,5 +458,14 @@ mod tests {
 
             i = i + 1;
         }
+    }
+
+    #[test]
+    fn test_is_grayscale() {
+        let mut buffer = PixelBuffer::new_with_color(13, 7, RGB::new(0.5, 0.5, 0.5)).unwrap();
+
+        assert!(buffer.is_grayscale());
+        buffer.put_pixel(0, 0, RGB::new(1.0, 0.5, 0.5));
+        assert!(!buffer.is_grayscale());
     }
 }

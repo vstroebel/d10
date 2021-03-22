@@ -348,6 +348,12 @@ mod tests {
     use crate::color::Color;
 
     #[test]
+    fn test_is_grayscale() {
+        assert!(RGB::new(0.5, 0.5, 0.5).is_grayscale());
+        assert!(!RGB::new(1.0, 0.5, 0.5).is_grayscale());
+    }
+
+    #[test]
     fn test_with_gamma() {
         assert_eq!(RGB::new(0.5, 0.0, 0.0).with_gamma(1.5),
                    RGB::new(0.629_960_54, 0.0, 0.0));
