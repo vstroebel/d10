@@ -1,4 +1,6 @@
 import unittest
+import numpy as np
+
 from d10 import Image, RGB
 
 
@@ -276,3 +278,47 @@ class TestImage(unittest.TestCase):
 
         self.assertEqual(image.width, 2)
         self.assertEqual(image.height, 3)
+
+
+class TestNumpy(unittest.TestCase):
+
+    def test_to_array(self):
+        colors = [
+            RGB(0.0, 0.0, 1.0), RGB(1.0, 0.0, 1.0),
+            RGB(0.0, 1.0, 1.0), RGB(1.0, 0.0, 1.0),
+            RGB(1.0, 0.0, 1.0), RGB(1.0, 0.0, 1.0),
+        ]
+
+        arr = Image.from_list(2, 3, colors).to_np_array()
+
+        shape = np.shape(arr)
+        self.assertEqual(shape, (3, 2, 4))
+
+        self.assertEqual(RGB(arr[0, 0, 0], arr[0, 0, 1], arr[0, 0, 2]), colors[0])
+        self.assertEqual(RGB(arr[0, 1, 0], arr[0, 1, 1], arr[0, 1, 2]), colors[1])
+        self.assertEqual(RGB(arr[1, 0, 0], arr[1, 0, 1], arr[1, 0, 2]), colors[2])
+        self.assertEqual(RGB(arr[1, 1, 0], arr[1, 1, 1], arr[1, 1, 2]), colors[3])
+        self.assertEqual(RGB(arr[2, 0, 0], arr[2, 0, 1], arr[2, 0, 2]), colors[4])
+        self.assertEqual(RGB(arr[2, 1, 0], arr[2, 1, 1], arr[2, 1, 2]), colors[5])
+
+    def test_to_array_color_types(self):
+        self.assertEqual(np.shape(Image(1, 2).to_np_array('hsl')), (2, 1, 3))
+        self.assertEqual(np.shape(Image(1, 2).to_np_array('hsla')), (2, 1, 4))
+        self.assertEqual(np.shape(Image(1, 2).to_np_array('hsv')), (2, 1, 3))
+        self.assertEqual(np.shape(Image(1, 2).to_np_array('hsva')), (2, 1, 4))
+        self.assertEqual(np.shape(Image(1, 2).to_np_array('yuv')), (2, 1, 3))
+        self.assertEqual(np.shape(Image(1, 2).to_np_array('yuva')), (2, 1, 4))
+        self.assertEqual(np.shape(Image(1, 2).to_np_array('rgb')), (2, 1, 3))
+        self.assertEqual(np.shape(Image(1, 2).to_np_array('rgba')), (2, 1, 4))
+        self.assertEqual(np.shape(Image(1, 2).to_np_array('srgb')), (2, 1, 3))
+        self.assertEqual(np.shape(Image(1, 2).to_np_array('srgba')), (2, 1, 4))
+        self.assertEqual(np.shape(Image(1, 2).to_np_array('gray')), (2, 1, 1))
+
+    def test_to_array_data_types(self):
+        self.assertEqual(Image(1, 2).to_np_array().dtype, np.float32)
+        self.assertEqual(Image(1, 2).to_np_array(data_type='float32').dtype, np.float32)
+        self.assertEqual(Image(1, 2).to_np_array(data_type='float64').dtype, np.float64)
+        self.assertEqual(Image(1, 2).to_np_array(data_type='uint8').dtype, np.uint8)
+        self.assertEqual(Image(1, 2).to_np_array(data_type='uint16').dtype, np.uint16)
+        self.assertEqual(Image(1, 2).to_np_array(data_type='uint32').dtype, np.uint32)
+        self.assertEqual(Image(1, 2).to_np_array(data_type='bool').dtype, bool)
