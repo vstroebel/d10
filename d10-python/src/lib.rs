@@ -1,4 +1,5 @@
 mod color;
+mod image;
 
 use pyo3::prelude::*;
 use pyo3::exceptions::PyOSError;
@@ -23,6 +24,7 @@ fn d10(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<color::HSL>()?;
     m.add_class::<color::HSV>()?;
     m.add_class::<color::YUV>()?;
+    m.add_class::<image::Image>()?;
 
     Ok(())
 }
