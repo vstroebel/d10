@@ -1,11 +1,27 @@
 use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::RGB;
+use std::convert::TryFrom;
+use d10_core::errors::D10Error;
 
 #[derive(Copy, Clone, Debug)]
 pub enum FilterMode {
     Nearest,
     Bilinear,
     Bicubic,
+}
+
+impl TryFrom<&str> for FilterMode {
+    type Error = D10Error;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        use FilterMode::*;
+        match value {
+            "nearest" => Ok(Nearest),
+            "bilinear" => Ok(Bilinear),
+            "bicubic" => Ok(Bicubic),
+            _ => Err(D10Error::BadArgument(format!("Bad filter mode: {}", value)))
+        }
+    }
 }
 
 fn linear_interpolate(v1: f32, v2: f32, t: f32) -> f32 {
