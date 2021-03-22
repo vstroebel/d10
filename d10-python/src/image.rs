@@ -3,10 +3,7 @@ use pyo3::prelude::*;
 use crate::IntoPyErr;
 use crate::color::RGB;
 
-use d10::{
-    Image as D10Image,
-    RGB as D10RGB,
-};
+use d10::{Image as D10Image, RGB as D10RGB, EncodingFormat as D10EncodingFormat, PNGColorType, PNGFilterType, PNGCompression, BMPColorType, ICOColorType};
 use pyo3::types::PyFunction;
 use d10::ops::FilterMode;
 use std::convert::TryInto;
@@ -60,8 +57,11 @@ impl Image {
         Ok(D10Image::open(path).py_err()?.into())
     }
 
-    fn save(&mut self, path: &str) -> PyResult<()> {
-        self.inner.save(path).py_err()?;
+    fn save(&mut self, path: &str, format: Option<&EncodingFormat>) -> PyResult<()> {
+        match format {
+            Some(format) => self.inner.save_with_format(path, format.inner.clone()).py_err()?,
+            None => self.inner.save(path).py_err()?
+        }
         Ok(())
     }
 
@@ -218,5 +218,82 @@ impl From<D10Image> for Image {
         Image {
             inner: image
         }
+    }
+}
+
+#[pyclass]
+pub struct EncodingFormat {
+    pub inner: D10EncodingFormat
+}
+
+#[pymethods]
+impl EncodingFormat {
+    #[staticmethod]
+    fn jpeg(quality: Option<u8>) -> EncodingFormat {
+        EncodingFormat {
+            inner: D10EncodingFormat::JPEG {
+                quality: quality.unwrap_or(85)
+            }
+        }
+    }
+
+    #[staticmethod]
+    fn png(color_type: Option<&str>, compression: Option<&str>, filter: Option<&str>) -> PyResult<EncodingFormat> {
+        let color_type = match color_type {
+            Some(v) => v.try_into().py_err()?,
+            None => PNGColorType::RGBA8,
+        };
+        let compression = match compression {
+            Some(v) => v.try_into().py_err()?,
+            None => PNGCompression::Default
+        };
+
+        let filter = match filter {
+            Some(v) => v.try_into().py_err()?,
+            None => PNGFilterType::Sub,
+        };
+
+        Ok(EncodingFormat {
+            inner: D10EncodingFormat::PNG {
+                color_type,
+                compression,
+                filter,
+            }
+        })
+    }
+
+    #[staticmethod]
+    fn gif() -> EncodingFormat {
+        EncodingFormat {
+            inner: D10EncodingFormat::GIF
+        }
+    }
+
+    #[staticmethod]
+    fn bmp(color_type: Option<&str>) -> PyResult<EncodingFormat> {
+        let color_type = match color_type {
+            Some(v) => v.try_into().py_err()?,
+            None => BMPColorType::RGBA8,
+        };
+
+        Ok(EncodingFormat {
+            inner: D10EncodingFormat::BMP {
+                color_type
+            }
+        })
+    }
+
+    #[staticmethod]
+    fn ico(color_type: Option<&str>) -> PyResult<EncodingFormat> {
+        let color_type = match color_type {
+            Some(v) => v.try_into().py_err()?,
+            None => ICOColorType::RGBA8,
+        };
+
+        Ok(EncodingFormat {
+            inner: D10EncodingFormat::ICO {
+                color_type,
+            }
+        })
     }
 }

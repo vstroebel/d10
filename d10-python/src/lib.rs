@@ -25,6 +25,7 @@ fn d10(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<color::HSV>()?;
     m.add_class::<color::YUV>()?;
     m.add_class::<image::Image>()?;
+    m.add_class::<image::EncodingFormat>()?;
 
     Ok(())
 }
