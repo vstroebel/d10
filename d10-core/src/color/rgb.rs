@@ -25,7 +25,7 @@ impl TryFrom<&str> for Intensity {
         use Intensity::*;
         match value {
             "average" => Ok(Average),
-            "rec60luma" => Ok(Rec601Luma),
+            "rec601luma" => Ok(Rec601Luma),
             "rec709luma" => Ok(Rec709Luma),
             "brightness" => Ok(Brightness),
             "lightness" => Ok(Lightness),
