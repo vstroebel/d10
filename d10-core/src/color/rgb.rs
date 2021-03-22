@@ -193,10 +193,6 @@ impl RGB {
         RGB { data: [self.data[0], self.data[1], blue, self.data[3]] }
     }
 
-    pub fn with_alpha(&self, alpha: f32) -> RGB {
-        RGB { data: [self.data[0], self.data[1], self.data[2], alpha] }
-    }
-
     pub fn alpha_blend(&self, color: RGB) -> RGB {
         RGB::new_with_alpha(
             color.data[0] * color.alpha() + (1.0 - color.alpha()) * self.data[0],
@@ -306,6 +302,10 @@ impl Color for RGB {
 
     fn alpha(&self) -> f32 {
         self.data[3]
+    }
+
+    fn with_alpha(&self, alpha: f32) -> RGB {
+        RGB { data: [self.data[0], self.data[1], self.data[2], alpha] }
     }
 
     fn data(&self) -> &[f32] {

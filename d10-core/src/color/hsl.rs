@@ -92,6 +92,10 @@ impl Color for HSL {
         self.data[3]
     }
 
+    fn with_alpha(&self, alpha: f32) -> HSL {
+        HSL { data: [self.data[0], self.data[1], self.data[2], alpha] }
+    }
+
     fn data(&self) -> &[f32] {
         &self.data
     }

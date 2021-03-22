@@ -80,6 +80,10 @@ impl Color for YUV {
         self.data[3]
     }
 
+    fn with_alpha(&self, alpha: f32) -> YUV {
+        YUV { data: [self.data[0], self.data[1], self.data[2], alpha] }
+    }
+
     fn map_color_channels<F: FnMut(f32) -> f32>(&self, mut func: F) -> Self {
         Self::new_with_alpha(
             func(self.data[0]),
