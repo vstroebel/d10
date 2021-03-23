@@ -322,3 +322,11 @@ class TestNumpy(unittest.TestCase):
         self.assertEqual(Image(1, 2).to_np_array(data_type='uint16').dtype, np.uint16)
         self.assertEqual(Image(1, 2).to_np_array(data_type='uint32').dtype, np.uint32)
         self.assertEqual(Image(1, 2).to_np_array(data_type='bool').dtype, bool)
+
+        self.assertEqual(Image(1, 2).to_np_array(data_type=np.float32).dtype, np.float32)
+        self.assertEqual(Image(1, 2).to_np_array(data_type=np.float64).dtype, np.float64)
+        self.assertEqual(Image(1, 2).to_np_array(data_type=np.uint8).dtype, np.uint8)
+        self.assertEqual(Image(1, 2).to_np_array(data_type=np.uint16).dtype, np.uint16)
+        self.assertEqual(Image(1, 2).to_np_array(data_type=np.uint32).dtype, np.uint32)
+        self.assertEqual(Image(1, 2).to_np_array(data_type=np.bool_).dtype, bool)
+        self.assertEqual(Image(1, 2).to_np_array(data_type=bool).dtype, bool)

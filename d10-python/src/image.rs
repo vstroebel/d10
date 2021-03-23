@@ -17,6 +17,19 @@ use d10::{Image as D10Image,
           ICOColorType,
           FilterMode};
 
+#[cfg(feature = "numpy")]
+use {
+    numpy_helper::*,
+    numpy::{PyArray, DataType},
+    d10::{D10Error,
+          Color,
+          SRGB as D10SRGB,
+          HSL as D10HSL,
+          HSV as D10HSV,
+          YUV as D10YUV},
+    itertools::Itertools,
+};
+
 #[pyclass]
 pub struct Image {
     pub inner: D10Image
@@ -221,11 +234,10 @@ impl Image {
         self.inner.unsharp(radius, sigma.unwrap_or(1.0), factor.unwrap_or(1.0)).into()
     }
 
+
     #[cfg(feature = "numpy")]
-    fn to_np_array(&self, py: Python, colorspace: Option<&str>, data_type: Option<&str>) -> PyResult<Py<PyAny>> {
-        use numpy_helper::*;
-        use numpy::PyArray;
-        use d10::Color;
+    fn to_np_array(&self, py: Python, colorspace: Option<&str>, data_type: Option<&PyAny>) -> PyResult<Py<PyAny>> {
+        let data_type = numpy_helper::extract_data_type(data_type)?;
 
         let colorspace = colorspace.unwrap_or("rgba");
 
@@ -279,47 +291,37 @@ impl Image {
             _ => return Err(PyOSError::new_err(format!("Unknown colorspace: {}", colorspace)))
         };
 
-        let data_type = data_type.unwrap_or("auto");
-
         Ok(match data_type {
-            "auto" | "float32" => PyArray::from_vec(py, data).reshape([self.inner.height() as usize, self.inner.width() as usize, depth])?.into(),
-            "float64" => {
+            DataType::Float32 => PyArray::from_vec(py, data).reshape([self.inner.height() as usize, self.inner.width() as usize, depth])?.into(),
+            DataType::Float64 => {
                 let arr = PyArray::from_iter(py, data.iter().map(|v| *v as f64));
                 arr.reshape([self.inner.height() as usize, self.inner.width() as usize, depth])?.into()
             }
-            "uint8" => {
+            DataType::Uint8 => {
                 let arr = PyArray::from_iter(py, data.iter().map(|v| (v * 255.0) as u8));
                 arr.reshape([self.inner.height() as usize, self.inner.width() as usize, depth])?.into()
             }
 
-            "uint16" => {
+            DataType::Uint16 => {
                 let arr = PyArray::from_iter(py, data.iter().map(|v| (v * 65535.0) as u16));
                 arr.reshape([self.inner.height() as usize, self.inner.width() as usize, depth])?.into()
             }
 
-            "uint32" => {
+            DataType::Uint32 => {
                 let arr = PyArray::from_iter(py, data.iter().map(|v| (v * 4294967295.0) as u32));
                 arr.reshape([self.inner.height() as usize, self.inner.width() as usize, depth])?.into()
             }
-            "bool" => {
+            DataType::Bool => {
                 let arr = PyArray::from_iter(py, data.iter().map(|v| *v >= 0.5));
                 arr.reshape([self.inner.height() as usize, self.inner.width() as usize, depth])?.into()
             }
-            _ => return Err(PyOSError::new_err(format!("Unsupported data type: {}", data_type))),
+            _ => return Err(PyOSError::new_err(format!("Unsupported data type: {:?}", data_type))),
         })
     }
 
     #[cfg(feature = "numpy")]
     #[staticmethod]
     pub fn from_np_array(array: &PyAny, colorspace: Option<&str>) -> PyResult<Image> {
-        use d10::{D10Error,
-                  Color,
-                  SRGB as D10SRGB,
-                  HSL as D10HSL,
-                  HSV as D10HSV,
-                  YUV as D10YUV};
-        use itertools::Itertools;
-
         let (ndims, dims, iter) = numpy_helper::into_f32_array(array)?;
 
         let width = dims[1];
@@ -512,7 +514,38 @@ impl EncodingFormat {
 mod numpy_helper {
     use pyo3::{PyAny, PyResult};
     use pyo3::exceptions::PyOSError;
-    use numpy::{PyArrayDyn, IxDyn};
+    use numpy::{PyArrayDyn, IxDyn, DataType};
+
+    pub fn extract_data_type(data_type: Option<&PyAny>) -> PyResult<DataType> {
+        let data_type = match data_type {
+            Some(data_type) => data_type,
+            None => return Ok(DataType::Float32),
+        };
+
+        if let Ok(str) = data_type.extract::<String>() {
+            return match str.as_str() {
+                "float32" => Ok(DataType::Float32),
+                "float64" => Ok(DataType::Float64),
+                "uint8" => Ok(DataType::Uint8),
+                "uint16" => Ok(DataType::Uint16),
+                "uint32" => Ok(DataType::Uint32),
+                "bool" => Ok(DataType::Bool),
+                _ => Err(PyOSError::new_err(format!("Unsupported data type: {:?}", str)))
+            };
+        }
+
+        let data_type = data_type.to_string();
+
+        return match data_type.as_str() {
+            "<class 'numpy.float32'>" => Ok(DataType::Float32),
+            "<class 'numpy.float64'>" => Ok(DataType::Float64),
+            "<class 'numpy.uint8'>" => Ok(DataType::Uint8),
+            "<class 'numpy.uint16'>" => Ok(DataType::Uint16),
+            "<class 'numpy.uint32'>" => Ok(DataType::Uint32),
+            "<class 'numpy.bool'>" | "<class 'numpy.bool_'>" | "<class 'bool'>" => Ok(DataType::Bool),
+            _ => Err(PyOSError::new_err(format!("Unsupported data type: {}", data_type)))
+        };
+    }
 
     pub fn into_f32_array<'a>(array: &'a PyAny) -> PyResult<(usize, IxDyn, Box<dyn Iterator<Item=f32> + 'a>)> {
 
