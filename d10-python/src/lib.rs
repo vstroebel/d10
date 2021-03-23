@@ -6,7 +6,7 @@ use pyo3::exceptions::PyOSError;
 
 use d10::D10Result;
 
-/// Helper trait used to convert D10Results into
+/// Helper trait used to convert D10Result into PyResult
 trait IntoPyErr<T> {
     fn py_err(self) -> PyResult<T>;
 }
