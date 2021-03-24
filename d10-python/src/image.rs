@@ -178,6 +178,14 @@ impl Image {
         self.inner.rotate270().into()
     }
 
+    pub fn rotate(&self, radians: f32, filter: Option<&str>) -> PyResult<Image> {
+        let filter = match filter {
+            Some(filter) => filter.try_into().py_err()?,
+            None => FilterMode::Bilinear
+        };
+        Ok(self.inner.rotate(radians, filter).into())
+    }
+
     pub fn resize(&self, new_width: u32, new_height: u32, filter: Option<&str>) -> PyResult<Image> {
         let filter = match filter {
             Some(filter) => filter.try_into().py_err()?,

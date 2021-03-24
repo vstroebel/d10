@@ -1,7 +1,7 @@
 mod commands;
 mod log;
 
-use d10::Intensity;
+use d10::{Intensity, FilterMode};
 
 use commands::{run, Cmd, Cmd::*};
 use std::error::Error;
@@ -34,6 +34,7 @@ fn create_args() -> Args {
         .number_arg("stretch-saturation", |v| Ok(StretchSaturation(v)))
         .number_arg("lightness", |v| Ok(Lightness(v)))
         .number_arg("hue-rotate", |v| Ok(HueRotate(v)))
+        .number_arg("rotate", |v| Ok(Rotate { radians: v, filter: FilterMode::Bilinear }))
 }
 
 fn parse_intensity(arg: &str) -> Result<Intensity, String> {

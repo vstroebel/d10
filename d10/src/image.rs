@@ -194,6 +194,11 @@ impl Image {
         Self::new_from_buffer_with_meta(self, ops::rotate270(&self.buffer))
     }
 
+    /// Rotate image clockwise with the given filter
+    pub fn rotate(&self, radians: f32, filter: FilterMode) -> Self {
+        Self::new_from_buffer_with_meta(self, ops::rotate(&self.buffer, radians, self.bg_color.unwrap_or(RGB::NONE), filter))
+    }
+
     /// Detect edges in the image with a sobel kernel
     ///
     /// If `normalize` is true the resulting color channel values will be between 0.0 and 1.0
@@ -274,6 +279,13 @@ mod tests {
         Image::new_from_raw(3, 2, vec![
             RGB::WHITE, RGB::BLACK, RGB::YELLOW,
             RGB::RED, RGB::GREEN, RGB::BLUE
+        ])
+    }
+
+    fn test_image_4_2() -> Image {
+        Image::new_from_raw(4, 2, vec![
+            RGB::WHITE, RGB::BLACK, RGB::YELLOW, RGB::MAGENTA,
+            RGB::RED, RGB::GREEN, RGB::BLUE, RGB::CYAN
         ])
     }
 
@@ -362,6 +374,26 @@ mod tests {
         assert_eq!(img_in.get_pixel(0, 1), img_out.get_pixel(1, 2));
         assert_eq!(img_in.get_pixel(1, 1), img_out.get_pixel(1, 1));
         assert_eq!(img_in.get_pixel(2, 1), img_out.get_pixel(1, 0));
+    }
+
+    #[test]
+    fn rotate() {
+        let img_in = test_image_4_2();
+
+        let img_out = img_in.rotate(180.0, FilterMode::Nearest);
+
+        assert_eq!(img_in.width(), img_out.width());
+        assert_eq!(img_in.height(), img_out.height());
+
+        assert_eq!(img_in.get_pixel(0, 0), img_out.get_pixel(3, 1));
+        assert_eq!(img_in.get_pixel(1, 0), img_out.get_pixel(2, 1));
+        assert_eq!(img_in.get_pixel(2, 0), img_out.get_pixel(1, 1));
+        assert_eq!(img_in.get_pixel(3, 0), img_out.get_pixel(0, 1));
+
+        assert_eq!(img_in.get_pixel(0, 1), img_out.get_pixel(3, 0));
+        assert_eq!(img_in.get_pixel(1, 1), img_out.get_pixel(2, 0));
+        assert_eq!(img_in.get_pixel(2, 1), img_out.get_pixel(1, 0));
+        assert_eq!(img_in.get_pixel(3, 1), img_out.get_pixel(0, 0));
     }
 
     #[test]

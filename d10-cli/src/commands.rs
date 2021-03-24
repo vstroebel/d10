@@ -1,4 +1,4 @@
-use d10::{D10Error, Intensity, Image};
+use d10::{D10Error, Intensity, Image, FilterMode};
 
 use crate::log::Log;
 
@@ -18,6 +18,7 @@ pub enum Cmd {
     StretchSaturation(f32),
     Lightness(f32),
     HueRotate(f32),
+    Rotate { radians: f32, filter: FilterMode },
 }
 
 impl Cmd {
@@ -72,6 +73,7 @@ fn execute(ctx: &mut Context, commands: &[Cmd], log: &mut Log) -> Result<(), D10
             StretchSaturation(saturation) => execute_stretch_saturation(ctx, *saturation)?,
             Lightness(lightness) => execute_lightness(ctx, *lightness)?,
             HueRotate(rotation) => execute_hue_rotate(ctx, *rotation)?,
+            Rotate { radians, filter } => execute_rotate(ctx, *radians, *filter)?,
         };
     }
 
@@ -139,5 +141,10 @@ fn execute_lightness(ctx: &mut Context, lightness: f32) -> Result<(), D10Error> 
 
 fn execute_hue_rotate(ctx: &mut Context, rotation: f32) -> Result<(), D10Error> {
     ctx.image()?.mod_colors(|c| c.with_hue_rotate(rotation));
+    Ok(())
+}
+
+fn execute_rotate(ctx: &mut Context, radians: f32, filter: FilterMode) -> Result<(), D10Error> {
+    ctx.image = Some(ctx.image()?.rotate(radians, filter));
     Ok(())
 }

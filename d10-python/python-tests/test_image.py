@@ -204,6 +204,17 @@ class TestImage(unittest.TestCase):
         self.assertEqual(image.get_pixel(1, 1), RGB(0.0, 1.0, 1.0))
         self.assertEqual(image.get_pixel(1, 0), RGB(1.0, 0.0, 1.0))
 
+    def test_rotate(self):
+        image = Image.from_list(2, 2, [
+            RGB(0.0, 0.0, 1.0), RGB(1.0, 0.0, 1.0),
+            RGB(0.0, 1.0, 1.0), RGB(1.0, 0.0, 1.0),
+        ]).rotate(180, 'nearest')
+
+        self.assertEqual(image.get_pixel(1, 1), RGB(0.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(0, 1), RGB(1.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(1, 0), RGB(0.0, 1.0, 1.0))
+        self.assertEqual(image.get_pixel(0, 0), RGB(1.0, 0.0, 1.0))
+
     def test_resize(self):
         image = Image(2, 3).resize(7, 5)
 
