@@ -4,8 +4,10 @@ use crate::kernel::Kernel;
 pub const MAX_BUFFER_SIZE: u64 = (i32::MAX as u64) / 2;
 
 pub fn is_valid_buffer_size(width: u32, height: u32) -> bool {
-    if width == 0 || height == 0 {
-        false
+    if width == 0 {
+        height == 0
+    } else if height == 0 {
+        width == 0
     } else {
         (width as u64) * (height as u64) <= MAX_BUFFER_SIZE
     }
@@ -70,6 +72,10 @@ impl<T: Color> PixelBuffer<T> {
 
     pub fn height(&self) -> u32 {
         self.height
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.width == 0 && self.height == 0
     }
 
     pub fn data(&self) -> &[T] {

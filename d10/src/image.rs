@@ -92,6 +92,10 @@ impl Image {
         self.buffer.height()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.buffer.is_empty()
+    }
+
     pub fn data(&self) -> &[RGB] {
         self.buffer.data()
     }
@@ -167,6 +171,11 @@ impl Image {
     /// Check whether the x/y coordinates are within the image dimensions
     pub fn is_in_image(&self, x: i32, y: i32) -> bool {
         self.buffer.is_in_image(x, y)
+    }
+
+    /// Return cropped image
+    pub fn crop(&self, offset_x: u32, offset_y: u32, width: u32, height: u32) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::crop(&self.buffer, offset_x, offset_y, width, height))
     }
 
     /// Flip image horizontally
