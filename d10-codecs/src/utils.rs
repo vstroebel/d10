@@ -1,6 +1,6 @@
-use d10_core::pixelbuffer::PixelBuffer;
+use d10_core::pixelbuffer::{PixelBuffer, is_valid_buffer_size};
 use d10_core::color::{Color, RGB, SRGB};
-use d10_core::errors::D10Result;
+use d10_core::errors::{D10Result, D10Error};
 use image::{DynamicImage, GenericImageView};
 use byteorder::{BigEndian, WriteBytesExt};
 
@@ -133,6 +133,10 @@ pub fn read_into_buffer(img: DynamicImage) -> D10Result<PixelBuffer<RGB>> {
     let width = img.width();
     let height = img.height();
 
+    if !is_valid_buffer_size(width, height) {
+        return Err(D10Error::Limits(format!("Invalid buffer size: {}x{}", width, height)));
+    }
+
     use image::DynamicImage::*;
 
     let data = match img {
@@ -198,7 +202,7 @@ pub fn read_into_buffer(img: DynamicImage) -> D10Result<PixelBuffer<RGB>> {
         }.to_rgb()).collect(),
     };
 
-    PixelBuffer::new_from_raw(width, height, data)
+    Ok(PixelBuffer::new_from_raw(width, height, data))
 }
 
 #[cfg(test)]

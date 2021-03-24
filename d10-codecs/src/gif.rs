@@ -1,6 +1,6 @@
 use d10_core::errors::{D10Result, D10Error};
 use d10_core::color::{SRGB, Color, RGB};
-use d10_core::pixelbuffer::PixelBuffer;
+use d10_core::pixelbuffer::{PixelBuffer, is_valid_buffer_size};
 
 use std::io::{Read, Seek, BufRead, Write};
 
@@ -46,7 +46,14 @@ pub(crate) fn decode_gif<T>(reader: T) -> D10Result<DecodedImage>
             ).to_rgb()
         }).collect();
 
-        let buffer = PixelBuffer::new_from_raw(frame.width as u32, frame.height as u32, data).unwrap();
+        let width = frame.width as u32;
+        let height = frame.height as u32;
+
+        if !is_valid_buffer_size(width, height) {
+            return Err(D10Error::Limits(format!("Invalid buffer size: {}x{}", width, height)));
+        }
+
+        let buffer = PixelBuffer::new_from_raw(width, height, data);
 
         Ok(DecodedImage {
             buffer

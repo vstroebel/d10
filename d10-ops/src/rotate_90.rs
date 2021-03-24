@@ -13,7 +13,7 @@ pub fn rotate90<C>(buffer: &PixelBuffer<C>) -> PixelBuffer<C> where C: Color {
         }
     }
 
-    PixelBuffer::new_from_raw(buffer.height(), buffer.width(), result).unwrap()
+    PixelBuffer::new_from_raw(buffer.height(), buffer.width(), result)
 }
 
 /// Rotate buffer 180 degrees clockwise
@@ -28,7 +28,7 @@ pub fn rotate180<C>(buffer: &PixelBuffer<C>) -> PixelBuffer<C> where C: Color {
         }
     }
 
-    PixelBuffer::new_from_raw(buffer.width(), buffer.height(), result).unwrap()
+    PixelBuffer::new_from_raw(buffer.width(), buffer.height(), result)
 }
 
 /// Rotate buffer 270 degrees clockwise
@@ -43,5 +43,5 @@ pub fn rotate270<C>(buffer: &PixelBuffer<C>) -> PixelBuffer<C> where C: Color {
         }
     }
 
-    PixelBuffer::new_from_raw(buffer.height(), buffer.width(), result).unwrap()
+    PixelBuffer::new_from_raw(buffer.height(), buffer.width(), result)
 }

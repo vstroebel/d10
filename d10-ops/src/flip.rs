@@ -11,7 +11,7 @@ pub fn flip_horizontal<C>(buffer: &PixelBuffer<C>) -> PixelBuffer<C> where C: Co
         }
     }
 
-    PixelBuffer::new_from_raw(buffer.width(), buffer.height(), result).unwrap()
+    PixelBuffer::new_from_raw(buffer.width(), buffer.height(), result)
 }
 
 /// Flip buffer vertically
@@ -24,5 +24,5 @@ pub fn flip_vertical<C>(buffer: &PixelBuffer<C>) -> PixelBuffer<C> where C: Colo
         }
     }
 
-    PixelBuffer::new_from_raw(buffer.width(), buffer.height(), result).unwrap()
+    PixelBuffer::new_from_raw(buffer.width(), buffer.height(), result)
 }

@@ -1,4 +1,4 @@
-use d10_core::pixelbuffer::PixelBuffer;
+use d10_core::pixelbuffer::{PixelBuffer, is_valid_buffer_size};
 use d10_core::color::{RGB, SRGB, Color};
 use d10_core::errors::{D10Result, D10Error};
 
@@ -169,6 +169,10 @@ pub(crate) fn decode_png<T>(reader: T) -> D10Result<DecodedImage> where T: Read 
     let width = info.width;
     let height = info.height;
 
+    if !is_valid_buffer_size(width, height) {
+        return Err(D10Error::Limits(format!("Invalid buffer size: {}x{}", width, height)));
+    }
+
     let num_pixel = (width * height) as usize;
 
 
@@ -269,6 +273,6 @@ pub(crate) fn decode_png<T>(reader: T) -> D10Result<DecodedImage> where T: Read 
     };
 
     Ok(DecodedImage {
-        buffer: PixelBuffer::new_from_raw(width, height, raw).unwrap()
+        buffer: PixelBuffer::new_from_raw(width, height, raw)
     })
 }

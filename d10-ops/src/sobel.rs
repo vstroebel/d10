@@ -33,7 +33,7 @@ fn apply_kernel_2(buffer: &PixelBuffer<RGB>, normalize: bool, kernel_x: &Kernel,
 
     let data = g.iter().map(|v| RGB::new(*v, *v, *v)).collect();
 
-    PixelBuffer::new_from_raw(buffer.width(), buffer.height(), data).expect("New buffer")
+    PixelBuffer::new_from_raw(buffer.width(), buffer.height(), data)
 }
 
 /// Detect edges in the buffer with a sobel kernel

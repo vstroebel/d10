@@ -17,7 +17,7 @@ pub fn resize_nearest(buffer: &PixelBuffer<RGB>, new_width: u32, new_height: u32
             *buffer.get_pixel_clamped(x2, y2)
         }).collect();
 
-    PixelBuffer::new_from_raw(new_width, new_height, result).expect("New buffer")
+    PixelBuffer::new_from_raw(new_width, new_height, result)
 }
 
 /// Resize buffer with bilinear filter
@@ -34,7 +34,7 @@ pub fn resize_bilinear(buffer: &PixelBuffer<RGB>, new_width: u32, new_height: u3
             crate::filters::get_pixel_bilinear(buffer, gx, gy)
         }).collect();
 
-    PixelBuffer::new_from_raw(new_width, new_height, result).expect("New buffer")
+    PixelBuffer::new_from_raw(new_width, new_height, result)
 }
 
 /// Resize buffer with bicubic filter
@@ -51,7 +51,7 @@ pub fn resize_bicubic(buffer: &PixelBuffer<RGB>, new_width: u32, new_height: u32
             crate::filters::get_pixel_bicubic(buffer, gx, gy)
         }).collect();
 
-    PixelBuffer::new_from_raw(new_width, new_height, result).expect("New buffer")
+    PixelBuffer::new_from_raw(new_width, new_height, result)
 }
 
 pub fn resize(buffer: &PixelBuffer<RGB>, new_width: u32, new_height: u32, filter: FilterMode) -> PixelBuffer<RGB> {
@@ -76,19 +76,19 @@ mod tests {
     }
 
     fn check_resize(color: RGB, filter: FilterMode) {
-        let img_in = PixelBuffer::new_with_color(100, 100, color).unwrap();
+        let img_in = PixelBuffer::new_with_color(100, 100, color);
         let img_out = resize(&img_in, 133, 166, filter);
         check_color(&img_out, color);
         assert_eq!(img_out.width(), 133);
         assert_eq!(img_out.height(), 166);
 
-        let img_in = PixelBuffer::new_with_color(100, 100, color).unwrap();
+        let img_in = PixelBuffer::new_with_color(100, 100, color);
         let img_out = resize(&img_in, 66, 33, filter);
         check_color(&img_out, color);
         assert_eq!(img_out.width(), 66);
         assert_eq!(img_out.height(), 33);
 
-        let img_in = PixelBuffer::new_with_color(100, 100, color).unwrap();
+        let img_in = PixelBuffer::new_with_color(100, 100, color);
         let img_out = resize(&img_in, 9, 8, filter);
         check_color(&img_out, color);
         assert_eq!(img_out.width(), 9);

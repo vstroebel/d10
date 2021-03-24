@@ -1,6 +1,21 @@
 use crate::color::*;
-use crate::errors::{D10Result, D10Error};
 use crate::kernel::Kernel;
+
+pub const MAX_BUFFER_SIZE: u64 = (i32::MAX as u64) / 2;
+
+pub fn is_valid_buffer_size(width: u32, height: u32) -> bool {
+    if width == 0 || height == 0 {
+        false
+    } else {
+        (width as u64) * (height as u64) <= MAX_BUFFER_SIZE
+    }
+}
+
+fn validate_size(width: u32, height: u32) {
+    if !is_valid_buffer_size(width, height) {
+        panic!("Invalid buffer size: {}x{}", width, height)
+    }
+}
 
 /// A storage for raw image data
 ///
@@ -13,50 +28,39 @@ pub struct PixelBuffer<T: Color> {
     data: Vec<T>,
 }
 
-fn validate_size(width: u32, height: u32) -> D10Result<()> {
-    //TODO: Add build time configuration for this
-    const MAX: u32 = i32::MAX as u32;
-    if width >= MAX || height >= MAX || width >= MAX / height {
-        Err(D10Error::Limits(format!("Image size exceeds limits: {}x{}", width, height)))
-    } else {
-        Ok(())
-    }
-}
-
 impl<T: Color> PixelBuffer<T> {
     /// Creates a new buffer with the default color (i.e. transparent black for RGBA)
     ///
-    /// # Warning
+    /// # Panics
     ///
-    /// As of now this will abort the application if there is an Out-Of-Memory error
-    /// during buffer allocation.
-    pub fn new(width: u32, height: u32) -> D10Result<PixelBuffer<T>> {
+    /// Creating the buffer panics if the number of Pixels exceeds MAX_BUFFER_SIZE
+    pub fn new(width: u32, height: u32) -> PixelBuffer<T> {
         Self::new_with_color(width, height, T::default())
     }
 
-    pub fn new_with_color(width: u32, height: u32, color: T) -> D10Result<PixelBuffer<T>> {
-        validate_size(width, height)?;
+    pub fn new_with_color(width: u32, height: u32, color: T) -> PixelBuffer<T> {
+        validate_size(width, height);
 
-        Ok(PixelBuffer {
+        PixelBuffer {
             width,
             height,
             data: vec![color; (width * height) as usize],
-        })
+        }
     }
 
-    pub fn new_from_raw(width: u32, height: u32, data: Vec<T>) -> D10Result<PixelBuffer<T>> {
-        validate_size(width, height)?;
+    pub fn new_from_raw(width: u32, height: u32, data: Vec<T>) -> PixelBuffer<T> {
+        let required_len = width as u64 * height as u64;
 
-        let required_len = width as usize * height as usize;
-
-        if required_len != data.len() {
-            Err(D10Error::BadArgument(format!("Data has wrong length: {}x{}={} data has {}", width, height, required_len, data.len())))
+        if required_len > usize::MAX as u64 || required_len as usize != data.len() {
+            panic!("Data has wrong length: {}x{}={} data has {}", width, height, required_len, data.len())
         } else {
-            Ok(Self {
+            validate_size(width, height);
+
+            Self {
                 width,
                 height,
                 data,
-            })
+            }
         }
     }
 
@@ -339,7 +343,7 @@ mod tests {
 
     #[test]
     fn new() {
-        let buffer: PixelBuffer<RGB> = PixelBuffer::new(13, 7).unwrap();
+        let buffer: PixelBuffer<RGB> = PixelBuffer::new(13, 7);
 
         assert_eq!(buffer.width(), 13);
         assert_eq!(buffer.height(), 7);
@@ -351,7 +355,7 @@ mod tests {
 
     #[test]
     fn new_with_color() {
-        let buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(7, 13, RGB::RED).unwrap();
+        let buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(7, 13, RGB::RED);
 
         assert_eq!(buffer.width(), 7);
         assert_eq!(buffer.height(), 13);
@@ -365,7 +369,7 @@ mod tests {
     fn new_from_raw() {
         let raw = vec![RGB::BLUE; 7 * 13];
 
-        let buffer: PixelBuffer<RGB> = PixelBuffer::new_from_raw(7, 13, raw).unwrap();
+        let buffer: PixelBuffer<RGB> = PixelBuffer::new_from_raw(7, 13, raw);
 
         assert_eq!(buffer.width(), 7);
         assert_eq!(buffer.height(), 13);
@@ -377,7 +381,7 @@ mod tests {
 
     #[test]
     fn data() {
-        let buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(7, 13, RGB::RED).unwrap();
+        let buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(7, 13, RGB::RED);
         let data = buffer.data();
 
         assert_eq!(data.len(), 13 * 7);
@@ -389,7 +393,7 @@ mod tests {
 
     #[test]
     fn data_mut() {
-        let mut buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(13, 7, RGB::RED).unwrap();
+        let mut buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(13, 7, RGB::RED);
 
         assert_eq!(buffer.data_mut().len(), 7 * 13);
 
@@ -408,7 +412,7 @@ mod tests {
 
     #[test]
     fn enumerate() {
-        let buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(13, 7, RGB::RED).unwrap();
+        let buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(13, 7, RGB::RED);
 
         let mut i = 0u32;
 
@@ -427,7 +431,7 @@ mod tests {
 
     #[test]
     fn enumerate_mut() {
-        let mut buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(32, 64, RGB::RED).unwrap();
+        let mut buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(32, 64, RGB::RED);
 
         let mut i = 0u32;
 
@@ -462,7 +466,7 @@ mod tests {
 
     #[test]
     fn test_is_grayscale() {
-        let mut buffer = PixelBuffer::new_with_color(13, 7, RGB::new(0.5, 0.5, 0.5)).unwrap();
+        let mut buffer = PixelBuffer::new_with_color(13, 7, RGB::new(0.5, 0.5, 0.5));
 
         assert!(buffer.is_grayscale());
         buffer.put_pixel(0, 0, RGB::new(1.0, 0.5, 0.5));

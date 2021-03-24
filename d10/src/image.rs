@@ -13,21 +13,21 @@ pub struct Image {
 impl Image {
     pub fn new(width: u32, height: u32) -> Image {
         Image {
-            buffer: PixelBuffer::new(width, height).expect("New image"),
+            buffer: PixelBuffer::new(width, height),
             bg_color: None,
         }
     }
 
     pub fn new_with_color(width: u32, height: u32, color: RGB) -> Image {
         Image {
-            buffer: PixelBuffer::new_with_color(width, height, color).expect("New image"),
+            buffer: PixelBuffer::new_with_color(width, height, color),
             bg_color: None,
         }
     }
 
     pub fn new_from_raw(width: u32, height: u32, data: Vec<RGB>) -> Image {
         Image {
-            buffer: PixelBuffer::new_from_raw(width, height, data).expect("New image"),
+            buffer: PixelBuffer::new_from_raw(width, height, data),
             bg_color: None,
         }
     }
@@ -40,7 +40,7 @@ impl Image {
     }
 
     pub fn new_from_raw_with_meta(orig_image: &Image, width: u32, height: u32, data: Vec<RGB>) -> Image {
-        Self::new_from_buffer_with_meta(orig_image, PixelBuffer::new_from_raw(width, height, data).expect("New buffer"))
+        Self::new_from_buffer_with_meta(orig_image, PixelBuffer::new_from_raw(width, height, data))
     }
 
     pub fn new_from_buffer_with_meta(orig_image: &Image, buffer: PixelBuffer<RGB>) -> Image {
