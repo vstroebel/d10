@@ -290,6 +290,13 @@ class TestImage(unittest.TestCase):
         self.assertEqual(image.width, 2)
         self.assertEqual(image.height, 3)
 
+    def test_crop(self):
+        image = Image(100, 200)
+
+        cropped = image.crop(0, 0, 10, 20)
+        self.assertEqual(cropped.width, 10)
+        self.assertEqual(cropped.height, 20)
+
 
 class TestNumpy(unittest.TestCase):
 

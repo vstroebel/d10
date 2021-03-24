@@ -158,6 +158,10 @@ impl Image {
         self.inner.is_in_image(x, y)
     }
 
+    pub fn crop(&self, offset_x: u32, offset_y: u32, width: u32, height: u32) -> Image {
+        self.inner.crop(offset_x, offset_y, width, height).into()
+    }
+
     pub fn flip_horizontal(&self) -> Image {
         self.inner.flip_horizontal().into()
     }

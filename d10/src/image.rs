@@ -529,4 +529,21 @@ mod tests {
         assert_eq!(img_in.width(), img_out.width());
         assert_eq!(img_in.height(), img_out.height());
     }
+
+    #[test]
+    fn test_crop() {
+        let image: Image = Image::new(100, 200);
+
+        let cropped = image.crop(0, 0, 10, 20);
+        assert_eq!(cropped.width(), 10);
+        assert_eq!(cropped.height(), 20);
+
+        let cropped = image.crop(200, 0, 10, 20);
+        assert_eq!(cropped.width(), 0);
+        assert_eq!(cropped.height(), 0);
+
+        let cropped = image.crop(50, 50, 100, 200);
+        assert_eq!(cropped.width(), 50);
+        assert_eq!(cropped.height(), 150);
+    }
 }
