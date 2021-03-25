@@ -12,6 +12,9 @@ use crate::DecodedImage;
 pub(crate) fn encode_jpeg<W>(w: &mut W, buffer: &PixelBuffer<RGB>, quality: u8) -> D10Result<()> where W: Write {
     let out = to_rgb8_vec(buffer);
 
+    // Ensure quality is always in the valid range.
+    let quality = quality.clamp(1, 100);
+
     if let Err(err) = JpegEncoder::new_with_quality(w, quality).encode(
         &out,
         buffer.width(),
