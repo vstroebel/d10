@@ -3,8 +3,6 @@ use pyo3::PyObjectProtocol;
 use pyo3::types::PyFunction;
 use pyo3::basic::CompareOp;
 
-use std::convert::TryInto;
-
 use d10::{Color,
           RGB as D10RGB,
           SRGB as D10SRGB,
@@ -76,7 +74,7 @@ impl RGB {
 
     fn to_gray(&self, intensity: Option<&str>) -> PyResult<RGB> {
         Ok(if let Some(intensity) = intensity {
-            self.inner.to_gray_with_intensity(intensity.try_into().py_err()?)
+            self.inner.to_gray_with_intensity(intensity.parse().py_err()?)
         } else {
             self.inner.to_gray()
         }.into())

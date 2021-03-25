@@ -1,11 +1,11 @@
-use crate::errors::D10Error;
+use crate::errors::ParseEnumError;
 use super::{Color, clamp, EPSILON, HSL};
 
-use std::convert::TryFrom;
 use std::fmt::Display;
 use crate::color::format_color;
+use std::str::FromStr;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Intensity {
     Average,
     Rec601Luma,
@@ -18,26 +18,25 @@ pub enum Intensity {
     Blue,
 }
 
-impl TryFrom<&str> for Intensity {
-    type Error = D10Error;
+impl FromStr for Intensity {
+    type Err = ParseEnumError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         use Intensity::*;
-        match value {
+        match s {
             "average" => Ok(Average),
             "rec601luma" => Ok(Rec601Luma),
-            "rec709luma" => Ok(Rec709Luma),
+            "rec709luma" | "default" => Ok(Rec709Luma),
             "brightness" => Ok(Brightness),
             "lightness" => Ok(Lightness),
             "saturation" => Ok(Saturation),
             "red" => Ok(Red),
             "green" => Ok(Green),
             "blue" => Ok(Blue),
-            _ => Err(D10Error::BadArgument(format!("Bad intensity: {}", value)))
+            _ => Err(ParseEnumError::new(s, "Intensity"))
         }
     }
 }
-
 
 #[derive(Debug, Copy, Clone)]
 pub struct RGB {
@@ -345,7 +344,8 @@ impl Display for RGB {
 #[cfg(test)]
 mod tests {
     use super::RGB;
-    use crate::color::Color;
+    use crate::color::{Color, Intensity};
+    use std::str::FromStr;
 
     #[test]
     fn test_is_grayscale() {
@@ -425,5 +425,18 @@ mod tests {
         assert_eq!(RGB::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "rgba(0.0, 0.0, 0.0, 0.0)");
         assert_eq!(RGB::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "rgba(0.3, 0.6, 0.9, 0.5)");
         assert_eq!(RGB::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "rgba(0.33, 0.666, 0.999, 0.5555)");
+    }
+
+    #[test]
+    fn parse_intensity() {
+        let res = Intensity::from_str("default").unwrap();
+        assert_eq!(res, Intensity::Rec709Luma);
+
+        let res = Intensity::from_str("bad value");
+
+        assert!(res.is_err());
+        let res = res.unwrap_err();
+        assert_eq!(res.input, "bad value");
+        assert_eq!(res.enum_type, "Intensity");
     }
 }

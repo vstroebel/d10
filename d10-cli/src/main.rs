@@ -38,18 +38,7 @@ fn create_args() -> Args {
 }
 
 fn parse_intensity(arg: &str) -> Result<Intensity, String> {
-    match arg {
-        "average" => Ok(Intensity::Average),
-        "rec601luma" => Ok(Intensity::Rec601Luma),
-        "default" | "rec709luma" => Ok(Intensity::Rec709Luma),
-        "saturation" => Ok(Intensity::Saturation),
-        "brightness" => Ok(Intensity::Brightness),
-        "lightness" => Ok(Intensity::Lightness),
-        "red" => Ok(Intensity::Red),
-        "green" => Ok(Intensity::Green),
-        "blue" => Ok(Intensity::Blue),
-        _ => Err(format!("Unknown intensity: {}", arg))
-    }
+    arg.parse::<Intensity>().map_err(|err| err.to_string())
 }
 
 enum ArgHandler {

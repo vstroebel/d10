@@ -1,7 +1,8 @@
 use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::RGB;
-use std::convert::TryFrom;
-use d10_core::errors::D10Error;
+use d10_core::errors::ParseEnumError;
+
+use std::str::FromStr;
 
 #[derive(Copy, Clone, Debug)]
 pub enum FilterMode {
@@ -10,16 +11,16 @@ pub enum FilterMode {
     Bicubic,
 }
 
-impl TryFrom<&str> for FilterMode {
-    type Error = D10Error;
+impl FromStr for FilterMode {
+    type Err = ParseEnumError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
         use FilterMode::*;
         match value {
             "nearest" => Ok(Nearest),
             "bilinear" => Ok(Bilinear),
             "bicubic" => Ok(Bicubic),
-            _ => Err(D10Error::BadArgument(format!("Bad filter mode: {}", value)))
+            _ => Err(ParseEnumError::new(value, "FilterMode"))
         }
     }
 }

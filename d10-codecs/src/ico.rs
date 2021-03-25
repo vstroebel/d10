@@ -1,9 +1,9 @@
 use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::RGB;
-use d10_core::errors::{D10Result, D10Error};
+use d10_core::errors::{D10Result, D10Error, ParseEnumError};
 
 use std::io::{Write, Seek, BufRead, Read};
-use std::convert::TryFrom;
+use std::str::FromStr;
 
 use crate::utils::*;
 use crate::DecodedImage;
@@ -19,17 +19,17 @@ pub enum ICOColorType {
     RGBA8,
 }
 
-impl TryFrom<&str> for ICOColorType {
-    type Error = D10Error;
+impl FromStr for ICOColorType {
+    type Err = ParseEnumError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
         use ICOColorType::*;
         match value {
             "l8" => Ok(L8),
             "la8" => Ok(LA8),
             "rgb8" => Ok(RGB8),
             "rgba8" => Ok(RGBA8),
-            _ => Err(D10Error::BadArgument(format!("Unknown ico color type: {}", value)))
+            _ => Err(ParseEnumError::new(value, "ICOColorType"))
         }
     }
 }

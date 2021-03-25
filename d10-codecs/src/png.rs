@@ -1,9 +1,10 @@
 use d10_core::pixelbuffer::{PixelBuffer, is_valid_buffer_size};
 use d10_core::color::{RGB, SRGB, Color};
-use d10_core::errors::{D10Result, D10Error};
+use d10_core::errors::{D10Result, D10Error, ParseEnumError};
 
 use std::io::{Write, Seek, BufRead, Read};
-use std::convert::TryFrom;
+use std::str::FromStr;
+
 use crate::utils::*;
 use crate::DecodedImage;
 
@@ -22,10 +23,10 @@ pub enum PNGColorType {
     RGBA16,
 }
 
-impl TryFrom<&str> for PNGColorType {
-    type Error = D10Error;
+impl FromStr for PNGColorType {
+    type Err = ParseEnumError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
         use PNGColorType::*;
         match value {
             "l8" => Ok(L8),
@@ -36,7 +37,7 @@ impl TryFrom<&str> for PNGColorType {
             "rgba8" => Ok(RGBA8),
             "rgb16" => Ok(RGB16),
             "rgba16" => Ok(RGBA16),
-            _ => Err(D10Error::BadArgument(format!("Unknown png color type: {}", value)))
+            _ => Err(ParseEnumError::new(value, "PNGColorType"))
         }
     }
 }
@@ -62,10 +63,10 @@ impl Into<FilterType> for PNGFilterType {
     }
 }
 
-impl TryFrom<&str> for PNGFilterType {
-    type Error = D10Error;
+impl FromStr for PNGFilterType {
+    type Err = ParseEnumError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
         use PNGFilterType::*;
         match value {
             "no_filter" => Ok(NoFilter),
@@ -73,7 +74,7 @@ impl TryFrom<&str> for PNGFilterType {
             "up" => Ok(Up),
             "avg" => Ok(Avg),
             "paeth" => Ok(Paeth),
-            _ => Err(D10Error::BadArgument(format!("Unknown png filter type: {}", value)))
+            _ => Err(ParseEnumError::new(value, "PNGFilterType"))
         }
     }
 }
@@ -101,10 +102,10 @@ impl Into<Compression> for PNGCompression {
 }
 
 
-impl TryFrom<&str> for PNGCompression {
-    type Error = D10Error;
+impl FromStr for PNGCompression {
+    type Err = ParseEnumError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
         use PNGCompression::*;
         match value {
             "default" => Ok(Default),
@@ -112,7 +113,7 @@ impl TryFrom<&str> for PNGCompression {
             "best" => Ok(Best),
             "huffman" => Ok(Huffman),
             "rle" => Ok(Rle),
-            _ => Err(D10Error::BadArgument(format!("Unknown png compression type: {}", value)))
+            _ => Err(ParseEnumError::new(value, "PNGCompression"))
         }
     }
 }

@@ -3,8 +3,6 @@ use pyo3::types::PyFunction;
 use pyo3::PyMappingProtocol;
 use pyo3::exceptions::PyOSError;
 
-use std::convert::TryInto;
-
 use crate::IntoPyErr;
 use crate::color::RGB;
 
@@ -184,7 +182,7 @@ impl Image {
 
     pub fn rotate(&self, radians: f32, filter: Option<&str>) -> PyResult<Image> {
         let filter = match filter {
-            Some(filter) => filter.try_into().py_err()?,
+            Some(filter) => filter.parse().py_err()?,
             None => FilterMode::Bilinear
         };
         Ok(self.inner.rotate(radians, filter).into())
@@ -192,7 +190,7 @@ impl Image {
 
     pub fn resize(&self, new_width: u32, new_height: u32, filter: Option<&str>) -> PyResult<Image> {
         let filter = match filter {
-            Some(filter) => filter.try_into().py_err()?,
+            Some(filter) => filter.parse().py_err()?,
             None => FilterMode::Bilinear
         };
         Ok(self.inner.resize(new_width, new_height, filter).into())
@@ -200,7 +198,7 @@ impl Image {
 
     pub fn resize_pct(&self, pct_100: f32, filter: Option<&str>) -> PyResult<Image> {
         let filter = match filter {
-            Some(filter) => filter.try_into().py_err()?,
+            Some(filter) => filter.parse().py_err()?,
             None => FilterMode::Bilinear
         };
         Ok(self.inner.resize_pct(pct_100, filter).into())
@@ -464,16 +462,16 @@ impl EncodingFormat {
     #[staticmethod]
     fn png(color_type: Option<&str>, compression: Option<&str>, filter: Option<&str>) -> PyResult<EncodingFormat> {
         let color_type = match color_type {
-            Some(v) => v.try_into().py_err()?,
+            Some(v) => v.parse().py_err()?,
             None => PNGColorType::RGBA8,
         };
         let compression = match compression {
-            Some(v) => v.try_into().py_err()?,
+            Some(v) => v.parse().py_err()?,
             None => PNGCompression::Default
         };
 
         let filter = match filter {
-            Some(v) => v.try_into().py_err()?,
+            Some(v) => v.parse().py_err()?,
             None => PNGFilterType::Sub,
         };
 
@@ -496,7 +494,7 @@ impl EncodingFormat {
     #[staticmethod]
     fn bmp(color_type: Option<&str>) -> PyResult<EncodingFormat> {
         let color_type = match color_type {
-            Some(v) => v.try_into().py_err()?,
+            Some(v) => v.parse().py_err()?,
             None => BMPColorType::RGBA8,
         };
 
@@ -510,7 +508,7 @@ impl EncodingFormat {
     #[staticmethod]
     fn ico(color_type: Option<&str>) -> PyResult<EncodingFormat> {
         let color_type = match color_type {
-            Some(v) => v.try_into().py_err()?,
+            Some(v) => v.parse().py_err()?,
             None => ICOColorType::RGBA8,
         };
 
