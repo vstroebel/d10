@@ -4,18 +4,19 @@ mod image;
 use pyo3::prelude::*;
 use pyo3::exceptions::PyOSError;
 
-use d10::D10Result;
+use std::error::Error;
 
-/// Helper trait used to convert D10Result into PyResult
+/// Helper trait used to convert d10 based results into PyResult
 trait IntoPyErr<T> {
     fn py_err(self) -> PyResult<T>;
 }
 
-impl<T> IntoPyErr<T> for D10Result<T> {
+impl<T, E> IntoPyErr<T> for Result<T, E> where E: Error {
     fn py_err(self) -> PyResult<T> {
         self.map_err(|err| PyOSError::new_err(err.to_string()))
     }
 }
+
 
 #[pymodule]
 fn d10(_py: Python, m: &PyModule) -> PyResult<()> {
