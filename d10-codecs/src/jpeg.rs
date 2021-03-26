@@ -5,11 +5,15 @@ use std::io::{Write, Read, Seek, BufRead};
 use image::codecs::jpeg::{JpegEncoder, JpegDecoder};
 use image::{ColorType, ImageError, DynamicImage};
 
-use crate::utils::{to_rgb8_vec, read_into_buffer};
+use crate::utils::{to_rgb8_vec, read_into_buffer, to_l8_vec};
 use crate::{DecodedImage, EncodingError, DecodingError};
 
-pub(crate) fn encode_jpeg<W>(w: &mut W, buffer: &PixelBuffer<Rgb>, quality: u8) -> Result<(), EncodingError> where W: Write {
-    let out = to_rgb8_vec(buffer);
+pub(crate) fn encode_jpeg<W>(w: &mut W, buffer: &PixelBuffer<Rgb>, quality: u8, grayscale: bool) -> Result<(), EncodingError> where W: Write {
+    let (out, color_type) = if grayscale {
+        (to_l8_vec(buffer), ColorType::L8)
+    } else {
+        (to_rgb8_vec(buffer), ColorType::Rgb8)
+    };
 
     // Ensure quality is always in the valid range.
     let quality = quality.clamp(1, 100);
@@ -18,7 +22,7 @@ pub(crate) fn encode_jpeg<W>(w: &mut W, buffer: &PixelBuffer<Rgb>, quality: u8) 
         &out,
         buffer.width(),
         buffer.height(),
-        ColorType::Rgb8) {
+        color_type) {
         Err(match err {
             ImageError::IoError(err) => EncodingError::IoError(err),
             err => EncodingError::Encoding(err.to_string())

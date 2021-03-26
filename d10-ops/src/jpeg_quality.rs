@@ -8,7 +8,7 @@ use d10_codecs::{encode, EncodingFormat, decode_buffer};
 pub fn jpeg_quality(buffer: &PixelBuffer<Rgb>, quality: u8, preserve_alpha: bool) -> PixelBuffer<Rgb> {
     let mut temp = vec![];
 
-    encode(&mut temp, buffer, EncodingFormat::Jpeg { quality }).expect("Encoded image");
+    encode(&mut temp, buffer, EncodingFormat::Jpeg { quality, grayscale: false }).expect("Encoded image");
 
     let mut out = decode_buffer(&temp).expect("Decoded image").buffer;
 

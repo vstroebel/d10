@@ -449,10 +449,11 @@ pub struct EncodingFormat {
 #[pymethods]
 impl EncodingFormat {
     #[staticmethod]
-    fn jpeg(quality: Option<u8>) -> EncodingFormat {
+    fn jpeg(quality: Option<u8>, grayscale: Option<bool>) -> EncodingFormat {
         EncodingFormat {
             inner: D10EncodingFormat::Jpeg {
-                quality: quality.unwrap_or(85)
+                quality: quality.unwrap_or(85),
+                grayscale: grayscale.unwrap_or(false),
             }
         }
     }

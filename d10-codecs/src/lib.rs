@@ -72,7 +72,8 @@ impl Format {
 #[derive(Clone, Debug)]
 pub enum EncodingFormat {
     Jpeg {
-        quality: u8
+        quality: u8,
+        grayscale: bool,
     },
     Png {
         color_type: PngColorType,
@@ -101,7 +102,8 @@ impl EncodingFormat {
 
     pub fn jpeg_default() -> Self {
         Self::Jpeg {
-            quality: 85
+            quality: 85,
+            grayscale: false,
         }
     }
 
@@ -187,7 +189,7 @@ pub fn encode_to_file<P>(path: P, buffer: &PixelBuffer<Rgb>, format: Option<Enco
 
 pub fn encode<W>(w: &mut W, buffer: &PixelBuffer<Rgb>, format: EncodingFormat) -> Result<(), EncodingError> where W: Write {
     match format {
-        EncodingFormat::Jpeg { quality } => encode_jpeg(w, buffer, quality),
+        EncodingFormat::Jpeg { quality, grayscale } => encode_jpeg(w, buffer, quality, grayscale),
         EncodingFormat::Png { color_type, compression, filter } => encode_png(w, buffer, color_type, compression, filter),
         EncodingFormat::Gif => encode_gif(w, buffer),
         EncodingFormat::Bmp { color_type } => encode_bmp(w, buffer, color_type),
