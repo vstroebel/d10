@@ -51,9 +51,9 @@ pub enum PngFilterType {
     Paeth,
 }
 
-impl Into<FilterType> for PngFilterType {
-    fn into(self) -> FilterType {
-        match self {
+impl From<PngFilterType> for FilterType {
+    fn from(filter_type: PngFilterType) -> Self {
+        match filter_type {
             PngFilterType::NoFilter => FilterType::NoFilter,
             PngFilterType::Sub => FilterType::Sub,
             PngFilterType::Up => FilterType::Up,
@@ -89,9 +89,9 @@ pub enum PngCompression {
 }
 
 
-impl Into<Compression> for PngCompression {
-    fn into(self) -> Compression {
-        match self {
+impl From<PngCompression> for Compression {
+    fn from(compression: PngCompression) -> Compression {
+        match compression {
             PngCompression::Default => Compression::Default,
             PngCompression::Fast => Compression::Fast,
             PngCompression::Best => Compression::Best,
