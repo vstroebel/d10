@@ -252,27 +252,27 @@ impl Image {
         let (data, depth): (Vec<f32>, usize) = match colorspace {
             "hsl" => (self.inner.buffer().data()
                           .iter()
-                          .flat_map(|c| Color3Iter::new(&c.to_hsl().data))
+                          .flat_map(|c| color_iter::<3>(&c.to_hsl().data))
                           .collect(), 3),
             "hsla" => (self.inner.buffer().data()
                            .iter()
-                           .flat_map(|c| Color4Iter::new(&c.to_hsl().data))
+                           .flat_map(|c| color_iter::<4>(&c.to_hsl().data))
                            .collect(), 4),
             "hsv" => (self.inner.buffer().data()
                           .iter()
-                          .flat_map(|c| Color3Iter::new(&c.to_hsv().data))
+                          .flat_map(|c| color_iter::<3>(&c.to_hsv().data))
                           .collect(), 3),
             "hsva" => (self.inner.buffer().data()
                            .iter()
-                           .flat_map(|c| Color4Iter::new(&c.to_hsv().data))
+                           .flat_map(|c| color_iter::<4>(&c.to_hsv().data))
                            .collect(), 4),
             "yuv" => (self.inner.buffer().data()
                           .iter()
-                          .flat_map(|c| Color3Iter::new(&c.to_yuv().data))
+                          .flat_map(|c| color_iter::<3>(&c.to_yuv().data))
                           .collect(), 3),
             "yuva" => (self.inner.buffer().data()
                            .iter()
-                           .flat_map(|c| Color4Iter::new(&c.to_yuv().data))
+                           .flat_map(|c| color_iter::<4>(&c.to_yuv().data))
                            .collect(), 4),
             "rgb" => (self.inner.buffer().data()
                           .iter()
@@ -286,11 +286,11 @@ impl Image {
                            .collect(), 4),
             "srgb" => (self.inner.buffer().data()
                            .iter()
-                           .flat_map(|c| Color3Iter::new(&c.to_srgb().data))
+                           .flat_map(|c| color_iter::<3>(&c.to_srgb().data))
                            .collect(), 3),
             "srgba" => (self.inner.buffer().data()
                             .iter()
-                            .flat_map(|c| Color4Iter::new(&c.to_srgb().data))
+                            .flat_map(|c| color_iter::<4>(&c.to_srgb().data))
                             .collect(), 4),
             "gray" => (self.inner.buffer().data()
                            .iter()
@@ -601,54 +601,23 @@ mod numpy_helper {
         Ok((ndims, dims, iter))
     }
 
-
-    pub struct Color3Iter {
-        data: [f32; 3],
-        index: usize,
-    }
-
-    impl Color3Iter {
-        pub fn new(data: &[f32; 4]) -> Color3Iter {
-            Color3Iter {
-                data: [data[0], data[1], data[2]],
-                index: 0,
-            }
-        }
-    }
-
-    impl Iterator for Color3Iter {
-        type Item = f32;
-
-        fn next(&mut self) -> Option<Self::Item> {
-            if self.index < 3 {
-                let r = self.data[self.index];
-                self.index += 1;
-                Some(r)
-            } else {
-                None
-            }
-        }
-    }
-
-    pub struct Color4Iter {
+    pub struct ColorIter<const N: usize> {
         data: [f32; 4],
         index: usize,
     }
 
-    impl Color4Iter {
-        pub fn new(data: &[f32; 4]) -> Color4Iter {
-            Color4Iter {
-                data: [data[0], data[1], data[2], data[3]],
-                index: 0,
-            }
+    pub fn color_iter<const N: usize>(data: &[f32; 4]) -> ColorIter<N> {
+        ColorIter {
+            data: data.to_owned(),
+            index: 0,
         }
     }
 
-    impl Iterator for Color4Iter {
+    impl<const N: usize> Iterator for ColorIter<N> {
         type Item = f32;
 
         fn next(&mut self) -> Option<Self::Item> {
-            if self.index < 4 {
+            if self.index < N {
                 let r = self.data[self.index];
                 self.index += 1;
                 Some(r)
