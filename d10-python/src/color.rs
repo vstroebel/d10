@@ -152,7 +152,7 @@ impl RGB {
     fn map_color_channels(&self, func: &PyFunction) -> PyResult<RGB> {
         let map = |v: f32| -> PyResult<f32> {
             let r = func.call1((v, ))?;
-            Ok(r.extract::<f32>()?)
+            r.extract::<f32>()
         };
         Ok(self.inner.try_map_color_channels(map)?.into())
     }

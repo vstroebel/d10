@@ -1,12 +1,12 @@
 use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::RGB;
-use d10_core::errors::{D10Result, D10Error, ParseEnumError};
+use d10_core::errors::ParseEnumError;
 
 use std::io::{Write, Seek, BufRead, Read};
 use std::str::FromStr;
 
 use crate::utils::*;
-use crate::DecodedImage;
+use crate::{DecodedImage, EncodingError, DecodingError};
 
 use image::codecs::ico::{IcoEncoder, IcoDecoder};
 use image::{ColorType, ImageError, DynamicImage};
@@ -36,7 +36,7 @@ impl FromStr for ICOColorType {
 
 pub(crate) fn encode_ico<W>(w: &mut W,
                             buffer: &PixelBuffer<RGB>,
-                            color_type: ICOColorType) -> D10Result<()>
+                            color_type: ICOColorType) -> Result<(), EncodingError>
     where W: Write {
     let (out, color_type) = match color_type {
         ICOColorType::L8 => (to_l8_vec(buffer), ColorType::L8),
@@ -47,25 +47,26 @@ pub(crate) fn encode_ico<W>(w: &mut W,
 
     if let Err(err) = IcoEncoder::new(w)
         .encode(&out, buffer.width(), buffer.height(), color_type) {
-        Err(D10Error::SaveError(format!("Save error: {:?}", err)))
+        Err(match err {
+            ImageError::IoError(err) => EncodingError::IOError(err),
+            err => EncodingError::Encoding(err.to_string())
+        })
     } else {
         Ok(())
     }
 }
 
-pub(crate) fn decode_ico<T>(reader: T) -> D10Result<DecodedImage> where T: Read + Seek + BufRead {
+pub(crate) fn decode_ico<T>(reader: T) -> Result<DecodedImage, DecodingError> where T: Read + Seek + BufRead {
     let decoder = IcoDecoder::new(reader)
         .map_err(|err| match err {
-            ImageError::IoError(err) => D10Error::IOError(err),
-            ImageError::Limits(l) => D10Error::Limits(format!("{:?}", l)),
-            err => D10Error::OpenError(format!("Open error: {:?}", err))
+            ImageError::IoError(err) => DecodingError::IOError(err),
+            err => DecodingError::Decoding(err.to_string())
         })?;
 
     let img = DynamicImage::from_decoder(decoder)
         .map_err(|err| match err {
-            ImageError::IoError(err) => D10Error::IOError(err),
-            ImageError::Limits(l) => D10Error::Limits(format!("{:?}", l)),
-            err => D10Error::OpenError(format!("Decode error: {:?}", err))
+            ImageError::IoError(err) => DecodingError::IOError(err),
+            err => DecodingError::Decoding(err.to_string())
         })?;
 
     read_into_buffer(img).map(|buffer| DecodedImage {

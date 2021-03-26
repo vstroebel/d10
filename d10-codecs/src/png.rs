@@ -1,15 +1,15 @@
 use d10_core::pixelbuffer::{PixelBuffer, is_valid_buffer_size};
 use d10_core::color::{RGB, SRGB, Color};
-use d10_core::errors::{D10Result, D10Error, ParseEnumError};
+use d10_core::errors::ParseEnumError;
 
 use std::io::{Write, Seek, BufRead, Read};
 use std::str::FromStr;
 
 use crate::utils::*;
-use crate::DecodedImage;
+use crate::{DecodedImage, EncodingError, DecodingError};
 
 use png::{Compression, FilterType};
-use png::{ColorType, BitDepth, DecodingError, Encoder, EncodingError, Decoder};
+use png::{ColorType, BitDepth, DecodingError as PNGDecodingError, Encoder, EncodingError  as PNGEncodingError, Decoder};
 
 #[derive(Copy, Clone, Debug)]
 pub enum PNGColorType {
@@ -118,15 +118,18 @@ impl FromStr for PNGCompression {
     }
 }
 
-fn encode_error(err: EncodingError) -> D10Error {
-    D10Error::SaveError(format!("Error encoding image: {:?}", err))
+fn encode_error(err: PNGEncodingError) -> EncodingError {
+    match err {
+        PNGEncodingError::IoError(err) => EncodingError::IOError(err),
+        err => EncodingError::Encoding(err.to_string()),
+    }
 }
 
 pub(crate) fn encode_png<W>(w: &mut W,
                             buffer: &PixelBuffer<RGB>,
                             color_type: PNGColorType,
                             compression: PNGCompression,
-                            filter: PNGFilterType) -> D10Result<()>
+                            filter: PNGFilterType) -> Result<(), EncodingError>
     where W: Write {
     let (out, color_type, bit_depth) = match color_type {
         PNGColorType::L8 => (to_l8_vec(buffer), ColorType::Grayscale, BitDepth::Eight),
@@ -152,17 +155,20 @@ pub(crate) fn encode_png<W>(w: &mut W,
     Ok(())
 }
 
-fn decode_error(err: DecodingError) -> D10Error {
-    D10Error::OpenError(format!("Error decoding image: {:?}", err))
+fn decode_error(err: PNGDecodingError) -> DecodingError {
+    match err {
+        PNGDecodingError::IoError(err) => DecodingError::IOError(err),
+        err => DecodingError::Decoding(err.to_string()),
+    }
 }
 
-pub(crate) fn decode_png<T>(reader: T) -> D10Result<DecodedImage> where T: Read + Seek + BufRead {
+pub(crate) fn decode_png<T>(reader: T) -> Result<DecodedImage, DecodingError> where T: Read + Seek + BufRead {
     let mut decoder = Decoder::new(reader);
     decoder.set_transformations(png::Transformations::EXPAND);
 
     let (_, mut reader) = decoder
         .read_info()
-        .map_err(|err| D10Error::OpenError(format!("Open error: {:?}", err)))?;
+        .map_err(decode_error)?;
 
     let (color_type, bits) = reader.output_color_type();
     let info = reader.info();
@@ -171,7 +177,7 @@ pub(crate) fn decode_png<T>(reader: T) -> D10Result<DecodedImage> where T: Read 
     let height = info.height;
 
     if !is_valid_buffer_size(width, height) {
-        return Err(D10Error::Limits(format!("Invalid buffer size: {}x{}", width, height)));
+        return Err(DecodingError::InvalidBufferSize { width, height });
     }
 
     let num_pixel = (width * height) as usize;
@@ -270,7 +276,7 @@ pub(crate) fn decode_png<T>(reader: T) -> D10Result<DecodedImage> where T: Read 
                     .to_rgb()
             }).collect()
         }
-        _ => return Err(D10Error::OpenError(format!("Unsupported png: {:?}:{:?}", color_type, bits)))
+        _ => return Err(DecodingError::Decoding(format!("Unsupported png: {:?}:{:?}", color_type, bits)))
     };
 
     Ok(DecodedImage {

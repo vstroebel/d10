@@ -1,6 +1,6 @@
 use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::RGB;
-use d10_core::errors::{D10Result, D10Error, ParseEnumError};
+use d10_core::errors::ParseEnumError;
 
 use std::io::{Write, Read, Seek, BufRead};
 use std::str::FromStr;
@@ -9,7 +9,7 @@ use image::{ColorType, ImageError, DynamicImage};
 use image::codecs::bmp::{BmpEncoder, BmpDecoder};
 
 use crate::utils::{to_rgb8_vec, read_into_buffer, to_la8_vec, to_l8_vec, to_rgba8_vec};
-use crate::DecodedImage;
+use crate::{DecodedImage, EncodingError, DecodingError};
 
 #[derive(Copy, Clone, Debug)]
 pub enum BMPColorType {
@@ -34,7 +34,7 @@ impl FromStr for BMPColorType {
     }
 }
 
-pub(crate) fn encode_bmp<W>(w: &mut W, buffer: &PixelBuffer<RGB>, color_type: BMPColorType) -> D10Result<()> where W: Write {
+pub(crate) fn encode_bmp<W>(w: &mut W, buffer: &PixelBuffer<RGB>, color_type: BMPColorType) -> Result<(), EncodingError> where W: Write {
     let (out, color_type) = match color_type {
         BMPColorType::L8 => (to_l8_vec(buffer), ColorType::L8),
         BMPColorType::LA8 => (to_la8_vec(buffer), ColorType::La8),
@@ -47,25 +47,26 @@ pub(crate) fn encode_bmp<W>(w: &mut W, buffer: &PixelBuffer<RGB>, color_type: BM
         buffer.width(),
         buffer.height(),
         color_type) {
-        Err(D10Error::SaveError(format!("Save error: {:?}", err)))
+        Err(match err {
+            ImageError::IoError(err) => EncodingError::IOError(err),
+            err => EncodingError::Encoding(err.to_string())
+        })
     } else {
         Ok(())
     }
 }
 
-pub(crate) fn decode_bmp<T>(reader: T) -> D10Result<DecodedImage> where T: Read + Seek + BufRead {
+pub(crate) fn decode_bmp<T>(reader: T) -> Result<DecodedImage, DecodingError> where T: Read + Seek + BufRead {
     let decoder = BmpDecoder::new(reader)
         .map_err(|err| match err {
-            ImageError::IoError(err) => D10Error::IOError(err),
-            ImageError::Limits(l) => D10Error::Limits(format!("{:?}", l)),
-            err => D10Error::OpenError(format!("Open error: {:?}", err))
+            ImageError::IoError(err) => DecodingError::IOError(err),
+            err => DecodingError::Decoding(err.to_string())
         })?;
 
     let img = DynamicImage::from_decoder(decoder)
         .map_err(|err| match err {
-            ImageError::IoError(err) => D10Error::IOError(err),
-            ImageError::Limits(l) => D10Error::Limits(format!("{:?}", l)),
-            err => D10Error::OpenError(format!("Decode error: {:?}", err))
+            ImageError::IoError(err) => DecodingError::IOError(err),
+            err => DecodingError::Decoding(err.to_string())
         })?;
 
     read_into_buffer(img).map(|buffer| DecodedImage {

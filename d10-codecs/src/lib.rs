@@ -4,10 +4,10 @@ mod png;
 mod gif;
 mod bmp;
 mod ico;
+mod errors;
 
 use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::RGB;
-use d10_core::errors::{D10Result, D10Error};
 
 use std::path::Path;
 use std::io::{Cursor, Read, Seek, Write, SeekFrom, BufReader, BufRead, BufWriter};
@@ -16,6 +16,7 @@ use std::fs::File;
 pub use crate::png::{PNGColorType, PNGCompression, PNGFilterType};
 pub use crate::bmp::BMPColorType;
 pub use crate::ico::ICOColorType;
+pub use crate::errors::*;
 
 use crate::jpeg::{decode_jpeg, encode_jpeg};
 use crate::png::{decode_png, encode_png};
@@ -33,24 +34,23 @@ pub enum Format {
 }
 
 impl Format {
-    pub fn from_path(path: &Path) -> D10Result<Format> {
+    pub fn from_path(path: &Path) -> Option<Format> {
         let ext = path
-            .extension()
-            .ok_or_else(|| D10Error::SaveError(format!("Missing file extension in path: {}", path.to_string_lossy())))?
+            .extension()?
             .to_string_lossy()
             .to_ascii_lowercase();
 
         match ext.as_str() {
-            "jpg" | "jpeg" => Ok(Self::JPEG),
-            "png" => Ok(Self::PNG),
-            "gif" => Ok(Self::GIF),
-            "bmp" => Ok(Self::BMP),
-            "ico" => Ok(Self::ICO),
-            _ => Err(D10Error::SaveError(format!("Unknown file extension in path: {}", path.to_string_lossy())))
+            "jpg" | "jpeg" => Some(Self::JPEG),
+            "png" => Some(Self::PNG),
+            "gif" => Some(Self::GIF),
+            "bmp" => Some(Self::BMP),
+            "ico" => Some(Self::ICO),
+            _ => None,
         }
     }
 
-    pub fn from_reader<T>(reader: &mut T) -> D10Result<Format> where T: Read + Seek {
+    pub fn from_reader<T>(reader: &mut T) -> Result<Format, DecodingError> where T: Read + Seek {
         let mut buf = [0u8; 8];
 
         let len = reader.read(&mut buf)?;
@@ -64,7 +64,7 @@ impl Format {
             [0x47, 0x49, 0x46, 0x38, 0x39, 0x61, ..] => Ok(Format::GIF),
             [0x42, 0x4D, ..] => Ok(Format::BMP),
             [0x00, 0x00, 0x01, 0x00, ..] => Ok(Format::ICO),
-            _ => Err(D10Error::OpenError("Unable to detect format".to_owned())),
+            _ => Err(DecodingError::UnknownFormat),
         }
     }
 }
@@ -129,13 +129,14 @@ impl EncodingFormat {
         }
     }
 
-    pub fn from_path(path: &Path) -> D10Result<EncodingFormat> {
-        match Format::from_path(path)? {
-            Format::JPEG => Ok(EncodingFormat::jpeg_default()),
-            Format::PNG => Ok(EncodingFormat::png_default()),
-            Format::GIF => Ok(EncodingFormat::gif_default()),
-            Format::BMP => Ok(EncodingFormat::bmp_default()),
-            Format::ICO => Ok(EncodingFormat::ico_default()),
+    pub fn from_path(path: &Path) -> Result<EncodingFormat, EncodingError> {
+        match Format::from_path(path) {
+            Some(Format::JPEG) => Ok(EncodingFormat::jpeg_default()),
+            Some(Format::PNG) => Ok(EncodingFormat::png_default()),
+            Some(Format::GIF) => Ok(EncodingFormat::gif_default()),
+            Some(Format::BMP) => Ok(EncodingFormat::bmp_default()),
+            Some(Format::ICO) => Ok(EncodingFormat::ico_default()),
+            None => Err(EncodingError::BadFileExtension(path.to_string_lossy().to_string()))
         }
     }
 }
@@ -144,8 +145,11 @@ pub struct DecodedImage {
     pub buffer: PixelBuffer<RGB>
 }
 
-pub fn decode_file<P>(path: P) -> D10Result<DecodedImage> where P: AsRef<Path> {
-    let format = Format::from_path(path.as_ref())?;
+pub fn decode_file<P>(path: P) -> Result<DecodedImage, DecodingError> where P: AsRef<Path> {
+    let format = match Format::from_path(path.as_ref()) {
+        Some(format) => format,
+        None => return Err(DecodingError::BadFileExtension(path.as_ref().to_string_lossy().to_string()))
+    };
 
     let file = File::open(path)?;
     let reader = BufReader::new(file);
@@ -153,14 +157,14 @@ pub fn decode_file<P>(path: P) -> D10Result<DecodedImage> where P: AsRef<Path> {
     decode(reader, format)
 }
 
-pub fn decode_buffer(buffer: &[u8]) -> D10Result<DecodedImage> {
+pub fn decode_buffer(buffer: &[u8]) -> Result<DecodedImage, DecodingError> {
     let mut reader = Cursor::new(buffer);
     let format = Format::from_reader(&mut reader)?;
 
     decode(reader, format)
 }
 
-fn decode<T>(reader: T, format: Format) -> D10Result<DecodedImage> where T: Read + Seek + BufRead {
+fn decode<T>(reader: T, format: Format) -> Result<DecodedImage, DecodingError> where T: Read + Seek + BufRead {
     match format {
         Format::JPEG => decode_jpeg(reader),
         Format::PNG => decode_png(reader),
@@ -170,7 +174,7 @@ fn decode<T>(reader: T, format: Format) -> D10Result<DecodedImage> where T: Read
     }
 }
 
-pub fn encode_to_file<P>(path: P, buffer: &PixelBuffer<RGB>, format: Option<EncodingFormat>) -> D10Result<()> where P: AsRef<Path> {
+pub fn encode_to_file<P>(path: P, buffer: &PixelBuffer<RGB>, format: Option<EncodingFormat>) -> Result<(), EncodingError> where P: AsRef<Path> {
     let format = match format {
         Some(format) => format,
         None => EncodingFormat::from_path(path.as_ref())?
@@ -181,7 +185,7 @@ pub fn encode_to_file<P>(path: P, buffer: &PixelBuffer<RGB>, format: Option<Enco
     encode(&mut w, buffer, format)
 }
 
-pub fn encode<W>(w: &mut W, buffer: &PixelBuffer<RGB>, format: EncodingFormat) -> D10Result<()> where W: Write {
+pub fn encode<W>(w: &mut W, buffer: &PixelBuffer<RGB>, format: EncodingFormat) -> Result<(), EncodingError> where W: Write {
     match format {
         EncodingFormat::JPEG { quality } => encode_jpeg(w, buffer, quality),
         EncodingFormat::PNG { color_type, compression, filter } => encode_png(w, buffer, color_type, compression, filter),

@@ -19,8 +19,7 @@ use d10::{Image as D10Image,
 use {
     numpy_helper::*,
     numpy::{PyArray, DataType},
-    d10::{D10Error,
-          Color,
+    d10::{Color,
           SRGB as D10SRGB,
           HSL as D10HSL,
           HSV as D10HSV,
@@ -208,8 +207,8 @@ impl Image {
         self.inner.sobel_edge_detection(normalize.unwrap_or(false)).into()
     }
 
-    pub fn with_jpeg_quality(&self, quality: u8, preserve_alpha: Option<bool>) -> PyResult<Image> {
-        Ok(self.inner.with_jpeg_quality(quality, preserve_alpha.unwrap_or(true)).py_err()?.into())
+    pub fn with_jpeg_quality(&self, quality: u8, preserve_alpha: Option<bool>) -> Image {
+        self.inner.with_jpeg_quality(quality, preserve_alpha.unwrap_or(true)).into()
     }
 
     pub fn random_noise(&self, alpha: f32) -> Image {
@@ -362,7 +361,7 @@ impl Image {
                         .into_iter()
                         .map(|mut chunk| D10YUV::new_with_alpha(chunk.next().unwrap(), chunk.next().unwrap(), chunk.next().unwrap(), chunk.next().unwrap()).to_rgb())
                         .collect(),
-                    _ => return Err(D10Error::BadArgument(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims))).py_err()
+                    _ => return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)))
                 }
             } else if dims[2] == 3 {
                 match colorspace {
@@ -386,23 +385,23 @@ impl Image {
                         .into_iter()
                         .map(|mut chunk| D10YUV::new(chunk.next().unwrap(), chunk.next().unwrap(), chunk.next().unwrap()).to_rgb())
                         .collect(),
-                    _ => return Err(D10Error::BadArgument(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims))).py_err()
+                    _ => return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)))
                 }
             } else if dims[2] == 1 {
                 if colorspace != "gray" && colorspace != "auto" {
-                    return Err(D10Error::BadArgument(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims))).py_err();
+                    return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)));
                 }
                 iter.map(|value| D10RGB::new_with_alpha(value, value, value, 1.0)).collect()
             } else {
-                return Err(D10Error::BadArgument(format!("Bad color dimensions: {}", dims[2]))).py_err();
+                return Err(PyOSError::new_err(format!("Bad color dimensions: {}", dims[2])));
             }
         } else if ndims == 2 {
             if colorspace != "gray" && colorspace != "auto" {
-                return Err(D10Error::BadArgument(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims))).py_err();
+                return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)));
             }
             iter.map(|value| D10RGB::new_with_alpha(value, value, value, 1.0)).collect()
         } else {
-            return Err(D10Error::BadArgument(format!("Bad number of dimensions: {}", ndims))).py_err();
+            return Err(PyOSError::new_err(format!("Bad number of dimensions: {}", ndims)));
         };
 
         assert!(width * height == data.len());

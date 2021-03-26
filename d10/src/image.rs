@@ -1,7 +1,7 @@
-use crate::{ops, RGB, PixelBuffer, D10Result};
+use crate::{ops, RGB, PixelBuffer};
 use std::path::Path;
 use d10_ops::FilterMode;
-use d10_codecs::EncodingFormat;
+use d10_codecs::{EncodingFormat, DecodingError, EncodingError};
 use std::io::Write;
 
 #[derive(Clone)]
@@ -50,35 +50,35 @@ impl Image {
         }
     }
 
-    pub fn open<P>(path: P) -> D10Result<Image> where P: AsRef<Path> {
+    pub fn open<P>(path: P) -> Result<Image, DecodingError> where P: AsRef<Path> {
         let buffer = crate::codecs::decode_file(path)?.buffer;
         Ok(Self::new_from_buffer(buffer))
     }
 
-    pub fn read_from_buffer(buffer: &[u8]) -> D10Result<Image> {
+    pub fn read_from_buffer(buffer: &[u8]) -> Result<Image, DecodingError> {
         let buffer = crate::codecs::decode_buffer(buffer)?.buffer;
         Ok(Self::new_from_buffer(buffer))
     }
 
-    pub fn save<P>(&self, path: P) -> D10Result<()>
+    pub fn save<P>(&self, path: P) -> Result<(), EncodingError>
         where P: AsRef<Path>
     {
         crate::codecs::encode_to_file(path, &self.buffer, None)
     }
 
-    pub fn save_with_format<P>(&self, path: P, format: EncodingFormat) -> D10Result<()>
+    pub fn save_with_format<P>(&self, path: P, format: EncodingFormat) -> Result<(), EncodingError>
         where P: AsRef<Path>
     {
         crate::codecs::encode_to_file(path, &self.buffer, Some(format))
     }
 
-    pub fn save_to_writer<W>(&self, w: &mut W, format: EncodingFormat) -> D10Result<()>
+    pub fn save_to_writer<W>(&self, w: &mut W, format: EncodingFormat) -> Result<(), EncodingError>
         where W: Write
     {
         crate::codecs::encode(w, &self.buffer, format)
     }
 
-    pub fn save_to_buffer(&self, format: EncodingFormat) -> D10Result<Vec<u8>> {
+    pub fn save_to_buffer(&self, format: EncodingFormat) -> Result<Vec<u8>, EncodingError> {
         let mut out = vec![];
         crate::codecs::encode(&mut out, &self.buffer, format)?;
         Ok(out)
@@ -233,8 +233,8 @@ impl Image {
     /// Returns a new image with a simulated jpeg quality
     ///
     /// If `preserve_alpha` is not set all alpha values will be set to 1.0
-    pub fn with_jpeg_quality(&self, quality: u8, preserve_alpha: bool) -> D10Result<Image> {
-        Ok(Self::new_from_buffer_with_meta(self, ops::jpeg_quality(&self.buffer, quality, preserve_alpha)?))
+    pub fn with_jpeg_quality(&self, quality: u8, preserve_alpha: bool) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::jpeg_quality(&self.buffer, quality, preserve_alpha))
     }
 
     /// Add random noise to the image
@@ -443,7 +443,7 @@ mod tests {
     fn with_jpeg_quality() {
         let img_in = test_image_3_2();
 
-        let img_out = img_in.with_jpeg_quality(100, true).expect("New image");
+        let img_out = img_in.with_jpeg_quality(100, true);
 
         assert_eq!(img_in.width(), img_out.width());
         assert_eq!(img_in.height(), img_out.height());

@@ -1,8 +1,9 @@
 use d10_core::pixelbuffer::{PixelBuffer, is_valid_buffer_size};
 use d10_core::color::{Color, RGB, SRGB};
-use d10_core::errors::{D10Result, D10Error};
 use image::{DynamicImage, GenericImageView};
 use byteorder::{BigEndian, WriteBytesExt};
+
+use crate::DecodingError;
 
 /// Convert color channel value between 0.0 and 1.0 into an u8
 pub(crate) fn as_u8(value: f32) -> u8 {
@@ -129,12 +130,12 @@ pub fn from_u16_be(v: [u8; 2]) -> f32 {
     f32::from(u16::from_be_bytes(v)) / 65535.0
 }
 
-pub fn read_into_buffer(img: DynamicImage) -> D10Result<PixelBuffer<RGB>> {
+pub fn read_into_buffer(img: DynamicImage) -> Result<PixelBuffer<RGB>, DecodingError> {
     let width = img.width();
     let height = img.height();
 
     if !is_valid_buffer_size(width, height) {
-        return Err(D10Error::Limits(format!("Invalid buffer size: {}x{}", width, height)));
+        return Err(DecodingError::InvalidBufferSize { width, height });
     }
 
     use image::DynamicImage::*;
