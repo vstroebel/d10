@@ -5,39 +5,7 @@ use std::f32::consts::PI;
 
 use crate::filters::{get_pixel_bicubic, get_pixel_bilinear};
 
-fn rotate_nearest(buffer: &PixelBuffer<Rgb>, radians: f32, bg_color: Rgb) -> PixelBuffer<Rgb> {
-    let radians = radians / -180.0 * PI;
-
-    let sinf = radians.sin();
-    let cosf = radians.cos();
-
-    let center_x = (buffer.width() + 1) as f32 / 2.0;
-    let center_y = (buffer.height() + 1) as f32 / 2.0;
-
-    let new_width = buffer.width();
-    let new_height = buffer.height();
-
-    let result = (0..new_width * new_height)
-        .map(|i| (i % new_width, i / new_width))
-        .map(|(x, y)| {
-            let x = x as f32 + 1.0;
-            let y = y as f32 + 1.0;
-
-            let a = x - center_x;
-            let b = y - center_y;
-            let xx = (a * cosf - b * sinf + center_x) - 1.0;
-            let yy = (a * sinf + b * cosf + center_y) - 1.0;
-
-            let xx = xx.round() as i32;
-            let yy = yy.round() as i32;
-
-            *buffer.get_pixel_optional(xx, yy).unwrap_or(&bg_color)
-        }).collect();
-
-    PixelBuffer::new_from_raw(new_width, new_height, result)
-}
-
-fn rotate_bilinear(buffer: &PixelBuffer<Rgb>, radians: f32, bg_color: Rgb) -> PixelBuffer<Rgb> {
+fn rotate_with_fn<F: Fn(&PixelBuffer<Rgb>, f32, f32) -> Option<Rgb>>(buffer: &PixelBuffer<Rgb>, radians: f32, bg_color: Rgb, func: F) -> PixelBuffer<Rgb> {
     let radians = radians / -180.0 * PI;
 
     let sinf = radians.sin();
@@ -60,53 +28,39 @@ fn rotate_bilinear(buffer: &PixelBuffer<Rgb>, radians: f32, bg_color: Rgb) -> Pi
             let xx = a * cosf - b * sinf + center_x - 1.0;
             let yy = a * sinf + b * cosf + center_y - 1.0;
 
-            if buffer.is_in_image(xx.round() as i32, yy.round() as i32) {
-                get_pixel_bilinear(&buffer, xx, yy)
-            } else {
-                bg_color
-            }
+            func(buffer, xx, yy).unwrap_or(bg_color)
         }).collect();
 
     PixelBuffer::new_from_raw(new_width, new_height, result)
 }
 
-fn rotate_bicubic(buffer: &PixelBuffer<Rgb>, radians: f32, bg_color: Rgb) -> PixelBuffer<Rgb> {
-    let radians = radians / -180.0 * PI;
+fn rotate_pixel_nearest(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Option<Rgb> {
+    let x = x.round() as i32;
+    let y = y.round() as i32;
 
-    let sinf = radians.sin();
-    let cosf = radians.cos();
+    buffer.get_pixel_optional(x, y).cloned()
+}
 
-    let center_x = (buffer.width() + 1) as f32 / 2.0;
-    let center_y = (buffer.height() + 1) as f32 / 2.0;
+fn rotate_pixel_bilinear(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Option<Rgb> {
+    if buffer.is_in_image(x.round() as i32, y.round() as i32) {
+        Some(get_pixel_bilinear(&buffer, x, y))
+    } else {
+        None
+    }
+}
 
-    let new_width = buffer.width();
-    let new_height = buffer.height();
-
-    let result = (0..new_width * new_height)
-        .map(|i| (i % new_width, i / new_width))
-        .map(|(x, y)| {
-            let x = x as f32 + 1.0;
-            let y = y as f32 + 1.0;
-
-            let a = x - center_x;
-            let b = y - center_y;
-            let xx = a * cosf - b * sinf + center_x - 1.0;
-            let yy = a * sinf + b * cosf + center_y - 1.0;
-
-            if buffer.is_in_image(xx.round() as i32, yy.round() as i32) {
-                get_pixel_bicubic(&buffer, xx, yy)
-            } else {
-                bg_color
-            }
-        }).collect();
-
-    PixelBuffer::new_from_raw(new_width, new_height, result)
+fn rotate_pixel_bicubic(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Option<Rgb> {
+    if buffer.is_in_image(x.round() as i32, y.round() as i32) {
+        Some(get_pixel_bicubic(&buffer, x, y))
+    } else {
+        None
+    }
 }
 
 pub fn rotate(buffer: &PixelBuffer<Rgb>, radians: f32, bg_color: Rgb, filter: FilterMode) -> PixelBuffer<Rgb> {
     match filter {
-        FilterMode::Nearest => rotate_nearest(buffer, radians, bg_color),
-        FilterMode::Bilinear => rotate_bilinear(buffer, radians, bg_color),
-        FilterMode::Bicubic => rotate_bicubic(buffer, radians, bg_color),
+        FilterMode::Nearest => rotate_with_fn(buffer, radians, bg_color, rotate_pixel_nearest),
+        FilterMode::Bilinear => rotate_with_fn(buffer, radians, bg_color, rotate_pixel_bilinear),
+        FilterMode::Bicubic => rotate_with_fn(buffer, radians, bg_color, rotate_pixel_bicubic),
     }
 }
