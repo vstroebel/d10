@@ -3,7 +3,7 @@ use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::Rgb;
 use std::f32::consts::PI;
 
-use crate::filters::{get_pixel_bicubic, get_pixel_bilinear};
+use crate::filters::{get_pixel_bicubic, get_pixel_bilinear, get_pixel_lanczos3};
 
 fn rotate_with_fn<F: Fn(&PixelBuffer<Rgb>, f32, f32) -> Option<Rgb>>(buffer: &PixelBuffer<Rgb>, radians: f32, bg_color: Rgb, func: F) -> PixelBuffer<Rgb> {
     let radians = radians / -180.0 * PI;
@@ -57,10 +57,19 @@ fn rotate_pixel_bicubic(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Option<Rgb
     }
 }
 
+fn rotate_pixel_lanczos3(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Option<Rgb> {
+    if buffer.is_in_image(x.round() as i32, y.round() as i32) {
+        Some(get_pixel_lanczos3(&buffer, x, y))
+    } else {
+        None
+    }
+}
+
 pub fn rotate(buffer: &PixelBuffer<Rgb>, radians: f32, bg_color: Rgb, filter: FilterMode) -> PixelBuffer<Rgb> {
     match filter {
         FilterMode::Nearest => rotate_with_fn(buffer, radians, bg_color, rotate_pixel_nearest),
         FilterMode::Bilinear => rotate_with_fn(buffer, radians, bg_color, rotate_pixel_bilinear),
         FilterMode::Bicubic => rotate_with_fn(buffer, radians, bg_color, rotate_pixel_bicubic),
+        FilterMode::Lanczos3 => rotate_with_fn(buffer, radians, bg_color, rotate_pixel_lanczos3),
     }
 }

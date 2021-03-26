@@ -33,12 +33,19 @@ fn resize_pixel_bicubic(buffer: &PixelBuffer<Rgb>, x: u32, y: u32, scale_x: f32,
     crate::filters::get_pixel_bicubic(buffer, gx, gy)
 }
 
+fn resize_pixel_lanczos3(buffer: &PixelBuffer<Rgb>, x: u32, y: u32, scale_x: f32, scale_y: f32) -> Rgb {
+    let gx = (x as f32 + 0.5) / scale_x - 0.5;
+    let gy = (y as f32 + 0.5) / scale_y - 0.5;
+    crate::filters::get_pixel_lanczos3(buffer, gx, gy)
+}
+
 
 pub fn resize(buffer: &PixelBuffer<Rgb>, new_width: u32, new_height: u32, filter: FilterMode) -> PixelBuffer<Rgb> {
     match filter {
         FilterMode::Nearest => resize_with_fn(buffer, new_width, new_height, resize_pixel_nearest),
         FilterMode::Bilinear => resize_with_fn(buffer, new_width, new_height, resize_pixel_bilinear),
         FilterMode::Bicubic => resize_with_fn(buffer, new_width, new_height, resize_pixel_bicubic),
+        FilterMode::Lanczos3 => resize_with_fn(buffer, new_width, new_height, resize_pixel_lanczos3),
     }
 }
 

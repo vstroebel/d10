@@ -3,12 +3,14 @@ use d10_core::color::Rgb;
 use d10_core::errors::ParseEnumError;
 
 use std::str::FromStr;
+use std::f32::consts::PI;
 
 #[derive(Copy, Clone, Debug)]
 pub enum FilterMode {
     Nearest,
     Bilinear,
     Bicubic,
+    Lanczos3,
 }
 
 impl FromStr for FilterMode {
@@ -20,6 +22,7 @@ impl FromStr for FilterMode {
             "nearest" => Ok(Nearest),
             "bilinear" => Ok(Bilinear),
             "bicubic" => Ok(Bicubic),
+            "lanczos3" | "Lanczos" => Ok(Lanczos3),
             _ => Err(ParseEnumError::new(value, "FilterMode"))
         }
     }
@@ -105,4 +108,69 @@ pub fn get_pixel_bicubic(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Rgb {
     };
 
     Rgb::new_with_alpha(calc(0), calc(1), calc(2), calc(3))
+}
+
+
+/// sinc used for lanczos
+fn sinc(v: f32) -> f32 {
+    if v == 0.0 {
+        1.0
+    } else {
+        let v = v * PI;
+        v.sin() / v
+    }
+}
+
+fn lanczos3(v: f32) -> f32 {
+    let v = v.abs();
+
+    if v < 3.0 {
+        sinc(v) * sinc(v / 3.0)
+    } else {
+        0.0
+    }
+}
+
+
+/// Get the pixel at the given position applying a lanczos filter with a window of 3
+pub fn get_pixel_lanczos3(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Rgb {
+    let (x, tx) = get_base_and_offset(x);
+    let (y, ty) = get_base_and_offset(y);
+
+    let kernel = buffer.get_kernel::<7>(x, y);
+
+    let row_scale = [
+        lanczos3(-3.0 - tx),
+        lanczos3(-2.0 - tx),
+        lanczos3(-1.0 - tx),
+        lanczos3(0.0 - tx),
+        lanczos3(1.0 - tx),
+        lanczos3(2.0 - tx),
+        lanczos3(3.0 - tx),
+    ];
+
+    let mut rows = [[0.0; 4]; 7];
+
+    for y in 0..7 {
+        for x in 0..7 {
+            let scale = row_scale[x];
+            for i in 0..=3 {
+                let v = kernel[y][x].data[i];
+                rows[y][i] += v * scale
+            }
+        }
+    }
+
+
+    let mut data = [0.0; 4];
+
+    for y in 0..7 {
+        let scale = lanczos3(y as f32 - 3.0 - ty);
+        for i in 0..=3 {
+            let v = rows[y][i];
+            data[i] += v * scale;
+        }
+    }
+
+    Rgb { data }
 }
