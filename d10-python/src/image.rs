@@ -24,7 +24,6 @@ use {
           Hsl as D10HSL,
           Hsv as D10HSV,
           Yuv as D10YUV},
-    itertools::Itertools,
 };
 
 #[pyclass]
@@ -331,7 +330,7 @@ impl Image {
     #[cfg(feature = "numpy")]
     #[staticmethod]
     pub fn from_np_array(array: &PyAny, colorspace: Option<&str>) -> PyResult<Image> {
-        let (ndims, dims, iter) = numpy_helper::into_f32_array(array)?;
+        let (ndims, dims, mut iter) = numpy_helper::into_f32_array(array)?;
 
         let width = dims[1];
         let height = dims[0];
@@ -341,49 +340,49 @@ impl Image {
         let data: Vec<D10RGB> = if ndims == 3 {
             if dims[2] == 4 {
                 match colorspace {
-                    "rgba" | "rgb" | "auto" => iter.chunks(4)
+                    "rgba" | "rgb" | "auto" => chunked::<4>(&mut iter)
                         .into_iter()
-                        .map(|mut chunk| D10RGB::new_with_alpha(chunk.next().unwrap(), chunk.next().unwrap(), chunk.next().unwrap(), chunk.next().unwrap()))
+                        .map(|chunk| D10RGB::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]))
                         .collect(),
-                    "srgba" | "srgb" => iter.chunks(4)
+                    "srgba" | "srgb" => chunked::<4>(&mut iter)
                         .into_iter()
-                        .map(|mut chunk| D10SRGB::new_with_alpha(chunk.next().unwrap(), chunk.next().unwrap(), chunk.next().unwrap(), chunk.next().unwrap()).to_rgb())
+                        .map(|chunk| D10SRGB::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
                         .collect(),
-                    "hsla" | "hsl" => iter.chunks(4)
+                    "hsla" | "hsl" => chunked::<4>(&mut iter)
                         .into_iter()
-                        .map(|mut chunk| D10HSL::new_with_alpha(chunk.next().unwrap(), chunk.next().unwrap(), chunk.next().unwrap(), chunk.next().unwrap()).to_rgb())
+                        .map(|chunk| D10HSL::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
                         .collect(),
-                    "hsva" | "hsv" => iter.chunks(4)
+                    "hsva" | "hsv" => chunked::<4>(&mut iter)
                         .into_iter()
-                        .map(|mut chunk| D10HSV::new_with_alpha(chunk.next().unwrap(), chunk.next().unwrap(), chunk.next().unwrap(), chunk.next().unwrap()).to_rgb())
+                        .map(|chunk| D10HSV::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
                         .collect(),
-                    "yuva" | "yuv" => iter.chunks(4)
+                    "yuva" | "yuv" => chunked::<4>(&mut iter)
                         .into_iter()
-                        .map(|mut chunk| D10YUV::new_with_alpha(chunk.next().unwrap(), chunk.next().unwrap(), chunk.next().unwrap(), chunk.next().unwrap()).to_rgb())
+                        .map(|chunk| D10YUV::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
                         .collect(),
                     _ => return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)))
                 }
             } else if dims[2] == 3 {
                 match colorspace {
-                    "rgb" | "auto" => iter.chunks(3)
+                    "rgb" | "auto" => chunked::<3>(&mut iter)
                         .into_iter()
-                        .map(|mut chunk| D10RGB::new(chunk.next().unwrap(), chunk.next().unwrap(), chunk.next().unwrap()))
+                        .map(|chunk| D10RGB::new(chunk[0], chunk[1], chunk[2]))
                         .collect(),
-                    "srgb" => iter.chunks(4)
+                    "srgb" => chunked::<3>(&mut iter)
                         .into_iter()
-                        .map(|mut chunk| D10SRGB::new(chunk.next().unwrap(), chunk.next().unwrap(), chunk.next().unwrap()).to_rgb())
+                        .map(|chunk| D10SRGB::new(chunk[0], chunk[1], chunk[2]).to_rgb())
                         .collect(),
-                    "hsl" => iter.chunks(4)
+                    "hsl" => chunked::<3>(&mut iter)
                         .into_iter()
-                        .map(|mut chunk| D10HSL::new(chunk.next().unwrap(), chunk.next().unwrap(), chunk.next().unwrap()).to_rgb())
+                        .map(|chunk| D10HSL::new(chunk[0], chunk[1], chunk[2]).to_rgb())
                         .collect(),
-                    "hsv" => iter.chunks(4)
+                    "hsv" => chunked::<3>(&mut iter)
                         .into_iter()
-                        .map(|mut chunk| D10HSV::new(chunk.next().unwrap(), chunk.next().unwrap(), chunk.next().unwrap()).to_rgb())
+                        .map(|chunk| D10HSV::new(chunk[0], chunk[1], chunk[2]).to_rgb())
                         .collect(),
-                    "yuv" => iter.chunks(4)
+                    "yuv" => chunked::<3>(&mut iter)
                         .into_iter()
-                        .map(|mut chunk| D10YUV::new(chunk.next().unwrap(), chunk.next().unwrap(), chunk.next().unwrap()).to_rgb())
+                        .map(|chunk| D10YUV::new(chunk[0], chunk[1], chunk[2]).to_rgb())
                         .collect(),
                     _ => return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)))
                 }
@@ -656,6 +655,35 @@ mod numpy_helper {
             } else {
                 None
             }
+        }
+    }
+
+    pub struct ChunkedIter<'a, const N: usize> {
+        iter: &'a mut dyn Iterator<Item=f32>
+    }
+
+    pub fn chunked<const N: usize>(iter: &mut dyn Iterator<Item=f32>) -> ChunkedIter<N> {
+        ChunkedIter {
+            iter
+        }
+    }
+
+    impl<'a, const N: usize> Iterator for ChunkedIter<'a, N> {
+        type Item = [f32; N];
+
+        fn next(&mut self) -> Option<Self::Item> {
+            let mut data = [0f32; N];
+
+
+            for d in data.iter_mut().take(N) {
+                if let Some(v) = self.iter.next() {
+                    *d = v;
+                } else {
+                    return None;
+                }
+            }
+
+            Some(data)
         }
     }
 }

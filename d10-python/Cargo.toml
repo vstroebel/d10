@@ -17,11 +17,10 @@ test = false
 [features]
 default = ["numpy-arrays"]
 
-numpy-arrays = ["numpy", "itertools"]
+numpy-arrays = ["numpy"]
 
 [dependencies]
 pyo3 = { version = "0.13", features = ["extension-module"] }
 d10 = { path = '../d10' }
 numpy = { version = "0.13", optional = true }
-itertools = { version = "0.10", optional = true }
 
