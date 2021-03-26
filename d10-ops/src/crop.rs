@@ -36,11 +36,11 @@ mod test {
     use super::*;
 
     use d10_core::pixelbuffer::PixelBuffer;
-    use d10_core::color::RGB;
+    use d10_core::color::Rgb;
 
     #[test]
     fn test_crop() {
-        let buffer: PixelBuffer<RGB> = PixelBuffer::new(100, 200);
+        let buffer: PixelBuffer<Rgb> = PixelBuffer::new(100, 200);
 
         let cropped = crop(&buffer, 0, 0, 10, 20);
         assert_eq!(cropped.width(), 10);

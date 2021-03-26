@@ -1,5 +1,5 @@
 use d10_core::pixelbuffer::PixelBuffer;
-use d10_core::color::RGB;
+use d10_core::color::Rgb;
 use std::io::{Write, Read, Seek, BufRead};
 
 use image::codecs::jpeg::{JpegEncoder, JpegDecoder};
@@ -8,7 +8,7 @@ use image::{ColorType, ImageError, DynamicImage};
 use crate::utils::{to_rgb8_vec, read_into_buffer};
 use crate::{DecodedImage, EncodingError, DecodingError};
 
-pub(crate) fn encode_jpeg<W>(w: &mut W, buffer: &PixelBuffer<RGB>, quality: u8) -> Result<(), EncodingError> where W: Write {
+pub(crate) fn encode_jpeg<W>(w: &mut W, buffer: &PixelBuffer<Rgb>, quality: u8) -> Result<(), EncodingError> where W: Write {
     let out = to_rgb8_vec(buffer);
 
     // Ensure quality is always in the valid range.
@@ -20,7 +20,7 @@ pub(crate) fn encode_jpeg<W>(w: &mut W, buffer: &PixelBuffer<RGB>, quality: u8) 
         buffer.height(),
         ColorType::Rgb8) {
         Err(match err {
-            ImageError::IoError(err) => EncodingError::IOError(err),
+            ImageError::IoError(err) => EncodingError::IoError(err),
             err => EncodingError::Encoding(err.to_string())
         })
     } else {
@@ -31,13 +31,13 @@ pub(crate) fn encode_jpeg<W>(w: &mut W, buffer: &PixelBuffer<RGB>, quality: u8) 
 pub(crate) fn decode_jpeg<T>(reader: T) -> Result<DecodedImage, DecodingError> where T: Read + Seek + BufRead {
     let decoder = JpegDecoder::new(reader)
         .map_err(|err| match err {
-            ImageError::IoError(err) => DecodingError::IOError(err),
+            ImageError::IoError(err) => DecodingError::IoError(err),
             err => DecodingError::Decoding(err.to_string())
         })?;
 
     let img = DynamicImage::from_decoder(decoder)
         .map_err(|err| match err {
-            ImageError::IoError(err) => DecodingError::IOError(err),
+            ImageError::IoError(err) => DecodingError::IoError(err),
             err => DecodingError::Decoding(err.to_string())
         })?;
 

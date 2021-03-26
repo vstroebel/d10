@@ -272,7 +272,7 @@ impl<T: Color> PixelBuffer<T> {
         self.data.iter().any(Color::has_transparency)
     }
 
-    pub fn to_rgb(&self) -> PixelBuffer<RGB> {
+    pub fn to_rgb(&self) -> PixelBuffer<Rgb> {
         PixelBuffer {
             width: self.width,
             height: self.height,
@@ -280,7 +280,7 @@ impl<T: Color> PixelBuffer<T> {
         }
     }
 
-    pub fn to_srgb(&self) -> PixelBuffer<SRGB> {
+    pub fn to_srgb(&self) -> PixelBuffer<Srgb> {
         PixelBuffer {
             width: self.width,
             height: self.height,
@@ -288,7 +288,7 @@ impl<T: Color> PixelBuffer<T> {
         }
     }
 
-    pub fn to_hsl(&self) -> PixelBuffer<HSL> {
+    pub fn to_hsl(&self) -> PixelBuffer<Hsl> {
         PixelBuffer {
             width: self.width,
             height: self.height,
@@ -296,7 +296,7 @@ impl<T: Color> PixelBuffer<T> {
         }
     }
 
-    pub fn to_hsv(&self) -> PixelBuffer<HSV> {
+    pub fn to_hsv(&self) -> PixelBuffer<Hsv> {
         PixelBuffer {
             width: self.width,
             height: self.height,
@@ -304,7 +304,7 @@ impl<T: Color> PixelBuffer<T> {
         }
     }
 
-    pub fn to_yuv(&self) -> PixelBuffer<YUV> {
+    pub fn to_yuv(&self) -> PixelBuffer<Yuv> {
         PixelBuffer {
             width: self.width,
             height: self.height,
@@ -313,16 +313,16 @@ impl<T: Color> PixelBuffer<T> {
     }
 }
 
-impl PixelBuffer<RGB> {
+impl PixelBuffer<Rgb> {
     pub fn is_grayscale(&self) -> bool {
-        self.data.iter().all(RGB::is_grayscale)
+        self.data.iter().all(Rgb::is_grayscale)
     }
 
-    pub fn apply_kernel(&self, kernel: &Kernel) -> PixelBuffer<RGB> {
+    pub fn apply_kernel(&self, kernel: &Kernel) -> PixelBuffer<Rgb> {
         self.map_colors_enumerated(|x, y, _| self.get_kernel_value(x, y, kernel))
     }
 
-    pub fn get_kernel_value(&self, image_x: u32, image_y: u32, kernel: &Kernel) -> RGB {
+    pub fn get_kernel_value(&self, image_x: u32, image_y: u32, kernel: &Kernel) -> Rgb {
         let offset_x = kernel.get_offset_x();
         let offset_y = kernel.get_offset_y();
 
@@ -336,7 +336,7 @@ impl PixelBuffer<RGB> {
             }
         }
 
-        RGB {
+        Rgb {
             data
         }
     }
@@ -345,80 +345,80 @@ impl PixelBuffer<RGB> {
 #[cfg(test)]
 mod tests {
     use crate::pixelbuffer::PixelBuffer;
-    use crate::color::RGB;
+    use crate::color::Rgb;
 
     #[test]
     fn new() {
-        let buffer: PixelBuffer<RGB> = PixelBuffer::new(13, 7);
+        let buffer: PixelBuffer<Rgb> = PixelBuffer::new(13, 7);
 
         assert_eq!(buffer.width(), 13);
         assert_eq!(buffer.height(), 7);
 
         for c in buffer.data() {
-            assert_eq!(*c, RGB::default());
+            assert_eq!(*c, Rgb::default());
         }
     }
 
     #[test]
     fn new_with_color() {
-        let buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(7, 13, RGB::RED);
+        let buffer: PixelBuffer<Rgb> = PixelBuffer::new_with_color(7, 13, Rgb::RED);
 
         assert_eq!(buffer.width(), 7);
         assert_eq!(buffer.height(), 13);
 
         for c in buffer.data() {
-            assert_eq!(*c, RGB::RED);
+            assert_eq!(*c, Rgb::RED);
         }
     }
 
     #[test]
     fn new_from_raw() {
-        let raw = vec![RGB::BLUE; 7 * 13];
+        let raw = vec![Rgb::BLUE; 7 * 13];
 
-        let buffer: PixelBuffer<RGB> = PixelBuffer::new_from_raw(7, 13, raw);
+        let buffer: PixelBuffer<Rgb> = PixelBuffer::new_from_raw(7, 13, raw);
 
         assert_eq!(buffer.width(), 7);
         assert_eq!(buffer.height(), 13);
 
         for c in buffer.data() {
-            assert_eq!(*c, RGB::BLUE);
+            assert_eq!(*c, Rgb::BLUE);
         }
     }
 
     #[test]
     fn data() {
-        let buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(7, 13, RGB::RED);
+        let buffer: PixelBuffer<Rgb> = PixelBuffer::new_with_color(7, 13, Rgb::RED);
         let data = buffer.data();
 
         assert_eq!(data.len(), 13 * 7);
 
         for c in data {
-            assert_eq!(*c, RGB::RED);
+            assert_eq!(*c, Rgb::RED);
         }
     }
 
     #[test]
     fn data_mut() {
-        let mut buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(13, 7, RGB::RED);
+        let mut buffer: PixelBuffer<Rgb> = PixelBuffer::new_with_color(13, 7, Rgb::RED);
 
         assert_eq!(buffer.data_mut().len(), 7 * 13);
 
         for c in buffer.data_mut() {
-            assert_eq!(*c, RGB::RED);
+            assert_eq!(*c, Rgb::RED);
         }
 
         for c in buffer.data_mut() {
-            *c = RGB::BLUE;
+            *c = Rgb::BLUE;
         }
 
         for c in buffer.data_mut() {
-            assert_eq!(*c, RGB::BLUE);
+            assert_eq!(*c, Rgb::BLUE);
         }
     }
 
     #[test]
     fn enumerate() {
-        let buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(13, 7, RGB::RED);
+        let buffer: PixelBuffer<Rgb> = PixelBuffer::new_with_color(13, 7, Rgb::RED);
 
         let mut i = 0u32;
 
@@ -429,7 +429,7 @@ mod tests {
             assert_eq!(x, test_x, "Expected x value of {} got {} at index {}", test_x, x, i);
             assert_eq!(y, test_y, "Expected y value of {} got {} at index {}", test_y, y, i);
             assert!(i < 13 * 7);
-            assert_eq!(c, RGB::RED);
+            assert_eq!(c, Rgb::RED);
 
             i = i + 1;
         }
@@ -437,7 +437,7 @@ mod tests {
 
     #[test]
     fn enumerate_mut() {
-        let mut buffer: PixelBuffer<RGB> = PixelBuffer::new_with_color(32, 64, RGB::RED);
+        let mut buffer: PixelBuffer<Rgb> = PixelBuffer::new_with_color(32, 64, Rgb::RED);
 
         let mut i = 0u32;
 
@@ -448,11 +448,11 @@ mod tests {
             assert_eq!(x, test_x, "Expected x value of {} got {} at index {}", test_x, x, i);
             assert_eq!(y, test_y, "Expected y value of {} got {} at index {}", test_y, y, i);
             assert!(i < 32 * 64);
-            assert_eq!(*c, RGB::RED);
+            assert_eq!(*c, Rgb::RED);
 
             i = i + 1;
 
-            *c = RGB::new(1.0 / (x as f32), 1.0 / (y as f32), 1.0);
+            *c = Rgb::new(1.0 / (x as f32), 1.0 / (y as f32), 1.0);
         }
 
         let mut i = 0u32;
@@ -464,7 +464,7 @@ mod tests {
             assert_eq!(x, test_x, "Expected x value of {} got {} at index {}", test_x, x, i);
             assert_eq!(y, test_y, "Expected y value of {} got {} at index {}", test_y, y, i);
             assert!(i < 32 * 64);
-            assert_eq!(c, RGB::new(1.0 / (x as f32), 1.0 / (y as f32), 1.0));
+            assert_eq!(c, Rgb::new(1.0 / (x as f32), 1.0 / (y as f32), 1.0));
 
             i = i + 1;
         }
@@ -472,10 +472,10 @@ mod tests {
 
     #[test]
     fn test_is_grayscale() {
-        let mut buffer = PixelBuffer::new_with_color(13, 7, RGB::new(0.5, 0.5, 0.5));
+        let mut buffer = PixelBuffer::new_with_color(13, 7, Rgb::new(0.5, 0.5, 0.5));
 
         assert!(buffer.is_grayscale());
-        buffer.put_pixel(0, 0, RGB::new(1.0, 0.5, 0.5));
+        buffer.put_pixel(0, 0, Rgb::new(1.0, 0.5, 0.5));
         assert!(!buffer.is_grayscale());
     }
 }

@@ -1,5 +1,5 @@
 use d10_core::pixelbuffer::{PixelBuffer, is_valid_buffer_size};
-use d10_core::color::{Color, RGB, SRGB};
+use d10_core::color::{Color, Rgb, Srgb};
 use image::{DynamicImage, GenericImageView};
 use byteorder::{BigEndian, WriteBytesExt};
 
@@ -15,7 +15,7 @@ pub(crate) fn as_u16(value: f32) -> u16 {
     (value * 65535.0).clamp(0.0, 65535.0) as u16
 }
 
-pub(crate) fn to_l8_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
+pub(crate) fn to_l8_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
     let mut out: Vec<u8> = Vec::with_capacity(buffer.width() as usize * buffer.height() as usize);
 
     for color in buffer.data().iter() {
@@ -26,7 +26,7 @@ pub(crate) fn to_l8_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
     out
 }
 
-pub(crate) fn to_la8_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
+pub(crate) fn to_la8_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
     let mut out: Vec<u8> = Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 2);
 
     for color in buffer.data().iter() {
@@ -38,7 +38,7 @@ pub(crate) fn to_la8_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
     out
 }
 
-pub(crate) fn to_rgb8_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
+pub(crate) fn to_rgb8_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
     let mut out: Vec<u8> = Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 3);
 
     for color in buffer.data().iter() {
@@ -52,7 +52,7 @@ pub(crate) fn to_rgb8_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
     out
 }
 
-pub(crate) fn to_rgba8_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
+pub(crate) fn to_rgba8_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
     let mut out: Vec<u8> = Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 4);
 
     for color in buffer.data().iter() {
@@ -67,7 +67,7 @@ pub(crate) fn to_rgba8_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
     out
 }
 
-pub(crate) fn to_l16_be_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
+pub(crate) fn to_l16_be_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
     let mut out: Vec<u8> = Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 2);
 
     for color in buffer.data().iter() {
@@ -79,7 +79,7 @@ pub(crate) fn to_l16_be_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
     out
 }
 
-pub(crate) fn to_la16_be_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
+pub(crate) fn to_la16_be_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
     let mut out: Vec<u8> = Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 4);
 
 
@@ -93,7 +93,7 @@ pub(crate) fn to_la16_be_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
     out
 }
 
-pub(crate) fn to_rgb16_be_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
+pub(crate) fn to_rgb16_be_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
     let mut out: Vec<u8> = Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 6);
 
     for color in buffer.data().iter() {
@@ -107,7 +107,7 @@ pub(crate) fn to_rgb16_be_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
     out
 }
 
-pub(crate) fn to_rgba16_be_vec(buffer: &PixelBuffer<RGB>) -> Vec<u8> {
+pub(crate) fn to_rgba16_be_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
     let mut out: Vec<u8> = Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 8);
 
     for color in buffer.data().iter() {
@@ -130,7 +130,7 @@ pub fn from_u16_be(v: [u8; 2]) -> f32 {
     f32::from(u16::from_be_bytes(v)) / 65535.0
 }
 
-pub fn read_into_buffer(img: DynamicImage) -> Result<PixelBuffer<RGB>, DecodingError> {
+pub fn read_into_buffer(img: DynamicImage) -> Result<PixelBuffer<Rgb>, DecodingError> {
     let width = img.width();
     let height = img.height();
 
@@ -141,61 +141,61 @@ pub fn read_into_buffer(img: DynamicImage) -> Result<PixelBuffer<RGB>, DecodingE
     use image::DynamicImage::*;
 
     let data = match img {
-        ImageRgb8(img) => img.pixels().map(|pixel| SRGB {
+        ImageRgb8(img) => img.pixels().map(|pixel| Srgb {
             data: [f32::from(pixel[0]) / 255.0,
                 f32::from(pixel[1]) / 255.0,
                 f32::from(pixel[2]) / 255.0,
                 1.0]
         }.to_rgb()).collect(),
-        ImageRgba8(img) => img.pixels().map(|pixel| SRGB {
+        ImageRgba8(img) => img.pixels().map(|pixel| Srgb {
             data: [f32::from(pixel[0]) / 255.0,
                 f32::from(pixel[1]) / 255.0,
                 f32::from(pixel[2]) / 255.0,
                 f32::from(pixel[3]) / 255.0]
         }.to_rgb()).collect(),
-        ImageBgr8(img) => img.pixels().map(|pixel| SRGB {
+        ImageBgr8(img) => img.pixels().map(|pixel| Srgb {
             data: [f32::from(pixel[2]) / 255.0,
                 f32::from(pixel[1]) / 255.0,
                 f32::from(pixel[0]) / 255.0,
                 1.0]
         }.to_rgb()).collect(),
-        ImageBgra8(img) => img.pixels().map(|pixel| SRGB {
+        ImageBgra8(img) => img.pixels().map(|pixel| Srgb {
             data: [f32::from(pixel[2]) / 255.0,
                 f32::from(pixel[1]) / 255.0,
                 f32::from(pixel[0]) / 255.0,
                 f32::from(pixel[2]) / 255.0]
         }.to_rgb()).collect(),
-        ImageRgb16(img) => img.pixels().map(|pixel| SRGB {
+        ImageRgb16(img) => img.pixels().map(|pixel| Srgb {
             data: [f32::from(pixel[0]) / 65535.0,
                 f32::from(pixel[1]) / 65535.0,
                 f32::from(pixel[2]) / 65535.0,
                 0.0]
         }.to_rgb()).collect(),
-        ImageRgba16(img) => img.pixels().map(|pixel| SRGB {
+        ImageRgba16(img) => img.pixels().map(|pixel| Srgb {
             data: [f32::from(pixel[0]) / 65535.0,
                 f32::from(pixel[1]) / 65535.0,
                 f32::from(pixel[2]) / 65535.0,
                 f32::from(pixel[3]) / 65535.0]
         }.to_rgb()).collect(),
-        ImageLuma8(img) => img.pixels().map(|pixel| SRGB {
+        ImageLuma8(img) => img.pixels().map(|pixel| Srgb {
             data: [f32::from(pixel[0]) / 255.0,
                 f32::from(pixel[0]) / 255.0,
                 f32::from(pixel[0]) / 255.0,
                 1.0]
         }.to_rgb()).collect(),
-        ImageLumaA8(img) => img.pixels().map(|pixel| SRGB {
+        ImageLumaA8(img) => img.pixels().map(|pixel| Srgb {
             data: [f32::from(pixel[0]) / 255.0,
                 f32::from(pixel[0]) / 255.0,
                 f32::from(pixel[0]) / 255.0,
                 f32::from(pixel[1]) / 255.0, ]
         }.to_rgb()).collect(),
-        ImageLuma16(img) => img.pixels().map(|pixel| SRGB {
+        ImageLuma16(img) => img.pixels().map(|pixel| Srgb {
             data: [f32::from(pixel[0]) / 65535.0,
                 f32::from(pixel[0]) / 65535.0,
                 f32::from(pixel[0]) / 65535.0,
                 1.0]
         }.to_rgb()).collect(),
-        ImageLumaA16(img) => img.pixels().map(|pixel| SRGB {
+        ImageLumaA16(img) => img.pixels().map(|pixel| Srgb {
             data: [f32::from(pixel[0]) / 65535.0,
                 f32::from(pixel[0]) / 65535.0,
                 f32::from(pixel[0]) / 65535.0,

@@ -1,10 +1,10 @@
 use d10_core::pixelbuffer::PixelBuffer;
-use d10_core::color::RGB;
+use d10_core::color::Rgb;
 
 use crate::FilterMode;
 
 /// Resize buffer with nearest neighbor filter
-pub fn resize_nearest(buffer: &PixelBuffer<RGB>, new_width: u32, new_height: u32) -> PixelBuffer<RGB> {
+pub fn resize_nearest(buffer: &PixelBuffer<Rgb>, new_width: u32, new_height: u32) -> PixelBuffer<Rgb> {
     let scale_x = new_width as f32 / buffer.width() as f32;
     let scale_y = new_height as f32 / buffer.height() as f32;
 
@@ -21,7 +21,7 @@ pub fn resize_nearest(buffer: &PixelBuffer<RGB>, new_width: u32, new_height: u32
 }
 
 /// Resize buffer with bilinear filter
-pub fn resize_bilinear(buffer: &PixelBuffer<RGB>, new_width: u32, new_height: u32) -> PixelBuffer<RGB> {
+pub fn resize_bilinear(buffer: &PixelBuffer<Rgb>, new_width: u32, new_height: u32) -> PixelBuffer<Rgb> {
     let scale_x = (new_width as f32) / (buffer.width() as f32);
     let scale_y = (new_height as f32) / (buffer.height() as f32);
 
@@ -38,7 +38,7 @@ pub fn resize_bilinear(buffer: &PixelBuffer<RGB>, new_width: u32, new_height: u3
 }
 
 /// Resize buffer with bicubic filter
-pub fn resize_bicubic(buffer: &PixelBuffer<RGB>, new_width: u32, new_height: u32) -> PixelBuffer<RGB> {
+pub fn resize_bicubic(buffer: &PixelBuffer<Rgb>, new_width: u32, new_height: u32) -> PixelBuffer<Rgb> {
     let scale_x = (new_width as f32) / (buffer.width() as f32);
     let scale_y = (new_height as f32) / (buffer.height() as f32);
 
@@ -54,7 +54,7 @@ pub fn resize_bicubic(buffer: &PixelBuffer<RGB>, new_width: u32, new_height: u32
     PixelBuffer::new_from_raw(new_width, new_height, result)
 }
 
-pub fn resize(buffer: &PixelBuffer<RGB>, new_width: u32, new_height: u32, filter: FilterMode) -> PixelBuffer<RGB> {
+pub fn resize(buffer: &PixelBuffer<Rgb>, new_width: u32, new_height: u32, filter: FilterMode) -> PixelBuffer<Rgb> {
     match filter {
         FilterMode::Nearest => resize_nearest(buffer, new_width, new_height),
         FilterMode::Bilinear => resize_bilinear(buffer, new_width, new_height),
@@ -69,13 +69,13 @@ mod tests {
     //NOTE: All of this test only check if images with only one color don't have any visual corruptions
     //      Testing the algorithms itself should be done in external integration tests
 
-    fn check_color(buffer: &PixelBuffer<RGB>, color: RGB) {
+    fn check_color(buffer: &PixelBuffer<Rgb>, color: Rgb) {
         for (x, y, c) in buffer.enumerate() {
             assert_eq!(c, color, "Bad color at position {}x{}: Expected {:?} got {:?}", x, y, color, c)
         }
     }
 
-    fn check_resize(color: RGB, filter: FilterMode) {
+    fn check_resize(color: Rgb, filter: FilterMode) {
         let img_in = PixelBuffer::new_with_color(100, 100, color);
         let img_out = resize(&img_in, 133, 166, filter);
         check_color(&img_out, color);
@@ -96,17 +96,17 @@ mod tests {
     }
 
     fn check_resize_colors(filter: FilterMode) {
-        check_resize(RGB::BLACK, filter);
-        check_resize(RGB::WHITE, filter);
-        check_resize(RGB::RED, filter);
-        check_resize(RGB::GREEN, filter);
-        check_resize(RGB::BLUE, filter);
-        check_resize(RGB::CYAN, filter);
-        check_resize(RGB::MAGENTA, filter);
-        check_resize(RGB::YELLOW, filter);
-        check_resize(RGB::new(0.5, 0.5, 0.5), filter);
-        check_resize(RGB::new(1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0), filter);
-        check_resize(RGB::new(2.0 / 3.0, 2.0 / 3.0, 2.0 / 3.0), filter);
+        check_resize(Rgb::BLACK, filter);
+        check_resize(Rgb::WHITE, filter);
+        check_resize(Rgb::RED, filter);
+        check_resize(Rgb::GREEN, filter);
+        check_resize(Rgb::BLUE, filter);
+        check_resize(Rgb::CYAN, filter);
+        check_resize(Rgb::MAGENTA, filter);
+        check_resize(Rgb::YELLOW, filter);
+        check_resize(Rgb::new(0.5, 0.5, 0.5), filter);
+        check_resize(Rgb::new(1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0), filter);
+        check_resize(Rgb::new(2.0 / 3.0, 2.0 / 3.0, 2.0 / 3.0), filter);
     }
 
     #[test]

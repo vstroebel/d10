@@ -20,11 +20,11 @@ impl<T, E> IntoPyErr<T> for Result<T, E> where E: Error {
 
 #[pymodule]
 fn d10(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_class::<color::RGB>()?;
-    m.add_class::<color::SRGB>()?;
-    m.add_class::<color::HSL>()?;
-    m.add_class::<color::HSV>()?;
-    m.add_class::<color::YUV>()?;
+    m.add_class::<color::Rgb>()?;
+    m.add_class::<color::Srgb>()?;
+    m.add_class::<color::Hsl>()?;
+    m.add_class::<color::Hsv>()?;
+    m.add_class::<color::Yuv>()?;
     m.add_class::<image::Image>()?;
     m.add_class::<image::EncodingFormat>()?;
 

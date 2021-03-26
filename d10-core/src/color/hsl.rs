@@ -1,19 +1,19 @@
-use super::{Color, RGB, EPSILON};
+use super::{Color, Rgb, EPSILON};
 use std::fmt::Display;
 use crate::color::format_color;
 
 #[derive(Debug, Copy, Clone)]
-pub struct HSL {
+pub struct Hsl {
     pub data: [f32; 4]
 }
 
-impl HSL {
-    pub fn new(h: f32, s: f32, l: f32) -> HSL {
-        HSL { data: [h, s, l, 1.0] }
+impl Hsl {
+    pub fn new(h: f32, s: f32, l: f32) -> Hsl {
+        Hsl { data: [h, s, l, 1.0] }
     }
 
-    pub fn new_with_alpha(h: f32, s: f32, l: f32, alpha: f32) -> HSL {
-        HSL { data: [h, s, l, alpha] }
+    pub fn new_with_alpha(h: f32, s: f32, l: f32, alpha: f32) -> Hsl {
+        Hsl { data: [h, s, l, alpha] }
     }
 
     pub fn hue(&self) -> f32 {
@@ -28,33 +28,33 @@ impl HSL {
         self.data[2]
     }
 
-    pub fn with_hue(&self, hue: f32) -> HSL {
-        HSL { data: [hue, self.data[1], self.data[2], self.data[3]] }
+    pub fn with_hue(&self, hue: f32) -> Hsl {
+        Hsl { data: [hue, self.data[1], self.data[2], self.data[3]] }
     }
 
-    pub fn with_saturation(&self, saturation: f32) -> HSL {
-        HSL { data: [self.data[0], saturation, self.data[2], self.data[3]] }
+    pub fn with_saturation(&self, saturation: f32) -> Hsl {
+        Hsl { data: [self.data[0], saturation, self.data[2], self.data[3]] }
     }
 
-    pub fn with_lightness(&self, lightness: f32) -> HSL {
-        HSL { data: [self.data[0], self.data[1], lightness, self.data[3]] }
+    pub fn with_lightness(&self, lightness: f32) -> Hsl {
+        Hsl { data: [self.data[0], self.data[1], lightness, self.data[3]] }
     }
 }
 
-impl Default for HSL {
-    fn default() -> HSL {
-        HSL {
+impl Default for Hsl {
+    fn default() -> Hsl {
+        Hsl {
             data: [0.0, 0.0, 0.0, 0.0]
         }
     }
 }
 
-impl Color for HSL {
-    fn to_hsl(&self) -> HSL {
+impl Color for Hsl {
+    fn to_hsl(&self) -> Hsl {
         *self
     }
 
-    fn to_rgb(&self) -> RGB {
+    fn to_rgb(&self) -> Rgb {
         let hue = self.hue();
         let saturation = self.saturation();
         let lightness = self.lightness();
@@ -83,7 +83,7 @@ impl Color for HSL {
         };
 
 
-        RGB {
+        Rgb {
             data: [red, green, blue, self.alpha()]
         }
     }
@@ -92,8 +92,8 @@ impl Color for HSL {
         self.data[3]
     }
 
-    fn with_alpha(&self, alpha: f32) -> HSL {
-        HSL { data: [self.data[0], self.data[1], self.data[2], alpha] }
+    fn with_alpha(&self, alpha: f32) -> Hsl {
+        Hsl { data: [self.data[0], self.data[1], self.data[2], alpha] }
     }
 
     fn data(&self) -> &[f32] {
@@ -113,8 +113,8 @@ impl Color for HSL {
     }
 }
 
-impl PartialEq for HSL {
-    fn eq(&self, other: &HSL) -> bool {
+impl PartialEq for Hsl {
+    fn eq(&self, other: &Hsl) -> bool {
         for (v1, v2) in self.data.iter().zip(other.data.iter()) {
             if (v1 - v2).abs() > EPSILON {
                 return false;
@@ -124,7 +124,7 @@ impl PartialEq for HSL {
     }
 }
 
-impl Display for HSL {
+impl Display for Hsl {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         format_color(self, f)
     }
@@ -132,7 +132,7 @@ impl Display for HSL {
 
 #[cfg(test)]
 mod tests {
-    use crate::color::{RGB, HSL, Color};
+    use crate::color::{Rgb, Hsl, Color};
 
     const RGB_HSL: [((f32, f32, f32), (f32, f32, f32)); 15] = [
         ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)),
@@ -154,7 +154,7 @@ mod tests {
     #[test]
     fn test_rgb_to_hsl() {
         for (from, to) in &RGB_HSL {
-            assert_eq!(RGB::new(from.0, from.1, from.2).to_hsl(), HSL::new(to.0, to.1, to.2),
+            assert_eq!(Rgb::new(from.0, from.1, from.2).to_hsl(), Hsl::new(to.0, to.1, to.2),
                        "Error in conversion from {:?} to {:?}", from, to);
         }
     }
@@ -162,22 +162,22 @@ mod tests {
     #[test]
     fn test_hsl_to_rgb() {
         for (to, from) in &RGB_HSL {
-            assert_eq!(HSL::new(from.0, from.1, from.2).to_rgb(), RGB::new(to.0, to.1, to.2),
+            assert_eq!(Hsl::new(from.0, from.1, from.2).to_rgb(), Rgb::new(to.0, to.1, to.2),
                        "Error in conversion from {:?} to {:?}", from, to);
         }
     }
 
     #[test]
     fn type_name() {
-        assert_eq!(HSL::default().type_name(), "hsl");
+        assert_eq!(Hsl::default().type_name(), "hsl");
     }
 
     #[test]
     fn to_string() {
-        assert_eq!(HSL::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(), "hsl(0.0, 0.0, 0.0)");
-        assert_eq!(HSL::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(), "hsl(1.0, 1.0, 1.0)");
-        assert_eq!(HSL::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "hsla(0.0, 0.0, 0.0, 0.0)");
-        assert_eq!(HSL::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "hsla(0.3, 0.6, 0.9, 0.5)");
-        assert_eq!(HSL::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "hsla(0.33, 0.666, 0.999, 0.5555)");
+        assert_eq!(Hsl::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(), "hsl(0.0, 0.0, 0.0)");
+        assert_eq!(Hsl::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(), "hsl(1.0, 1.0, 1.0)");
+        assert_eq!(Hsl::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "hsla(0.0, 0.0, 0.0, 0.0)");
+        assert_eq!(Hsl::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "hsla(0.3, 0.6, 0.9, 0.5)");
+        assert_eq!(Hsl::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "hsla(0.33, 0.666, 0.999, 0.5555)");
     }
 }

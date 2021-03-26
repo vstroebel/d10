@@ -1,18 +1,18 @@
-use crate::color::{Color, RGB, clamp, EPSILON, format_color};
+use crate::color::{Color, Rgb, clamp, EPSILON, format_color};
 use std::fmt::Display;
 
 #[derive(Debug, Copy, Clone)]
-pub struct SRGB {
+pub struct Srgb {
     pub data: [f32; 4]
 }
 
-impl SRGB {
-    pub fn new(red: f32, green: f32, blue: f32) -> SRGB {
-        SRGB { data: [clamp(red), clamp(green), clamp(blue), 1.0] }
+impl Srgb {
+    pub fn new(red: f32, green: f32, blue: f32) -> Srgb {
+        Srgb { data: [clamp(red), clamp(green), clamp(blue), 1.0] }
     }
 
-    pub fn new_with_alpha(red: f32, green: f32, blue: f32, alpha: f32) -> SRGB {
-        SRGB { data: [clamp(red), clamp(green), clamp(blue), clamp(alpha)] }
+    pub fn new_with_alpha(red: f32, green: f32, blue: f32, alpha: f32) -> Srgb {
+        Srgb { data: [clamp(red), clamp(green), clamp(blue), clamp(alpha)] }
     }
 
     pub fn red(&self) -> f32 {
@@ -27,28 +27,28 @@ impl SRGB {
         self.data[2]
     }
 
-    pub fn with_red(&self, red: f32) -> SRGB {
-        SRGB { data: [red, self.data[1], self.data[2], self.data[3]] }
+    pub fn with_red(&self, red: f32) -> Srgb {
+        Srgb { data: [red, self.data[1], self.data[2], self.data[3]] }
     }
 
-    pub fn with_green(&self, green: f32) -> SRGB {
-        SRGB { data: [self.data[0], green, self.data[2], self.data[3]] }
+    pub fn with_green(&self, green: f32) -> Srgb {
+        Srgb { data: [self.data[0], green, self.data[2], self.data[3]] }
     }
 
-    pub fn with_blue(&self, blue: f32) -> SRGB {
-        SRGB { data: [self.data[0], self.data[1], blue, self.data[3]] }
-    }
-}
-
-impl Default for SRGB {
-    fn default() -> SRGB {
-        SRGB::new_with_alpha(0.0, 0.0, 0.0, 0.0)
+    pub fn with_blue(&self, blue: f32) -> Srgb {
+        Srgb { data: [self.data[0], self.data[1], blue, self.data[3]] }
     }
 }
 
-impl Color for SRGB {
-    fn to_rgb(&self) -> RGB {
-        RGB::new_with_alpha(
+impl Default for Srgb {
+    fn default() -> Srgb {
+        Srgb::new_with_alpha(0.0, 0.0, 0.0, 0.0)
+    }
+}
+
+impl Color for Srgb {
+    fn to_rgb(&self) -> Rgb {
+        Rgb::new_with_alpha(
             gamma_to_linear(self.data[0]),
             gamma_to_linear(self.data[1]),
             gamma_to_linear(self.data[2]),
@@ -60,15 +60,15 @@ impl Color for SRGB {
         self.data[3]
     }
 
-    fn with_alpha(&self, alpha: f32) -> SRGB {
-        SRGB { data: [self.data[0], self.data[1], self.data[2], alpha] }
+    fn with_alpha(&self, alpha: f32) -> Srgb {
+        Srgb { data: [self.data[0], self.data[1], self.data[2], alpha] }
     }
 
     fn data(&self) -> &[f32] {
         &self.data
     }
 
-    fn to_srgb(&self) -> SRGB {
+    fn to_srgb(&self) -> Srgb {
         *self
     }
 
@@ -85,8 +85,8 @@ impl Color for SRGB {
     }
 }
 
-impl PartialEq for SRGB {
-    fn eq(&self, other: &SRGB) -> bool {
+impl PartialEq for Srgb {
+    fn eq(&self, other: &Srgb) -> bool {
         for (v1, v2) in self.data.iter().zip(other.data.iter()) {
             if (v1 - v2).abs() > EPSILON {
                 return false;
@@ -96,7 +96,7 @@ impl PartialEq for SRGB {
     }
 }
 
-impl Display for SRGB {
+impl Display for Srgb {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         format_color(self, f)
     }
@@ -122,19 +122,19 @@ pub fn linear_to_gamma(value: f32) -> f32 {
 
 #[cfg(test)]
 mod tests {
-    use crate::color::{Color, SRGB};
+    use crate::color::{Color, Srgb};
 
     #[test]
     fn type_name() {
-        assert_eq!(SRGB::default().type_name(), "srgb");
+        assert_eq!(Srgb::default().type_name(), "srgb");
     }
 
     #[test]
     fn to_string() {
-        assert_eq!(SRGB::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(), "srgb(0.0, 0.0, 0.0)");
-        assert_eq!(SRGB::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(), "srgb(1.0, 1.0, 1.0)");
-        assert_eq!(SRGB::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "srgba(0.0, 0.0, 0.0, 0.0)");
-        assert_eq!(SRGB::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "srgba(0.3, 0.6, 0.9, 0.5)");
-        assert_eq!(SRGB::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "srgba(0.33, 0.666, 0.999, 0.5555)");
+        assert_eq!(Srgb::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(), "srgb(0.0, 0.0, 0.0)");
+        assert_eq!(Srgb::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(), "srgb(1.0, 1.0, 1.0)");
+        assert_eq!(Srgb::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "srgba(0.0, 0.0, 0.0, 0.0)");
+        assert_eq!(Srgb::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "srgba(0.3, 0.6, 0.9, 0.5)");
+        assert_eq!(Srgb::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "srgba(0.33, 0.666, 0.999, 0.5555)");
     }
 }

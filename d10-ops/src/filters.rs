@@ -1,5 +1,5 @@
 use d10_core::pixelbuffer::PixelBuffer;
-use d10_core::color::RGB;
+use d10_core::color::Rgb;
 use d10_core::errors::ParseEnumError;
 
 use std::str::FromStr;
@@ -37,7 +37,7 @@ fn get_base_and_offset(pos: f32) -> (i32, f32) {
 }
 
 /// Get the pixel at the given position applying a bilinear filter
-pub(crate) fn get_pixel_bilinear(buffer: &PixelBuffer<RGB>, x: f32, y: f32) -> RGB {
+pub(crate) fn get_pixel_bilinear(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Rgb {
     let (x, tx) = get_base_and_offset(x);
     let (y, ty) = get_base_and_offset(y);
 
@@ -54,7 +54,7 @@ pub(crate) fn get_pixel_bilinear(buffer: &PixelBuffer<RGB>, x: f32, y: f32) -> R
         )
     };
 
-    RGB::new_with_alpha(calc(0), calc(1), calc(2), calc(3))
+    Rgb::new_with_alpha(calc(0), calc(1), calc(2), calc(3))
 }
 
 fn cubic_hermite_interpolate(v1: f32, v2: f32, v3: f32, v4: f32, t: f32) -> f32 {
@@ -70,7 +70,7 @@ fn cubic_hermite_interpolate(v1: f32, v2: f32, v3: f32, v4: f32, t: f32) -> f32 
 }
 
 /// Get the pixel at the given position applying a bicubic filter
-pub fn get_pixel_bicubic(buffer: &PixelBuffer<RGB>, x: f32, y: f32) -> RGB {
+pub fn get_pixel_bicubic(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Rgb {
     let (x, tx) = get_base_and_offset(x);
     let (y, ty) = get_base_and_offset(y);
 
@@ -104,5 +104,5 @@ pub fn get_pixel_bicubic(buffer: &PixelBuffer<RGB>, x: f32, y: f32) -> RGB {
         )
     };
 
-    RGB::new_with_alpha(calc(0), calc(1), calc(2), calc(3))
+    Rgb::new_with_alpha(calc(0), calc(1), calc(2), calc(3))
 }

@@ -4,15 +4,15 @@ use pyo3::PyMappingProtocol;
 use pyo3::exceptions::PyOSError;
 
 use crate::IntoPyErr;
-use crate::color::RGB;
+use crate::color::Rgb;
 
 use d10::{Image as D10Image,
-          RGB as D10RGB,
+          Rgb as D10RGB,
           EncodingFormat as D10EncodingFormat,
-          PNGColorType, PNGFilterType,
-          PNGCompression,
-          BMPColorType,
-          ICOColorType,
+          PngColorType, PngFilterType,
+          PngCompression,
+          BmpColorType,
+          IcoColorType,
           FilterMode};
 
 #[cfg(feature = "numpy")]
@@ -20,10 +20,10 @@ use {
     numpy_helper::*,
     numpy::{PyArray, DataType},
     d10::{Color,
-          SRGB as D10SRGB,
-          HSL as D10HSL,
-          HSV as D10HSV,
-          YUV as D10YUV},
+          Srgb as D10SRGB,
+          Hsl as D10HSL,
+          Hsv as D10HSV,
+          Yuv as D10YUV},
     itertools::Itertools,
 };
 
@@ -35,7 +35,7 @@ pub struct Image {
 #[pymethods]
 impl Image {
     #[new]
-    fn new(width: u32, height: u32, color: Option<&RGB>) -> Image {
+    fn new(width: u32, height: u32, color: Option<&Rgb>) -> Image {
         match color {
             Some(color) => D10Image::new_with_color(width, height, color.inner),
             None => D10Image::new(width, height)
@@ -43,7 +43,7 @@ impl Image {
     }
 
     #[staticmethod]
-    fn from_list(width: u32, height: u32, list: Vec<RGB>) -> Image {
+    fn from_list(width: u32, height: u32, list: Vec<Rgb>) -> Image {
         Image {
             inner: D10Image::new_from_raw(
                 width,
@@ -55,7 +55,7 @@ impl Image {
         }
     }
 
-    fn to_list(&self) -> Vec<RGB> {
+    fn to_list(&self) -> Vec<Rgb> {
         self.inner.data().iter()
             .map(|c| c.into())
             .collect()
@@ -94,9 +94,9 @@ impl Image {
 
     fn mod_colors(&mut self, func: &PyFunction) -> PyResult<()> {
         let map = |c: &D10RGB| -> PyResult<D10RGB> {
-            let arg1 = RGB { inner: *c };
+            let arg1 = Rgb { inner: *c };
             let r = func.call1((arg1, ))?;
-            Ok(r.extract::<RGB>()?.inner)
+            Ok(r.extract::<Rgb>()?.inner)
         };
 
         self.inner.try_mod_colors(map)
@@ -106,10 +106,10 @@ impl Image {
         let map = |x: u32, y: u32, c: &D10RGB| -> PyResult<D10RGB> {
             let arg1 = x as i32;
             let arg2 = y as i32;
-            let arg3 = RGB { inner: *c };
+            let arg3 = Rgb { inner: *c };
 
             let r = func.call1((arg1, arg2, arg3))?;
-            Ok(r.extract::<RGB>()?.inner)
+            Ok(r.extract::<Rgb>()?.inner)
         };
 
         self.inner.try_mod_colors_enumerated(map)
@@ -117,10 +117,10 @@ impl Image {
 
     fn map_colors(&self, func: &PyFunction) -> PyResult<Image> {
         let map = |c: &D10RGB| -> PyResult<D10RGB> {
-            let arg1 = RGB { inner: *c };
+            let arg1 = Rgb { inner: *c };
             let r = func.call1((arg1, ))?;
 
-            Ok(r.extract::<RGB>()?.inner)
+            Ok(r.extract::<Rgb>()?.inner)
         };
 
         Ok(self.inner.try_map_colors(map)?.into())
@@ -130,24 +130,24 @@ impl Image {
         let map = |x: u32, y: u32, c: &D10RGB| -> PyResult<D10RGB> {
             let arg1 = x as i32;
             let arg2 = y as i32;
-            let arg3 = RGB { inner: *c };
+            let arg3 = Rgb { inner: *c };
 
             let r = func.call1((arg1, arg2, arg3))?;
-            Ok(r.extract::<RGB>()?.inner)
+            Ok(r.extract::<Rgb>()?.inner)
         };
 
         Ok(self.inner.try_map_colors_enumerated(map)?.into())
     }
 
-    pub fn get_pixel(&self, x: i32, y: i32) -> Option<RGB> {
+    pub fn get_pixel(&self, x: i32, y: i32) -> Option<Rgb> {
         self.inner.get_pixel_optional(x, y).map(|c| c.into())
     }
 
-    pub fn get_pixel_clamped(&self, x: i32, y: i32) -> RGB {
+    pub fn get_pixel_clamped(&self, x: i32, y: i32) -> Rgb {
         self.inner.get_pixel_clamped(x, y).into()
     }
 
-    pub fn put_pixel(&mut self, x: u32, y: u32, color: &RGB) {
+    pub fn put_pixel(&mut self, x: u32, y: u32, color: &Rgb) {
         self.inner.put_pixel(x, y, color.inner);
     }
 
@@ -424,7 +424,7 @@ impl PyMappingProtocol for Image {
         Ok(self.inner.data().len())
     }
 
-    fn __getitem__(&self, key: (i32, i32)) -> PyResult<RGB> {
+    fn __getitem__(&self, key: (i32, i32)) -> PyResult<Rgb> {
         let x = key.0;
         let y = key.1;
 
@@ -433,7 +433,7 @@ impl PyMappingProtocol for Image {
         })
     }
 
-    fn __setitem__(&mut self, key: (u32, u32), value: RGB) {
+    fn __setitem__(&mut self, key: (u32, u32), value: Rgb) {
         let x = key.0;
         let y = key.1;
 
@@ -452,7 +452,7 @@ impl EncodingFormat {
     #[staticmethod]
     fn jpeg(quality: Option<u8>) -> EncodingFormat {
         EncodingFormat {
-            inner: D10EncodingFormat::JPEG {
+            inner: D10EncodingFormat::Jpeg {
                 quality: quality.unwrap_or(85)
             }
         }
@@ -462,20 +462,20 @@ impl EncodingFormat {
     fn png(color_type: Option<&str>, compression: Option<&str>, filter: Option<&str>) -> PyResult<EncodingFormat> {
         let color_type = match color_type {
             Some(v) => v.parse().py_err()?,
-            None => PNGColorType::RGBA8,
+            None => PngColorType::Rgba8,
         };
         let compression = match compression {
             Some(v) => v.parse().py_err()?,
-            None => PNGCompression::Default
+            None => PngCompression::Default
         };
 
         let filter = match filter {
             Some(v) => v.parse().py_err()?,
-            None => PNGFilterType::Sub,
+            None => PngFilterType::Sub,
         };
 
         Ok(EncodingFormat {
-            inner: D10EncodingFormat::PNG {
+            inner: D10EncodingFormat::Png {
                 color_type,
                 compression,
                 filter,
@@ -486,7 +486,7 @@ impl EncodingFormat {
     #[staticmethod]
     fn gif() -> EncodingFormat {
         EncodingFormat {
-            inner: D10EncodingFormat::GIF
+            inner: D10EncodingFormat::Gif
         }
     }
 
@@ -494,11 +494,11 @@ impl EncodingFormat {
     fn bmp(color_type: Option<&str>) -> PyResult<EncodingFormat> {
         let color_type = match color_type {
             Some(v) => v.parse().py_err()?,
-            None => BMPColorType::RGBA8,
+            None => BmpColorType::Rgba8,
         };
 
         Ok(EncodingFormat {
-            inner: D10EncodingFormat::BMP {
+            inner: D10EncodingFormat::Bmp {
                 color_type
             }
         })
@@ -508,11 +508,11 @@ impl EncodingFormat {
     fn ico(color_type: Option<&str>) -> PyResult<EncodingFormat> {
         let color_type = match color_type {
             Some(v) => v.parse().py_err()?,
-            None => ICOColorType::RGBA8,
+            None => IcoColorType::Rgba8,
         };
 
         Ok(EncodingFormat {
-            inner: D10EncodingFormat::ICO {
+            inner: D10EncodingFormat::Ico {
                 color_type,
             }
         })

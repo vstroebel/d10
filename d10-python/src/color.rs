@@ -4,23 +4,23 @@ use pyo3::types::PyFunction;
 use pyo3::basic::CompareOp;
 
 use d10::{Color,
-          RGB as D10RGB,
-          SRGB as D10SRGB,
-          HSL as D10HSL,
-          HSV as D10HSV,
-          YUV as D10YUV};
+          Rgb as D10RGB,
+          Srgb as D10SRGB,
+          Hsl as D10HSL,
+          Hsv as D10HSV,
+          Yuv as D10YUV};
 
 use crate::IntoPyErr;
 
 
 #[pyclass]
 #[derive(Clone)]
-pub struct RGB {
+pub struct Rgb {
     pub inner: D10RGB
 }
 
 #[pymethods]
-impl RGB {
+impl Rgb {
     #[new]
     pub fn new(red: f32, green: f32, blue: f32, alpha: Option<f32>) -> Self {
         Self {
@@ -56,23 +56,23 @@ impl RGB {
         self.inner.has_transparency()
     }
 
-    fn with_red(&self, red: f32) -> RGB {
+    fn with_red(&self, red: f32) -> Rgb {
         self.inner.with_red(red).into()
     }
 
-    fn with_green(&self, green: f32) -> RGB {
+    fn with_green(&self, green: f32) -> Rgb {
         self.inner.with_green(green).into()
     }
 
-    fn with_blue(&self, blue: f32) -> RGB {
+    fn with_blue(&self, blue: f32) -> Rgb {
         self.inner.with_blue(blue).into()
     }
 
-    fn with_alpha(&self, alpha: f32) -> RGB {
+    fn with_alpha(&self, alpha: f32) -> Rgb {
         self.inner.with_alpha(alpha).into()
     }
 
-    fn to_gray(&self, intensity: Option<&str>) -> PyResult<RGB> {
+    fn to_gray(&self, intensity: Option<&str>) -> PyResult<Rgb> {
         Ok(if let Some(intensity) = intensity {
             self.inner.to_gray_with_intensity(intensity.parse().py_err()?)
         } else {
@@ -80,60 +80,60 @@ impl RGB {
         }.into())
     }
 
-    fn invert(&self) -> RGB {
+    fn invert(&self) -> Rgb {
         self.inner.invert().into()
     }
 
-    fn difference(&self, color: &RGB) -> RGB {
+    fn difference(&self, color: &Rgb) -> Rgb {
         self.inner.difference(&color.inner).into()
     }
 
-    fn with_gamma(&self, gamma: f32) -> RGB {
+    fn with_gamma(&self, gamma: f32) -> Rgb {
         self.inner.with_gamma(gamma).into()
     }
 
-    fn with_level(&self, black_point: f32, white_point: f32, gamma: f32) -> RGB {
+    fn with_level(&self, black_point: f32, white_point: f32, gamma: f32) -> Rgb {
         self.inner.with_level(black_point, white_point, gamma).into()
     }
 
-    fn with_brightness(&self, factor: f32) -> RGB {
+    fn with_brightness(&self, factor: f32) -> Rgb {
         self.inner.with_brightness(factor).into()
     }
 
-    fn with_saturation(&self, factor: f32) -> RGB {
+    fn with_saturation(&self, factor: f32) -> Rgb {
         self.inner.with_saturation(factor).into()
     }
 
-    fn stretch_saturation(&self, factor: f32) -> RGB {
+    fn stretch_saturation(&self, factor: f32) -> Rgb {
         self.inner.stretch_saturation(factor).into()
     }
 
-    fn with_lightness(&self, factor: f32) -> RGB {
+    fn with_lightness(&self, factor: f32) -> Rgb {
         self.inner.with_lightness(factor).into()
     }
 
-    fn with_hue_rotate(&self, radians: f32) -> RGB {
+    fn with_hue_rotate(&self, radians: f32) -> Rgb {
         self.inner.with_hue_rotate(radians).into()
     }
 
-    fn with_contrast(&self, factor: f32) -> RGB {
+    fn with_contrast(&self, factor: f32) -> Rgb {
         self.inner.with_contrast(factor).into()
     }
 
-    fn with_brightness_contrast(&self, brightness: f32, contrast: f32) -> RGB {
+    fn with_brightness_contrast(&self, brightness: f32, contrast: f32) -> Rgb {
         self.inner.with_brightness_contrast(brightness, contrast).into()
     }
 
 
-    fn alpha_blend(&self, color: &RGB) -> RGB {
+    fn alpha_blend(&self, color: &Rgb) -> Rgb {
         self.inner.alpha_blend(color.inner).into()
     }
 
-    fn with_vibrance(&self, factor: f32) -> RGB {
+    fn with_vibrance(&self, factor: f32) -> Rgb {
         self.inner.with_vibrance(factor).into()
     }
 
-    fn with_sepia(&self) -> RGB {
+    fn with_sepia(&self) -> Rgb {
         self.inner.with_sepia().into()
     }
 
@@ -145,11 +145,11 @@ impl RGB {
         self.inner.min()
     }
 
-    fn modulate(&self, hue: f32, saturation: f32, lightness: f32) -> RGB {
+    fn modulate(&self, hue: f32, saturation: f32, lightness: f32) -> Rgb {
         self.inner.modulate(hue, saturation, lightness).into()
     }
 
-    fn map_color_channels(&self, func: &PyFunction) -> PyResult<RGB> {
+    fn map_color_channels(&self, func: &PyFunction) -> PyResult<Rgb> {
         let map = |v: f32| -> PyResult<f32> {
             let r = func.call1((v, ))?;
             r.extract::<f32>()
@@ -157,19 +157,19 @@ impl RGB {
         Ok(self.inner.try_map_color_channels(map)?.into())
     }
 
-    fn to_srgb(&self) -> SRGB {
+    fn to_srgb(&self) -> Srgb {
         self.inner.to_srgb().into()
     }
 
-    fn to_hsl(&self) -> HSL {
+    fn to_hsl(&self) -> Hsl {
         self.inner.to_hsl().into()
     }
 
-    fn to_hsv(&self) -> HSV {
+    fn to_hsv(&self) -> Hsv {
         self.inner.to_hsv().into()
     }
 
-    fn to_yuv(&self) -> YUV {
+    fn to_yuv(&self) -> Yuv {
         self.inner.to_yuv().into()
     }
 
@@ -179,24 +179,24 @@ impl RGB {
     }
 }
 
-impl From<D10RGB> for RGB {
-    fn from(color: D10RGB) -> RGB {
-        RGB {
+impl From<D10RGB> for Rgb {
+    fn from(color: D10RGB) -> Rgb {
+        Rgb {
             inner: color
         }
     }
 }
 
-impl From<&D10RGB> for RGB {
-    fn from(color: &D10RGB) -> RGB {
-        RGB {
+impl From<&D10RGB> for Rgb {
+    fn from(color: &D10RGB) -> Rgb {
+        Rgb {
             inner: *color
         }
     }
 }
 
 #[pyproto]
-impl PyObjectProtocol for RGB {
+impl PyObjectProtocol for Rgb {
     fn __str__(&self) -> PyResult<String> {
         Ok(self.inner.to_string())
     }
@@ -215,15 +215,15 @@ impl PyObjectProtocol for RGB {
 
 #[pyclass]
 #[derive(Clone)]
-pub struct SRGB {
+pub struct Srgb {
     pub inner: D10SRGB
 }
 
 #[pymethods]
-impl SRGB {
+impl Srgb {
     #[new]
-    fn new(red: f32, green: f32, blue: f32, alpha: Option<f32>) -> SRGB {
-        SRGB {
+    fn new(red: f32, green: f32, blue: f32, alpha: Option<f32>) -> Srgb {
+        Srgb {
             inner: D10SRGB::new_with_alpha(red, green, blue, alpha.unwrap_or(1.0))
         }
     }
@@ -248,35 +248,35 @@ impl SRGB {
         self.inner.alpha()
     }
 
-    fn with_red(&self, red: f32) -> SRGB {
+    fn with_red(&self, red: f32) -> Srgb {
         self.inner.with_red(red).into()
     }
 
-    fn with_green(&self, green: f32) -> SRGB {
+    fn with_green(&self, green: f32) -> Srgb {
         self.inner.with_green(green).into()
     }
 
-    fn with_blue(&self, blue: f32) -> SRGB {
+    fn with_blue(&self, blue: f32) -> Srgb {
         self.inner.with_blue(blue).into()
     }
 
-    fn with_alpha(&self, alpha: f32) -> SRGB {
+    fn with_alpha(&self, alpha: f32) -> Srgb {
         self.inner.with_alpha(alpha).into()
     }
 
-    fn to_rgb(&self) -> RGB {
+    fn to_rgb(&self) -> Rgb {
         self.inner.to_rgb().into()
     }
 
-    fn to_hsl(&self) -> HSL {
+    fn to_hsl(&self) -> Hsl {
         self.inner.to_hsl().into()
     }
 
-    fn to_hsv(&self) -> HSV {
+    fn to_hsv(&self) -> Hsv {
         self.inner.to_hsv().into()
     }
 
-    fn to_yuv(&self) -> YUV {
+    fn to_yuv(&self) -> Yuv {
         self.inner.to_yuv().into()
     }
 
@@ -286,16 +286,16 @@ impl SRGB {
     }
 }
 
-impl From<D10SRGB> for SRGB {
-    fn from(color: D10SRGB) -> SRGB {
-        SRGB {
+impl From<D10SRGB> for Srgb {
+    fn from(color: D10SRGB) -> Srgb {
+        Srgb {
             inner: color
         }
     }
 }
 
 #[pyproto]
-impl PyObjectProtocol for SRGB {
+impl PyObjectProtocol for Srgb {
     fn __str__(&self) -> PyResult<String> {
         Ok(self.inner.to_string())
     }
@@ -314,14 +314,14 @@ impl PyObjectProtocol for SRGB {
 
 #[pyclass]
 #[derive(Clone)]
-pub struct HSL {
+pub struct Hsl {
     pub inner: D10HSL
 }
 
 #[pymethods]
-impl HSL {
+impl Hsl {
     #[new]
-    fn new(h: f32, s: f32, l: f32, alpha: Option<f32>) -> HSL {
+    fn new(h: f32, s: f32, l: f32, alpha: Option<f32>) -> Hsl {
         D10HSL::new_with_alpha(h, s, l, alpha.unwrap_or(1.0)).into()
     }
 
@@ -349,35 +349,35 @@ impl HSL {
         self.inner.has_transparency()
     }
 
-    fn with_hue(&self, hue: f32) -> HSL {
+    fn with_hue(&self, hue: f32) -> Hsl {
         self.inner.with_hue(hue).into()
     }
 
-    fn with_saturation(&self, saturation: f32) -> HSL {
+    fn with_saturation(&self, saturation: f32) -> Hsl {
         self.inner.with_saturation(saturation).into()
     }
 
-    fn with_lightness(&self, lightness: f32) -> HSL {
+    fn with_lightness(&self, lightness: f32) -> Hsl {
         self.inner.with_lightness(lightness).into()
     }
 
-    fn with_alpha(&self, alpha: f32) -> HSL {
+    fn with_alpha(&self, alpha: f32) -> Hsl {
         self.inner.with_alpha(alpha).into()
     }
 
-    fn to_srgb(&self) -> SRGB {
+    fn to_srgb(&self) -> Srgb {
         self.inner.to_srgb().into()
     }
 
-    fn to_rgb(&self) -> RGB {
+    fn to_rgb(&self) -> Rgb {
         self.inner.to_rgb().into()
     }
 
-    fn to_hsv(&self) -> HSV {
+    fn to_hsv(&self) -> Hsv {
         self.inner.to_hsv().into()
     }
 
-    fn to_yuv(&self) -> YUV {
+    fn to_yuv(&self) -> Yuv {
         self.inner.to_yuv().into()
     }
 
@@ -387,16 +387,16 @@ impl HSL {
     }
 }
 
-impl From<D10HSL> for HSL {
-    fn from(hsl: D10HSL) -> HSL {
-        HSL {
+impl From<D10HSL> for Hsl {
+    fn from(hsl: D10HSL) -> Hsl {
+        Hsl {
             inner: hsl
         }
     }
 }
 
 #[pyproto]
-impl PyObjectProtocol for HSL {
+impl PyObjectProtocol for Hsl {
     fn __str__(&self) -> PyResult<String> {
         Ok(self.inner.to_string())
     }
@@ -415,15 +415,15 @@ impl PyObjectProtocol for HSL {
 
 #[pyclass]
 #[derive(Clone)]
-pub struct HSV {
+pub struct Hsv {
     pub inner: D10HSV
 }
 
 
 #[pymethods]
-impl HSV {
+impl Hsv {
     #[new]
-    fn new(h: f32, s: f32, v: f32, alpha: Option<f32>) -> HSV {
+    fn new(h: f32, s: f32, v: f32, alpha: Option<f32>) -> Hsv {
         D10HSV::new_with_alpha(h, s, v, alpha.unwrap_or(1.0)).into()
     }
 
@@ -451,35 +451,35 @@ impl HSV {
         self.inner.has_transparency()
     }
 
-    fn with_hue(&self, hue: f32) -> HSV {
+    fn with_hue(&self, hue: f32) -> Hsv {
         self.inner.with_hue(hue).into()
     }
 
-    fn with_saturation(&self, saturation: f32) -> HSV {
+    fn with_saturation(&self, saturation: f32) -> Hsv {
         self.inner.with_saturation(saturation).into()
     }
 
-    fn with_value(&self, value: f32) -> HSV {
+    fn with_value(&self, value: f32) -> Hsv {
         self.inner.with_value(value).into()
     }
 
-    fn with_alpha(&self, alpha: f32) -> HSV {
+    fn with_alpha(&self, alpha: f32) -> Hsv {
         self.inner.with_alpha(alpha).into()
     }
 
-    fn to_srgb(&self) -> SRGB {
+    fn to_srgb(&self) -> Srgb {
         self.inner.to_srgb().into()
     }
 
-    fn to_rgb(&self) -> RGB {
+    fn to_rgb(&self) -> Rgb {
         self.inner.to_rgb().into()
     }
 
-    fn to_hsl(&self) -> HSL {
+    fn to_hsl(&self) -> Hsl {
         self.inner.to_hsl().into()
     }
 
-    fn to_yuv(&self) -> YUV {
+    fn to_yuv(&self) -> Yuv {
         self.inner.to_yuv().into()
     }
 
@@ -489,16 +489,16 @@ impl HSV {
     }
 }
 
-impl From<D10HSV> for HSV {
-    fn from(hsv: D10HSV) -> HSV {
-        HSV {
+impl From<D10HSV> for Hsv {
+    fn from(hsv: D10HSV) -> Hsv {
+        Hsv {
             inner: hsv
         }
     }
 }
 
 #[pyproto]
-impl PyObjectProtocol for HSV {
+impl PyObjectProtocol for Hsv {
     fn __str__(&self) -> PyResult<String> {
         Ok(self.inner.to_string())
     }
@@ -517,15 +517,15 @@ impl PyObjectProtocol for HSV {
 
 #[pyclass]
 #[derive(Clone)]
-pub struct YUV {
+pub struct Yuv {
     pub inner: D10YUV
 }
 
 
 #[pymethods]
-impl YUV {
+impl Yuv {
     #[new]
-    fn new(y: f32, u: f32, v: f32, alpha: Option<f32>) -> YUV {
+    fn new(y: f32, u: f32, v: f32, alpha: Option<f32>) -> Yuv {
         D10YUV::new_with_alpha(y, u, v, alpha.unwrap_or(1.0)).into()
     }
 
@@ -553,35 +553,35 @@ impl YUV {
         self.inner.has_transparency()
     }
 
-    fn with_y(&self, y: f32) -> YUV {
+    fn with_y(&self, y: f32) -> Yuv {
         self.inner.with_y(y).into()
     }
 
-    fn with_u(&self, u: f32) -> YUV {
+    fn with_u(&self, u: f32) -> Yuv {
         self.inner.with_u(u).into()
     }
 
-    fn with_v(&self, v: f32) -> YUV {
+    fn with_v(&self, v: f32) -> Yuv {
         self.inner.with_v(v).into()
     }
 
-    fn with_alpha(&self, alpha: f32) -> YUV {
+    fn with_alpha(&self, alpha: f32) -> Yuv {
         self.inner.with_alpha(alpha).into()
     }
 
-    fn to_srgb(&self) -> SRGB {
+    fn to_srgb(&self) -> Srgb {
         self.inner.to_srgb().into()
     }
 
-    fn to_rgb(&self) -> RGB {
+    fn to_rgb(&self) -> Rgb {
         self.inner.to_rgb().into()
     }
 
-    fn to_hsl(&self) -> HSL {
+    fn to_hsl(&self) -> Hsl {
         self.inner.to_hsl().into()
     }
 
-    fn to_hsv(&self) -> HSV {
+    fn to_hsv(&self) -> Hsv {
         self.inner.to_hsv().into()
     }
 
@@ -591,16 +591,16 @@ impl YUV {
     }
 }
 
-impl From<D10YUV> for YUV {
-    fn from(yuv: D10YUV) -> YUV {
-        YUV {
+impl From<D10YUV> for Yuv {
+    fn from(yuv: D10YUV) -> Yuv {
+        Yuv {
             inner: yuv
         }
     }
 }
 
 #[pyproto]
-impl PyObjectProtocol for YUV {
+impl PyObjectProtocol for Yuv {
     fn __str__(&self) -> PyResult<String> {
         Ok(self.inner.to_string())
     }

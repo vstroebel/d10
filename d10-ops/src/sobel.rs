@@ -1,8 +1,8 @@
-use d10_core::color::RGB;
+use d10_core::color::Rgb;
 use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::kernel::Kernel;
 
-fn apply_kernel_2(buffer: &PixelBuffer<RGB>, normalize: bool, kernel_x: &Kernel, kernel_y: &Kernel) -> PixelBuffer<RGB> {
+fn apply_kernel_2(buffer: &PixelBuffer<Rgb>, normalize: bool, kernel_x: &Kernel, kernel_y: &Kernel) -> PixelBuffer<Rgb> {
     let ix = buffer.apply_kernel(kernel_x);
     let iy = buffer.apply_kernel(kernel_y);
 
@@ -31,7 +31,7 @@ fn apply_kernel_2(buffer: &PixelBuffer<RGB>, normalize: bool, kernel_x: &Kernel,
         }
     }
 
-    let data = g.iter().map(|v| RGB::new(*v, *v, *v)).collect();
+    let data = g.iter().map(|v| Rgb::new(*v, *v, *v)).collect();
 
     PixelBuffer::new_from_raw(buffer.width(), buffer.height(), data)
 }
@@ -39,6 +39,6 @@ fn apply_kernel_2(buffer: &PixelBuffer<RGB>, normalize: bool, kernel_x: &Kernel,
 /// Detect edges in the buffer with a sobel kernel
 ///
 /// If `normalize` is true the resulting color channel values will be between 0.0 and 1.0
-pub fn sobel_edge_detection(buffer: &PixelBuffer<RGB>, normalize: bool) -> PixelBuffer<RGB> {
+pub fn sobel_edge_detection(buffer: &PixelBuffer<Rgb>, normalize: bool) -> PixelBuffer<Rgb> {
     apply_kernel_2(buffer, normalize, &Kernel::new_sobel_x(), &Kernel::new_sobel_y())
 }

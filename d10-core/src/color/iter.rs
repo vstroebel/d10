@@ -1,18 +1,18 @@
-use crate::color::{Color, RGB, SRGB, HSL, HSV, YUV};
+use crate::color::{Color, Rgb, Srgb, Hsl, Hsv, Yuv};
 
 use std::iter::Cloned;
 use std::marker::PhantomData;
 
-pub struct ToRGBIter<I, C: Color> {
+pub struct ToRgbIter<I, C: Color> {
     iter: I,
     _phantom: PhantomData<C>,
 }
 
-impl<I, C: Color> Iterator for ToRGBIter<I, C>
+impl<I, C: Color> Iterator for ToRgbIter<I, C>
     where I: Iterator<Item=C> {
-    type Item = RGB;
+    type Item = Rgb;
 
-    fn next(&mut self) -> Option<RGB> {
+    fn next(&mut self) -> Option<Rgb> {
         self.iter.next().map(|v| v.to_rgb())
     }
 
@@ -21,16 +21,16 @@ impl<I, C: Color> Iterator for ToRGBIter<I, C>
     }
 }
 
-pub struct ToSRGBIter<I, C: Color> {
+pub struct ToSrgbIter<I, C: Color> {
     iter: I,
     _phantom: PhantomData<C>,
 }
 
-impl<I, C: Color> Iterator for ToSRGBIter<I, C>
+impl<I, C: Color> Iterator for ToSrgbIter<I, C>
     where I: Iterator<Item=C> {
-    type Item = SRGB;
+    type Item = Srgb;
 
-    fn next(&mut self) -> Option<SRGB> {
+    fn next(&mut self) -> Option<Srgb> {
         self.iter.next().map(|v| v.to_srgb())
     }
 
@@ -39,16 +39,16 @@ impl<I, C: Color> Iterator for ToSRGBIter<I, C>
     }
 }
 
-pub struct ToHSLIter<I, C: Color> {
+pub struct ToHslIter<I, C: Color> {
     iter: I,
     _phantom: PhantomData<C>,
 }
 
-impl<I, C: Color> Iterator for ToHSLIter<I, C>
+impl<I, C: Color> Iterator for ToHslIter<I, C>
     where I: Iterator<Item=C> {
-    type Item = HSL;
+    type Item = Hsl;
 
-    fn next(&mut self) -> Option<HSL> {
+    fn next(&mut self) -> Option<Hsl> {
         self.iter.next().map(|v| v.to_hsl())
     }
 
@@ -57,16 +57,16 @@ impl<I, C: Color> Iterator for ToHSLIter<I, C>
     }
 }
 
-pub struct ToHSVIter<I, C: Color> {
+pub struct ToHsvIter<I, C: Color> {
     iter: I,
     _phantom: PhantomData<C>,
 }
 
-impl<I, C: Color> Iterator for ToHSVIter<I, C>
+impl<I, C: Color> Iterator for ToHsvIter<I, C>
     where I: Iterator<Item=C> {
-    type Item = HSV;
+    type Item = Hsv;
 
-    fn next(&mut self) -> Option<HSV> {
+    fn next(&mut self) -> Option<Hsv> {
         self.iter.next().map(|v| v.to_hsv())
     }
 
@@ -75,16 +75,16 @@ impl<I, C: Color> Iterator for ToHSVIter<I, C>
     }
 }
 
-pub struct ToYUVIter<I, C: Color> {
+pub struct ToYuvIter<I, C: Color> {
     iter: I,
     _phantom: PhantomData<C>,
 }
 
-impl<I, C: Color> Iterator for ToYUVIter<I, C>
+impl<I, C: Color> Iterator for ToYuvIter<I, C>
     where I: Iterator<Item=C> {
-    type Item = YUV;
+    type Item = Yuv;
 
-    fn next(&mut self) -> Option<YUV> {
+    fn next(&mut self) -> Option<Yuv> {
         self.iter.next().map(|v| v.to_yuv())
     }
 
@@ -94,46 +94,46 @@ impl<I, C: Color> Iterator for ToYUVIter<I, C>
 }
 
 pub trait ColorIter<T: Color>: Iterator<Item=T> {
-    fn into_rgb(self) -> ToRGBIter<Self, Self::Item>
+    fn into_rgb(self) -> ToRgbIter<Self, Self::Item>
         where Self: Sized
     {
-        ToRGBIter {
+        ToRgbIter {
             iter: self,
             _phantom: PhantomData::default(),
         }
     }
 
-    fn into_srgb(self) -> ToSRGBIter<Self, Self::Item>
+    fn into_srgb(self) -> ToSrgbIter<Self, Self::Item>
         where Self: Sized
     {
-        ToSRGBIter {
+        ToSrgbIter {
             iter: self,
             _phantom: PhantomData::default(),
         }
     }
 
-    fn into_hsl(self) -> ToHSLIter<Self, Self::Item>
+    fn into_hsl(self) -> ToHslIter<Self, Self::Item>
         where Self: Sized
     {
-        ToHSLIter {
+        ToHslIter {
             iter: self,
             _phantom: PhantomData::default(),
         }
     }
 
-    fn into_hsv(self) -> ToHSVIter<Self, Self::Item>
+    fn into_hsv(self) -> ToHsvIter<Self, Self::Item>
         where Self: Sized
     {
-        ToHSVIter {
+        ToHsvIter {
             iter: self,
             _phantom: PhantomData::default(),
         }
     }
 
-    fn into_yuv(self) -> ToYUVIter<Self, Self::Item>
+    fn into_yuv(self) -> ToYuvIter<Self, Self::Item>
         where Self: Sized
     {
-        ToYUVIter {
+        ToYuvIter {
             iter: self,
             _phantom: PhantomData::default(),
         }
@@ -143,46 +143,46 @@ pub trait ColorIter<T: Color>: Iterator<Item=T> {
 impl<T: ?Sized, C: Color> ColorIter<C> for T where T: Iterator<Item=C> {}
 
 pub trait ColorIterRef<'a, C: Color, T: 'a + Color>: Iterator<Item=&'a T> {
-    fn into_rgb(self) -> ToRGBIter<Cloned<Self>, C>
+    fn into_rgb(self) -> ToRgbIter<Cloned<Self>, C>
         where Self: Sized
     {
-        ToRGBIter {
+        ToRgbIter {
             iter: self.cloned(),
             _phantom: PhantomData::default(),
         }
     }
 
-    fn into_srgb(self) -> ToSRGBIter<Cloned<Self>, C>
+    fn into_srgb(self) -> ToSrgbIter<Cloned<Self>, C>
         where Self: Sized
     {
-        ToSRGBIter {
+        ToSrgbIter {
             iter: self.cloned(),
             _phantom: PhantomData::default(),
         }
     }
 
-    fn into_hsl(self) -> ToHSLIter<Cloned<Self>, C>
+    fn into_hsl(self) -> ToHslIter<Cloned<Self>, C>
         where Self: Sized
     {
-        ToHSLIter {
+        ToHslIter {
             iter: self.cloned(),
             _phantom: PhantomData::default(),
         }
     }
 
-    fn into_hsv(self) -> ToHSVIter<Cloned<Self>, C>
+    fn into_hsv(self) -> ToHsvIter<Cloned<Self>, C>
         where Self: Sized
     {
-        ToHSVIter {
+        ToHsvIter {
             iter: self.cloned(),
             _phantom: PhantomData::default(),
         }
     }
 
-    fn into_yuv(self) -> ToYUVIter<Cloned<Self>, C>
+    fn into_yuv(self) -> ToYuvIter<Cloned<Self>, C>
         where Self: Sized
     {
-        ToYUVIter {
+        ToYuvIter {
             iter: self.cloned(),
             _phantom: PhantomData::default(),
         }
@@ -193,7 +193,7 @@ impl<'a, T: ?Sized, C: Color, T2: 'a + Color> ColorIterRef<'a, C, T2> for T wher
 
 #[cfg(test)]
 mod tests {
-    use crate::color::{RGB, HSL, HSV, YUV, ColorIter, ColorIterRef};
+    use crate::color::{Rgb, Hsl, Hsv, Yuv, ColorIter, ColorIterRef};
 
     const RGB_HSL: [((f32, f32, f32), (f32, f32, f32)); 15] = [
         ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)),
@@ -250,64 +250,64 @@ mod tests {
 
     #[test]
     fn test_to_rgb_iter() {
-        let to: Vec<_> = RGB_HSL.iter().map(|(v, _)| RGB::new(v.0, v.1, v.2)).collect();
-        let from: Vec<_> = RGB_HSL.iter().map(|(_, v)| HSL::new(v.0, v.1, v.2)).collect();
+        let to: Vec<_> = RGB_HSL.iter().map(|(v, _)| Rgb::new(v.0, v.1, v.2)).collect();
+        let from: Vec<_> = RGB_HSL.iter().map(|(_, v)| Hsl::new(v.0, v.1, v.2)).collect();
         let result: Vec<_> = from.into_iter().into_rgb().collect();
         assert_eq!(to, result)
     }
 
     #[test]
     fn test_to_hsl_iter() {
-        let from: Vec<_> = RGB_HSL.iter().map(|(v, _)| RGB::new(v.0, v.1, v.2)).collect();
-        let to: Vec<_> = RGB_HSL.iter().map(|(_, v)| HSL::new(v.0, v.1, v.2)).collect();
+        let from: Vec<_> = RGB_HSL.iter().map(|(v, _)| Rgb::new(v.0, v.1, v.2)).collect();
+        let to: Vec<_> = RGB_HSL.iter().map(|(_, v)| Hsl::new(v.0, v.1, v.2)).collect();
         let result: Vec<_> = from.into_iter().into_hsl().collect();
         assert_eq!(to, result)
     }
 
     #[test]
     fn test_to_hsv_iter() {
-        let from: Vec<_> = RGB_HSV.iter().map(|(v, _)| RGB::new(v.0, v.1, v.2)).collect();
-        let to: Vec<_> = RGB_HSV.iter().map(|(_, v)| HSV::new(v.0, v.1, v.2)).collect();
+        let from: Vec<_> = RGB_HSV.iter().map(|(v, _)| Rgb::new(v.0, v.1, v.2)).collect();
+        let to: Vec<_> = RGB_HSV.iter().map(|(_, v)| Hsv::new(v.0, v.1, v.2)).collect();
         let result: Vec<_> = from.into_iter().into_hsv().collect();
         assert_eq!(to, result)
     }
 
     #[test]
     fn test_to_yuv_iter() {
-        let from: Vec<_> = RGB_YUV.iter().map(|(v, _)| RGB::new(v.0, v.1, v.2)).collect();
-        let to: Vec<_> = RGB_YUV.iter().map(|(_, v)| YUV::new(v.0, v.1, v.2)).collect();
+        let from: Vec<_> = RGB_YUV.iter().map(|(v, _)| Rgb::new(v.0, v.1, v.2)).collect();
+        let to: Vec<_> = RGB_YUV.iter().map(|(_, v)| Yuv::new(v.0, v.1, v.2)).collect();
         let result: Vec<_> = from.into_iter().into_yuv().collect();
         assert_eq!(to, result)
     }
 
     #[test]
     fn test_to_rgb_iter_ref() {
-        let to: Vec<_> = RGB_HSL.iter().map(|(v, _)| RGB::new(v.0, v.1, v.2)).collect();
-        let from: Vec<_> = RGB_HSL.iter().map(|(_, v)| HSL::new(v.0, v.1, v.2)).collect();
+        let to: Vec<_> = RGB_HSL.iter().map(|(v, _)| Rgb::new(v.0, v.1, v.2)).collect();
+        let from: Vec<_> = RGB_HSL.iter().map(|(_, v)| Hsl::new(v.0, v.1, v.2)).collect();
         let result: Vec<_> = from.iter().into_rgb().collect();
         assert_eq!(to, result)
     }
 
     #[test]
     fn test_to_hsl_iter_ref() {
-        let from: Vec<_> = RGB_HSL.iter().map(|(v, _)| RGB::new(v.0, v.1, v.2)).collect();
-        let to: Vec<_> = RGB_HSL.iter().map(|(_, v)| HSL::new(v.0, v.1, v.2)).collect();
+        let from: Vec<_> = RGB_HSL.iter().map(|(v, _)| Rgb::new(v.0, v.1, v.2)).collect();
+        let to: Vec<_> = RGB_HSL.iter().map(|(_, v)| Hsl::new(v.0, v.1, v.2)).collect();
         let result: Vec<_> = from.iter().into_hsl().collect();
         assert_eq!(to, result)
     }
 
     #[test]
     fn test_to_hsv_iter_ref() {
-        let from: Vec<_> = RGB_HSV.iter().map(|(v, _)| RGB::new(v.0, v.1, v.2)).collect();
-        let to: Vec<_> = RGB_HSV.iter().map(|(_, v)| HSV::new(v.0, v.1, v.2)).collect();
+        let from: Vec<_> = RGB_HSV.iter().map(|(v, _)| Rgb::new(v.0, v.1, v.2)).collect();
+        let to: Vec<_> = RGB_HSV.iter().map(|(_, v)| Hsv::new(v.0, v.1, v.2)).collect();
         let result: Vec<_> = from.iter().into_hsv().collect();
         assert_eq!(to, result)
     }
 
     #[test]
     fn test_to_yuv_iter_ref() {
-        let from: Vec<_> = RGB_YUV.iter().map(|(v, _)| RGB::new(v.0, v.1, v.2)).collect();
-        let to: Vec<_> = RGB_YUV.iter().map(|(_, v)| YUV::new(v.0, v.1, v.2)).collect();
+        let from: Vec<_> = RGB_YUV.iter().map(|(v, _)| Rgb::new(v.0, v.1, v.2)).collect();
+        let to: Vec<_> = RGB_YUV.iter().map(|(_, v)| Yuv::new(v.0, v.1, v.2)).collect();
         let result: Vec<_> = from.iter().into_yuv().collect();
         assert_eq!(to, result)
     }

@@ -10,5 +10,5 @@ pub use crate::core::pixelbuffer::*;
 mod image;
 
 pub use image::Image;
-pub use codecs::{EncodingFormat, PNGColorType, PNGCompression, PNGFilterType, BMPColorType, ICOColorType};
+pub use codecs::{EncodingFormat, PngColorType, PngCompression, PngFilterType, BmpColorType, IcoColorType};
 pub use ops::FilterMode;

@@ -1,11 +1,11 @@
 use crate::FilterMode;
 use d10_core::pixelbuffer::PixelBuffer;
-use d10_core::color::RGB;
+use d10_core::color::Rgb;
 use std::f32::consts::PI;
 
 use crate::filters::{get_pixel_bicubic, get_pixel_bilinear};
 
-fn rotate_nearest(buffer: &PixelBuffer<RGB>, radians: f32, bg_color: RGB) -> PixelBuffer<RGB> {
+fn rotate_nearest(buffer: &PixelBuffer<Rgb>, radians: f32, bg_color: Rgb) -> PixelBuffer<Rgb> {
     let radians = radians / -180.0 * PI;
 
     let sinf = radians.sin();
@@ -37,7 +37,7 @@ fn rotate_nearest(buffer: &PixelBuffer<RGB>, radians: f32, bg_color: RGB) -> Pix
     PixelBuffer::new_from_raw(new_width, new_height, result)
 }
 
-fn rotate_bilinear(buffer: &PixelBuffer<RGB>, radians: f32, bg_color: RGB) -> PixelBuffer<RGB> {
+fn rotate_bilinear(buffer: &PixelBuffer<Rgb>, radians: f32, bg_color: Rgb) -> PixelBuffer<Rgb> {
     let radians = radians / -180.0 * PI;
 
     let sinf = radians.sin();
@@ -70,7 +70,7 @@ fn rotate_bilinear(buffer: &PixelBuffer<RGB>, radians: f32, bg_color: RGB) -> Pi
     PixelBuffer::new_from_raw(new_width, new_height, result)
 }
 
-fn rotate_bicubic(buffer: &PixelBuffer<RGB>, radians: f32, bg_color: RGB) -> PixelBuffer<RGB> {
+fn rotate_bicubic(buffer: &PixelBuffer<Rgb>, radians: f32, bg_color: Rgb) -> PixelBuffer<Rgb> {
     let radians = radians / -180.0 * PI;
 
     let sinf = radians.sin();
@@ -103,7 +103,7 @@ fn rotate_bicubic(buffer: &PixelBuffer<RGB>, radians: f32, bg_color: RGB) -> Pix
     PixelBuffer::new_from_raw(new_width, new_height, result)
 }
 
-pub fn rotate(buffer: &PixelBuffer<RGB>, radians: f32, bg_color: RGB, filter: FilterMode) -> PixelBuffer<RGB> {
+pub fn rotate(buffer: &PixelBuffer<Rgb>, radians: f32, bg_color: Rgb, filter: FilterMode) -> PixelBuffer<Rgb> {
     match filter {
         FilterMode::Nearest => rotate_nearest(buffer, radians, bg_color),
         FilterMode::Bilinear => rotate_bilinear(buffer, radians, bg_color),

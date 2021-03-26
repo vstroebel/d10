@@ -5,11 +5,11 @@ mod hsv;
 mod yuv;
 mod iter;
 
-pub use rgb::{RGB, Intensity};
-pub use srgb::{SRGB, gamma_to_linear, linear_to_gamma};
-pub use hsv::HSV;
-pub use hsl::HSL;
-pub use yuv::YUV;
+pub use rgb::{Rgb, Intensity};
+pub use srgb::{Srgb, gamma_to_linear, linear_to_gamma};
+pub use hsv::Hsv;
+pub use hsl::Hsl;
+pub use yuv::Yuv;
 pub use iter::{ColorIter, ColorIterRef};
 
 use std::fmt::{Debug, Display};
@@ -29,7 +29,7 @@ pub(crate) fn clamp(value: f32) -> f32 {
 /// As of now this type is sealed to prevent incompatibilities with future changes.
 /// This restriction might be removed when the crate is heading towards 1.0.
 pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug + Display + private::Sealed {
-    fn to_rgb(&self) -> RGB;
+    fn to_rgb(&self) -> Rgb;
 
     fn alpha(&self) -> f32;
 
@@ -37,10 +37,10 @@ pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug + Disp
 
     fn data(&self) -> &[f32];
 
-    fn to_srgb(&self) -> SRGB {
+    fn to_srgb(&self) -> Srgb {
         let rgb = self.to_rgb();
 
-        SRGB::new_with_alpha(
+        Srgb::new_with_alpha(
             linear_to_gamma(rgb.data[0]),
             linear_to_gamma(rgb.data[1]),
             linear_to_gamma(rgb.data[2]),
@@ -48,7 +48,7 @@ pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug + Disp
         )
     }
 
-    fn to_hsl(&self) -> HSL {
+    fn to_hsl(&self) -> Hsl {
         let rgb = self.to_rgb();
 
         let max = rgb.max();
@@ -83,12 +83,12 @@ pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug + Disp
             hue /= 6.0;
         }
 
-        HSL {
+        Hsl {
             data: [hue, saturation, lightness, rgb.alpha()]
         }
     }
 
-    fn to_hsv(&self) -> HSV {
+    fn to_hsv(&self) -> Hsv {
         let rgb = self.to_rgb();
 
         let max = rgb.max();
@@ -130,13 +130,13 @@ pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug + Disp
         }
 
 
-        HSV {
+        Hsv {
             data: [hue / 360.0, saturation, value, rgb.alpha()]
         }
     }
 
-    fn to_yuv(&self) -> YUV {
-        YUV {
+    fn to_yuv(&self) -> Yuv {
+        Yuv {
             data: apply_matrix(&self.to_srgb().data, &yuv::RGB_TO_YUV)
         }
     }

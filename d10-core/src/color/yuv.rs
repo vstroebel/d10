@@ -1,4 +1,4 @@
-use super::{Color, RGB, SRGB, EPSILON};
+use super::{Color, Rgb, Srgb, EPSILON};
 use std::fmt::Display;
 use crate::color::{format_color, apply_matrix};
 
@@ -15,17 +15,17 @@ pub(crate) const YUV_TO_RGB: [[f32; 3]; 3] = [
 ];
 
 #[derive(Debug, Copy, Clone)]
-pub struct YUV {
+pub struct Yuv {
     pub data: [f32; 4]
 }
 
-impl YUV {
-    pub fn new(y: f32, u: f32, v: f32) -> YUV {
-        YUV { data: [y, u, v, 1.0] }
+impl Yuv {
+    pub fn new(y: f32, u: f32, v: f32) -> Yuv {
+        Yuv { data: [y, u, v, 1.0] }
     }
 
-    pub fn new_with_alpha(y: f32, u: f32, v: f32, alpha: f32) -> YUV {
-        YUV { data: [y, u, v, alpha] }
+    pub fn new_with_alpha(y: f32, u: f32, v: f32, alpha: f32) -> Yuv {
+        Yuv { data: [y, u, v, alpha] }
     }
 
     pub fn y(&self) -> f32 {
@@ -40,34 +40,34 @@ impl YUV {
         self.data[2]
     }
 
-    pub fn with_y(&self, y: f32) -> YUV {
-        YUV { data: [y, self.data[1], self.data[2], self.data[3]] }
+    pub fn with_y(&self, y: f32) -> Yuv {
+        Yuv { data: [y, self.data[1], self.data[2], self.data[3]] }
     }
 
-    pub fn with_u(&self, u: f32) -> YUV {
-        YUV { data: [self.data[0], u, self.data[2], self.data[3]] }
+    pub fn with_u(&self, u: f32) -> Yuv {
+        Yuv { data: [self.data[0], u, self.data[2], self.data[3]] }
     }
 
-    pub fn with_v(&self, v: f32) -> YUV {
-        YUV { data: [self.data[0], self.data[1], v, self.data[3]] }
+    pub fn with_v(&self, v: f32) -> Yuv {
+        Yuv { data: [self.data[0], self.data[1], v, self.data[3]] }
     }
 }
 
-impl Default for YUV {
-    fn default() -> YUV {
-        YUV {
+impl Default for Yuv {
+    fn default() -> Yuv {
+        Yuv {
             data: [0.0, 0.0, 0.0, 0.0]
         }
     }
 }
 
-impl Color for YUV {
-    fn to_yuv(&self) -> YUV {
+impl Color for Yuv {
+    fn to_yuv(&self) -> Yuv {
         *self
     }
 
-    fn to_rgb(&self) -> RGB {
-        SRGB {
+    fn to_rgb(&self) -> Rgb {
+        Srgb {
             data: apply_matrix(&self.data, &YUV_TO_RGB)
         }.to_rgb()
     }
@@ -80,8 +80,8 @@ impl Color for YUV {
         self.data[3]
     }
 
-    fn with_alpha(&self, alpha: f32) -> YUV {
-        YUV { data: [self.data[0], self.data[1], self.data[2], alpha] }
+    fn with_alpha(&self, alpha: f32) -> Yuv {
+        Yuv { data: [self.data[0], self.data[1], self.data[2], alpha] }
     }
 
     fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(&self, mut func: F) -> Result<Self, E> {
@@ -97,8 +97,8 @@ impl Color for YUV {
     }
 }
 
-impl PartialEq for YUV {
-    fn eq(&self, other: &YUV) -> bool {
+impl PartialEq for Yuv {
+    fn eq(&self, other: &Yuv) -> bool {
         for (v1, v2) in self.data.iter().zip(other.data.iter()) {
             if (v1 - v2).abs() > EPSILON {
                 return false;
@@ -108,7 +108,7 @@ impl PartialEq for YUV {
     }
 }
 
-impl Display for YUV {
+impl Display for Yuv {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         format_color(self, f)
     }
@@ -116,7 +116,7 @@ impl Display for YUV {
 
 #[cfg(test)]
 mod tests {
-    use crate::color::{RGB, YUV, Color};
+    use crate::color::{Rgb, Yuv, Color};
 
 
     const RGB_YUV: [((f32, f32, f32), (f32, f32, f32)); 15] = [
@@ -140,7 +140,7 @@ mod tests {
     #[test]
     fn test_rgb_to_yuv() {
         for (from, to) in &RGB_YUV {
-            assert_eq!(RGB::new(from.0, from.1, from.2).to_yuv(), YUV::new(to.0, to.1, to.2),
+            assert_eq!(Rgb::new(from.0, from.1, from.2).to_yuv(), Yuv::new(to.0, to.1, to.2),
                        "Error in conversion from {:?} to {:?}", from, to);
         }
     }
@@ -148,22 +148,22 @@ mod tests {
     #[test]
     fn test_yuv_to_rgb() {
         for (to, from) in &RGB_YUV {
-            assert_eq!(YUV::new(from.0, from.1, from.2).to_rgb(), RGB::new(to.0, to.1, to.2),
+            assert_eq!(Yuv::new(from.0, from.1, from.2).to_rgb(), Rgb::new(to.0, to.1, to.2),
                        "Error in conversion from {:?} to {:?}", from, to);
         }
     }
 
     #[test]
     fn type_name() {
-        assert_eq!(YUV::default().type_name(), "yuv");
+        assert_eq!(Yuv::default().type_name(), "yuv");
     }
 
     #[test]
     fn to_string() {
-        assert_eq!(YUV::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(), "yuv(0.0, 0.0, 0.0)");
-        assert_eq!(YUV::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(), "yuv(1.0, 1.0, 1.0)");
-        assert_eq!(YUV::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "yuva(0.0, 0.0, 0.0, 0.0)");
-        assert_eq!(YUV::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "yuva(0.3, 0.6, 0.9, 0.5)");
-        assert_eq!(YUV::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "yuva(0.33, 0.666, 0.999, 0.5555)");
+        assert_eq!(Yuv::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(), "yuv(0.0, 0.0, 0.0)");
+        assert_eq!(Yuv::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(), "yuv(1.0, 1.0, 1.0)");
+        assert_eq!(Yuv::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "yuva(0.0, 0.0, 0.0, 0.0)");
+        assert_eq!(Yuv::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "yuva(0.3, 0.6, 0.9, 0.5)");
+        assert_eq!(Yuv::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "yuva(0.33, 0.666, 0.999, 0.5555)");
     }
 }

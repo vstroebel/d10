@@ -1,4 +1,4 @@
-use std::io::Error as IOError;
+use std::io::Error as IoError;
 use std::error::Error;
 use std::fmt;
 
@@ -8,7 +8,7 @@ pub enum DecodingError {
     UnknownFormat,
     InvalidBufferSize { width: u32, height: u32 },
     Decoding(String),
-    IOError(IOError),
+    IoError(IoError),
 }
 
 impl fmt::Display for DecodingError {
@@ -19,16 +19,16 @@ impl fmt::Display for DecodingError {
             UnknownFormat => write!(f, "Unknown format"),
             InvalidBufferSize { width, height } => write!(f, "Unsupported buffer size for image: {}x{}", width, height),
             Decoding(message) => write!(f, "{}", message),
-            IOError(err) => err.fmt(f),
+            IoError(err) => err.fmt(f),
         }
     }
 }
 
 impl Error for DecodingError {}
 
-impl From<IOError> for DecodingError {
-    fn from(err: IOError) -> DecodingError {
-        DecodingError::IOError(err)
+impl From<IoError> for DecodingError {
+    fn from(err: IoError) -> DecodingError {
+        DecodingError::IoError(err)
     }
 }
 
@@ -37,7 +37,7 @@ pub enum EncodingError {
     BadFileExtension(String),
     BadDimensions { format: &'static str, width: u32, height: u32 },
     Encoding(String),
-    IOError(IOError),
+    IoError(IoError),
 }
 
 impl fmt::Display for EncodingError {
@@ -47,15 +47,15 @@ impl fmt::Display for EncodingError {
             BadFileExtension(path) => write!(f, "Bad file extension: {}", path),
             BadDimensions { format, width, height } => write!(f, "Image dimensions not supported by format {}: {}x{}", format, width, height),
             Encoding(message) => write!(f, "{}", message),
-            IOError(err) => err.fmt(f),
+            IoError(err) => err.fmt(f),
         }
     }
 }
 
 impl Error for EncodingError {}
 
-impl From<IOError> for EncodingError {
-    fn from(err: IOError) -> EncodingError {
-        EncodingError::IOError(err)
+impl From<IoError> for EncodingError {
+    fn from(err: IoError) -> EncodingError {
+        EncodingError::IoError(err)
     }
 }

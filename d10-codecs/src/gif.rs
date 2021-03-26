@@ -1,4 +1,4 @@
-use d10_core::color::{SRGB, Color, RGB};
+use d10_core::color::{Srgb, Color, Rgb};
 use d10_core::pixelbuffer::{PixelBuffer, is_valid_buffer_size};
 
 use std::io::{Read, Seek, BufRead, Write};
@@ -10,12 +10,12 @@ use gif::{DecodeOptions, Frame, Encoder, DecodingError as GIFDecodingError, Enco
 
 fn encode_error(err: GIFEncodingError) -> EncodingError {
     match err {
-        GIFEncodingError::Io(err) => EncodingError::IOError(err),
+        GIFEncodingError::Io(err) => EncodingError::IoError(err),
         err => EncodingError::Encoding(err.to_string()),
     }
 }
 
-pub(crate) fn encode_gif<W>(w: &mut W, buffer: &PixelBuffer<RGB>) -> Result<(), EncodingError>
+pub(crate) fn encode_gif<W>(w: &mut W, buffer: &PixelBuffer<Rgb>) -> Result<(), EncodingError>
     where W: Write
 {
     let width = buffer.width();
@@ -45,7 +45,7 @@ pub(crate) fn encode_gif<W>(w: &mut W, buffer: &PixelBuffer<RGB>) -> Result<(), 
 
 fn decode_error(err: GIFDecodingError) -> DecodingError {
     match err {
-        GIFDecodingError::Io(err) => DecodingError::IOError(err),
+        GIFDecodingError::Io(err) => DecodingError::IoError(err),
         err => DecodingError::Decoding(err.to_string()),
     }
 }
@@ -60,7 +60,7 @@ pub(crate) fn decode_gif<T>(reader: T) -> Result<DecodedImage, DecodingError>
 
     if let Some(frame) = decoder.read_next_frame().map_err(decode_error)? {
         let data = frame.buffer.chunks(4).map(|chunks| {
-            SRGB::new_with_alpha(
+            Srgb::new_with_alpha(
                 from_u8(chunks[0]),
                 from_u8(chunks[1]),
                 from_u8(chunks[2]),

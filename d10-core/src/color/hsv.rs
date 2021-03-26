@@ -1,19 +1,19 @@
-use super::{Color, RGB, EPSILON};
+use super::{Color, Rgb, EPSILON};
 use std::fmt::Display;
 use crate::color::format_color;
 
 #[derive(Debug, Copy, Clone)]
-pub struct HSV {
+pub struct Hsv {
     pub data: [f32; 4]
 }
 
-impl HSV {
-    pub fn new(h: f32, s: f32, v: f32) -> HSV {
-        HSV { data: [h, s, v, 1.0] }
+impl Hsv {
+    pub fn new(h: f32, s: f32, v: f32) -> Hsv {
+        Hsv { data: [h, s, v, 1.0] }
     }
 
-    pub fn new_with_alpha(h: f32, s: f32, v: f32, alpha: f32) -> HSV {
-        HSV { data: [h, s, v, alpha] }
+    pub fn new_with_alpha(h: f32, s: f32, v: f32, alpha: f32) -> Hsv {
+        Hsv { data: [h, s, v, alpha] }
     }
 
     pub fn hue(&self) -> f32 {
@@ -28,40 +28,40 @@ impl HSV {
         self.data[2]
     }
 
-    pub fn with_hue(&self, hue: f32) -> HSV {
-        HSV { data: [hue, self.data[1], self.data[2], self.data[3]] }
+    pub fn with_hue(&self, hue: f32) -> Hsv {
+        Hsv { data: [hue, self.data[1], self.data[2], self.data[3]] }
     }
 
-    pub fn with_saturation(&self, saturation: f32) -> HSV {
-        HSV { data: [self.data[0], saturation, self.data[2], self.data[3]] }
+    pub fn with_saturation(&self, saturation: f32) -> Hsv {
+        Hsv { data: [self.data[0], saturation, self.data[2], self.data[3]] }
     }
 
-    pub fn with_value(&self, value: f32) -> HSV {
-        HSV { data: [self.data[0], self.data[1], value, self.data[3]] }
+    pub fn with_value(&self, value: f32) -> Hsv {
+        Hsv { data: [self.data[0], self.data[1], value, self.data[3]] }
     }
 }
 
-impl Default for HSV {
-    fn default() -> HSV {
-        HSV {
+impl Default for Hsv {
+    fn default() -> Hsv {
+        Hsv {
             data: [0.0, 0.0, 0.0, 0.0]
         }
     }
 }
 
-impl Color for HSV {
-    fn to_hsv(&self) -> HSV {
+impl Color for Hsv {
+    fn to_hsv(&self) -> Hsv {
         *self
     }
 
-    fn to_rgb(&self) -> RGB {
+    fn to_rgb(&self) -> Rgb {
         let hue = self.hue() * 360.0;
         let saturation = self.saturation();
         let value = self.value();
 
 
         if saturation <= 0.0 {
-            return RGB {
+            return Rgb {
                 data: [value, value, value, self.alpha()]
             };
         }
@@ -87,7 +87,7 @@ impl Color for HSV {
             _ => (value, p, q)
         };
 
-        RGB {
+        Rgb {
             data: [red, green, blue, self.alpha()]
         }
     }
@@ -96,8 +96,8 @@ impl Color for HSV {
         self.data[3]
     }
 
-    fn with_alpha(&self, alpha: f32) -> HSV {
-        HSV { data: [self.data[0], self.data[1], self.data[2], alpha] }
+    fn with_alpha(&self, alpha: f32) -> Hsv {
+        Hsv { data: [self.data[0], self.data[1], self.data[2], alpha] }
     }
 
     fn data(&self) -> &[f32] {
@@ -117,8 +117,8 @@ impl Color for HSV {
     }
 }
 
-impl PartialEq for HSV {
-    fn eq(&self, other: &HSV) -> bool {
+impl PartialEq for Hsv {
+    fn eq(&self, other: &Hsv) -> bool {
         for (v1, v2) in self.data.iter().zip(other.data.iter()) {
             if (v1 - v2).abs() > EPSILON {
                 return false;
@@ -128,7 +128,7 @@ impl PartialEq for HSV {
     }
 }
 
-impl Display for HSV {
+impl Display for Hsv {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         format_color(self, f)
     }
@@ -136,7 +136,7 @@ impl Display for HSV {
 
 #[cfg(test)]
 mod tests {
-    use crate::color::{RGB, HSV, Color};
+    use crate::color::{Rgb, Hsv, Color};
 
     const RGB_HSV: [((f32, f32, f32), (f32, f32, f32)); 15] = [
         ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)),
@@ -158,7 +158,7 @@ mod tests {
     #[test]
     fn test_rgb_to_hsv() {
         for (from, to) in &RGB_HSV {
-            assert_eq!(RGB::new(from.0, from.1, from.2).to_hsv(), HSV::new(to.0, to.1, to.2),
+            assert_eq!(Rgb::new(from.0, from.1, from.2).to_hsv(), Hsv::new(to.0, to.1, to.2),
                        "Error in conversion from {:?} to {:?}", from, to);
         }
     }
@@ -166,22 +166,22 @@ mod tests {
     #[test]
     fn test_hsv_to_rgb() {
         for (to, from) in &RGB_HSV {
-            assert_eq!(HSV::new(from.0, from.1, from.2).to_rgb(), RGB::new(to.0, to.1, to.2),
+            assert_eq!(Hsv::new(from.0, from.1, from.2).to_rgb(), Rgb::new(to.0, to.1, to.2),
                        "Error in conversion from {:?} to {:?}", from, to);
         }
     }
 
     #[test]
     fn type_name() {
-        assert_eq!(HSV::default().type_name(), "hsv");
+        assert_eq!(Hsv::default().type_name(), "hsv");
     }
 
     #[test]
     fn to_string() {
-        assert_eq!(HSV::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(), "hsv(0.0, 0.0, 0.0)");
-        assert_eq!(HSV::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(), "hsv(1.0, 1.0, 1.0)");
-        assert_eq!(HSV::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "hsva(0.0, 0.0, 0.0, 0.0)");
-        assert_eq!(HSV::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "hsva(0.3, 0.6, 0.9, 0.5)");
-        assert_eq!(HSV::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "hsva(0.33, 0.666, 0.999, 0.5555)");
+        assert_eq!(Hsv::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(), "hsv(0.0, 0.0, 0.0)");
+        assert_eq!(Hsv::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(), "hsv(1.0, 1.0, 1.0)");
+        assert_eq!(Hsv::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "hsva(0.0, 0.0, 0.0, 0.0)");
+        assert_eq!(Hsv::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "hsva(0.3, 0.6, 0.9, 0.5)");
+        assert_eq!(Hsv::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "hsva(0.33, 0.666, 0.999, 0.5555)");
     }
 }

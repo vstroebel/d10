@@ -1,4 +1,4 @@
-use crate::{ops, RGB, PixelBuffer};
+use crate::{ops, Rgb, PixelBuffer};
 use std::path::Path;
 use d10_ops::FilterMode;
 use d10_codecs::{EncodingFormat, DecodingError, EncodingError};
@@ -6,8 +6,8 @@ use std::io::Write;
 
 #[derive(Clone)]
 pub struct Image {
-    buffer: PixelBuffer<RGB>,
-    bg_color: Option<RGB>,
+    buffer: PixelBuffer<Rgb>,
+    bg_color: Option<Rgb>,
 }
 
 impl Image {
@@ -18,32 +18,32 @@ impl Image {
         }
     }
 
-    pub fn new_with_color(width: u32, height: u32, color: RGB) -> Image {
+    pub fn new_with_color(width: u32, height: u32, color: Rgb) -> Image {
         Image {
             buffer: PixelBuffer::new_with_color(width, height, color),
             bg_color: None,
         }
     }
 
-    pub fn new_from_raw(width: u32, height: u32, data: Vec<RGB>) -> Image {
+    pub fn new_from_raw(width: u32, height: u32, data: Vec<Rgb>) -> Image {
         Image {
             buffer: PixelBuffer::new_from_raw(width, height, data),
             bg_color: None,
         }
     }
 
-    pub fn new_from_buffer(buffer: PixelBuffer<RGB>) -> Image {
+    pub fn new_from_buffer(buffer: PixelBuffer<Rgb>) -> Image {
         Image {
             buffer,
             bg_color: None,
         }
     }
 
-    pub fn new_from_raw_with_meta(orig_image: &Image, width: u32, height: u32, data: Vec<RGB>) -> Image {
+    pub fn new_from_raw_with_meta(orig_image: &Image, width: u32, height: u32, data: Vec<Rgb>) -> Image {
         Self::new_from_buffer_with_meta(orig_image, PixelBuffer::new_from_raw(width, height, data))
     }
 
-    pub fn new_from_buffer_with_meta(orig_image: &Image, buffer: PixelBuffer<RGB>) -> Image {
+    pub fn new_from_buffer_with_meta(orig_image: &Image, buffer: PixelBuffer<Rgb>) -> Image {
         Image {
             buffer,
             bg_color: orig_image.bg_color,
@@ -96,19 +96,19 @@ impl Image {
         self.buffer.is_empty()
     }
 
-    pub fn data(&self) -> &[RGB] {
+    pub fn data(&self) -> &[Rgb] {
         self.buffer.data()
     }
 
-    pub fn data_mut(&mut self) -> &mut [RGB] {
+    pub fn data_mut(&mut self) -> &mut [Rgb] {
         self.buffer.data_mut()
     }
 
-    pub fn buffer(&self) -> &PixelBuffer<RGB> {
+    pub fn buffer(&self) -> &PixelBuffer<Rgb> {
         &self.buffer
     }
 
-    pub fn buffer_mut(&mut self) -> &mut PixelBuffer<RGB> {
+    pub fn buffer_mut(&mut self) -> &mut PixelBuffer<Rgb> {
         &mut self.buffer
     }
 
@@ -120,51 +120,51 @@ impl Image {
         self.buffer.is_grayscale()
     }
 
-    pub fn mod_colors<F: Fn(&RGB) -> RGB>(&mut self, func: F) {
+    pub fn mod_colors<F: Fn(&Rgb) -> Rgb>(&mut self, func: F) {
         self.buffer.mod_colors(func);
     }
 
-    pub fn try_mod_colors<E, F: Fn(&RGB) -> Result<RGB, E>>(&mut self, func: F) -> Result<(), E> {
+    pub fn try_mod_colors<E, F: Fn(&Rgb) -> Result<Rgb, E>>(&mut self, func: F) -> Result<(), E> {
         self.buffer.try_mod_colors(func)
     }
 
-    pub fn mod_colors_enumerated<F: Fn(u32, u32, &RGB) -> RGB>(&mut self, func: F) {
+    pub fn mod_colors_enumerated<F: Fn(u32, u32, &Rgb) -> Rgb>(&mut self, func: F) {
         self.buffer.mod_colors_enumerated(func)
     }
 
-    pub fn try_mod_colors_enumerated<E, F: Fn(u32, u32, &RGB) -> Result<RGB, E>>(&mut self, func: F) -> Result<(), E> {
+    pub fn try_mod_colors_enumerated<E, F: Fn(u32, u32, &Rgb) -> Result<Rgb, E>>(&mut self, func: F) -> Result<(), E> {
         self.buffer.try_mod_colors_enumerated(func)
     }
 
-    pub fn map_colors<F: FnMut(&RGB) -> RGB>(&self, func: F) -> Image {
+    pub fn map_colors<F: FnMut(&Rgb) -> Rgb>(&self, func: F) -> Image {
         Self::new_from_buffer_with_meta(self, self.buffer.map_colors(func))
     }
 
-    pub fn try_map_colors<E, F: FnMut(&RGB) -> Result<RGB, E>>(&self, func: F) -> Result<Image, E> {
+    pub fn try_map_colors<E, F: FnMut(&Rgb) -> Result<Rgb, E>>(&self, func: F) -> Result<Image, E> {
         Ok(Self::new_from_buffer_with_meta(self, self.buffer.try_map_colors(func)?))
     }
 
-    pub fn map_colors_enumerated<F: Fn(u32, u32, &RGB) -> RGB>(&self, func: F) -> Image {
+    pub fn map_colors_enumerated<F: Fn(u32, u32, &Rgb) -> Rgb>(&self, func: F) -> Image {
         Self::new_from_buffer_with_meta(self, self.buffer.map_colors_enumerated(func))
     }
 
-    pub fn try_map_colors_enumerated<E, F: Fn(u32, u32, &RGB) -> Result<RGB, E>>(&self, func: F) -> Result<Image, E> {
+    pub fn try_map_colors_enumerated<E, F: Fn(u32, u32, &Rgb) -> Result<Rgb, E>>(&self, func: F) -> Result<Image, E> {
         Ok(Self::new_from_buffer_with_meta(self, self.buffer.try_map_colors_enumerated(func)?))
     }
 
-    pub fn get_pixel(&self, x: u32, y: u32) -> &RGB {
+    pub fn get_pixel(&self, x: u32, y: u32) -> &Rgb {
         self.buffer.get_pixel(x, y)
     }
 
-    pub fn put_pixel(&mut self, x: u32, y: u32, color: RGB) {
+    pub fn put_pixel(&mut self, x: u32, y: u32, color: Rgb) {
         self.buffer.put_pixel(x, y, color);
     }
 
-    pub fn get_pixel_clamped(&self, x: i32, y: i32) -> &RGB {
+    pub fn get_pixel_clamped(&self, x: i32, y: i32) -> &Rgb {
         self.buffer.get_pixel_clamped(x, y)
     }
 
-    pub fn get_pixel_optional(&self, x: i32, y: i32) -> Option<&RGB> {
+    pub fn get_pixel_optional(&self, x: i32, y: i32) -> Option<&Rgb> {
         self.buffer.get_pixel_optional(x, y)
     }
 
@@ -205,7 +205,7 @@ impl Image {
 
     /// Rotate image clockwise with the given filter
     pub fn rotate(&self, radians: f32, filter: FilterMode) -> Self {
-        Self::new_from_buffer_with_meta(self, ops::rotate(&self.buffer, radians, self.bg_color.unwrap_or(RGB::NONE), filter))
+        Self::new_from_buffer_with_meta(self, ops::rotate(&self.buffer, radians, self.bg_color.unwrap_or(Rgb::NONE), filter))
     }
 
     /// Detect edges in the image with a sobel kernel
@@ -281,20 +281,20 @@ impl Image {
 #[cfg(test)]
 mod tests {
     use super::Image;
-    use crate::RGB;
+    use crate::Rgb;
     use d10_ops::FilterMode;
 
     fn test_image_3_2() -> Image {
         Image::new_from_raw(3, 2, vec![
-            RGB::WHITE, RGB::BLACK, RGB::YELLOW,
-            RGB::RED, RGB::GREEN, RGB::BLUE
+            Rgb::WHITE, Rgb::BLACK, Rgb::YELLOW,
+            Rgb::RED, Rgb::GREEN, Rgb::BLUE
         ])
     }
 
     fn test_image_4_2() -> Image {
         Image::new_from_raw(4, 2, vec![
-            RGB::WHITE, RGB::BLACK, RGB::YELLOW, RGB::MAGENTA,
-            RGB::RED, RGB::GREEN, RGB::BLUE, RGB::CYAN
+            Rgb::WHITE, Rgb::BLACK, Rgb::YELLOW, Rgb::MAGENTA,
+            Rgb::RED, Rgb::GREEN, Rgb::BLUE, Rgb::CYAN
         ])
     }
 

@@ -1,28 +1,28 @@
 use d10_core::pixelbuffer::PixelBuffer;
-use d10_core::color::RGB;
+use d10_core::color::Rgb;
 use rand::Rng;
 
-fn salt_n_pepper<R>(c: &RGB, threshold: f32, rng: &mut R) -> RGB
+fn salt_n_pepper<R>(c: &Rgb, threshold: f32, rng: &mut R) -> Rgb
     where R: Rng
 {
     let value = rng.gen_range(0.0..=1.0);
 
     if value < threshold {
-        RGB::BLACK
+        Rgb::BLACK
     } else if value > 1.0 - threshold {
-        RGB::WHITE
+        Rgb::WHITE
     } else {
         *c
     }
 }
 
-pub fn salt_n_pepper_noise(buffer: &PixelBuffer<RGB>, threshold: f32) -> PixelBuffer<RGB> {
+pub fn salt_n_pepper_noise(buffer: &PixelBuffer<Rgb>, threshold: f32) -> PixelBuffer<Rgb> {
     let mut rng = rand::thread_rng();
 
     buffer.map_colors(|c| salt_n_pepper(c, threshold, &mut rng))
 }
 
-pub fn add_salt_n_pepper_noise(buffer: &mut PixelBuffer<RGB>, threshold: f32) {
+pub fn add_salt_n_pepper_noise(buffer: &mut PixelBuffer<Rgb>, threshold: f32) {
     let mut rng = rand::thread_rng();
 
     buffer.mod_colors(|c| salt_n_pepper(c, threshold, &mut rng));
