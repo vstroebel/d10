@@ -209,63 +209,18 @@ impl<T: Color> PixelBuffer<T> {
         x >= 0 && x < self.width as i32 && y >= 0 && y < self.height as i32
     }
 
-    pub fn get_kernel_3x3(&self, x: i32, y: i32) -> [[&T; 3]; 3] {
-        [
-            [
-                self.get_pixel_clamped(x - 1, y - 1),
-                self.get_pixel_clamped(x, y - 1),
-                self.get_pixel_clamped(x + 1, y - 1)
-            ],
-            [
-                self.get_pixel_clamped(x - 1, y),
-                self.get_pixel_clamped(x, y),
-                self.get_pixel_clamped(x + 1, y)
-            ],
-            [
-                self.get_pixel_clamped(x - 1, y + 1),
-                self.get_pixel_clamped(x, y + 1),
-                self.get_pixel_clamped(x + 1, y + 1)
-            ]
-        ]
-    }
+    pub fn get_kernel<const N: usize>(&self, x: i32, y: i32) -> [[T; N]; N] {
+        let mut values = [[T::default(); N]; N];
 
-    pub fn get_kernel_5x5(&self, x: i32, y: i32) -> [[&T; 5]; 5] {
-        [
-            [
-                self.get_pixel_clamped(x - 2, y - 2),
-                self.get_pixel_clamped(x - 1, y - 2),
-                self.get_pixel_clamped(x, y - 2),
-                self.get_pixel_clamped(x + 1, y - 2),
-                self.get_pixel_clamped(x + 2, y - 2),
-            ],
-            [
-                self.get_pixel_clamped(x - 2, y - 1),
-                self.get_pixel_clamped(x - 1, y - 1),
-                self.get_pixel_clamped(x, y - 1),
-                self.get_pixel_clamped(x + 1, y - 1),
-                self.get_pixel_clamped(x + 2, y - 1),
-            ],
-            [
-                self.get_pixel_clamped(x - 2, y),
-                self.get_pixel_clamped(x - 1, y),
-                self.get_pixel_clamped(x, y - 1),
-                self.get_pixel_clamped(x + 1, y),
-                self.get_pixel_clamped(x + 2, y),
-            ],
-            [
-                self.get_pixel_clamped(x - 2, y + 1),
-                self.get_pixel_clamped(x - 1, y + 1),
-                self.get_pixel_clamped(x, y + 1),
-                self.get_pixel_clamped(x + 1, y + 1),
-                self.get_pixel_clamped(x + 2, y + 1),
-            ],
-            [
-                self.get_pixel_clamped(x - 2, y + 2),
-                self.get_pixel_clamped(x - 1, y + 2),
-                self.get_pixel_clamped(x, y - 1),
-                self.get_pixel_clamped(x + 1, y + 2),
-                self.get_pixel_clamped(x + 2, y + 2),
-            ]]
+        let offset = N as i32 / 2;
+
+        for tx in 0..N {
+            for ty in 0..N {
+                values[ty][tx] = *self.get_pixel_clamped(tx as i32 + x - offset, ty as i32 + y - offset)
+            }
+        }
+
+        values
     }
 
     pub fn has_transparency(&self) -> bool {
