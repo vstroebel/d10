@@ -7,7 +7,7 @@ use crate::IntoPyErr;
 use crate::color::Rgb;
 
 use d10::{Image as D10Image,
-          Rgb as D10RGB,
+          Rgb as D10Rgb,
           EncodingFormat as D10EncodingFormat,
           PngColorType, PngFilterType,
           PngCompression,
@@ -20,10 +20,10 @@ use {
     numpy_helper::*,
     numpy::{PyArray, DataType},
     d10::{Color,
-          Srgb as D10SRGB,
-          Hsl as D10HSL,
-          Hsv as D10HSV,
-          Yuv as D10YUV},
+          Srgb as D10Srgb,
+          Hsl as D10Hsl,
+          Hsv as D10Hsv,
+          Yuv as D10Yuv},
 };
 
 #[pyclass]
@@ -92,7 +92,7 @@ impl Image {
     }
 
     fn mod_colors(&mut self, func: &PyFunction) -> PyResult<()> {
-        let map = |c: &D10RGB| -> PyResult<D10RGB> {
+        let map = |c: &D10Rgb| -> PyResult<D10Rgb> {
             let arg1 = Rgb { inner: *c };
             let r = func.call1((arg1, ))?;
             Ok(r.extract::<Rgb>()?.inner)
@@ -102,7 +102,7 @@ impl Image {
     }
 
     fn mod_colors_enumerated(&mut self, func: &PyFunction) -> PyResult<()> {
-        let map = |x: u32, y: u32, c: &D10RGB| -> PyResult<D10RGB> {
+        let map = |x: u32, y: u32, c: &D10Rgb| -> PyResult<D10Rgb> {
             let arg1 = x as i32;
             let arg2 = y as i32;
             let arg3 = Rgb { inner: *c };
@@ -115,7 +115,7 @@ impl Image {
     }
 
     fn map_colors(&self, func: &PyFunction) -> PyResult<Image> {
-        let map = |c: &D10RGB| -> PyResult<D10RGB> {
+        let map = |c: &D10Rgb| -> PyResult<D10Rgb> {
             let arg1 = Rgb { inner: *c };
             let r = func.call1((arg1, ))?;
 
@@ -126,7 +126,7 @@ impl Image {
     }
 
     fn map_colors_enumerated(&self, func: &PyFunction) -> PyResult<Image> {
-        let map = |x: u32, y: u32, c: &D10RGB| -> PyResult<D10RGB> {
+        let map = |x: u32, y: u32, c: &D10Rgb| -> PyResult<D10Rgb> {
             let arg1 = x as i32;
             let arg2 = y as i32;
             let arg3 = Rgb { inner: *c };
@@ -337,28 +337,28 @@ impl Image {
 
         let colorspace = colorspace.unwrap_or("auto");
 
-        let data: Vec<D10RGB> = if ndims == 3 {
+        let data: Vec<D10Rgb> = if ndims == 3 {
             if dims[2] == 4 {
                 match colorspace {
                     "rgba" | "rgb" | "auto" => chunked::<4>(&mut iter)
                         .into_iter()
-                        .map(|chunk| D10RGB::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]))
+                        .map(|chunk| D10Rgb::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]))
                         .collect(),
                     "srgba" | "srgb" => chunked::<4>(&mut iter)
                         .into_iter()
-                        .map(|chunk| D10SRGB::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
+                        .map(|chunk| D10Srgb::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
                         .collect(),
                     "hsla" | "hsl" => chunked::<4>(&mut iter)
                         .into_iter()
-                        .map(|chunk| D10HSL::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
+                        .map(|chunk| D10Hsl::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
                         .collect(),
                     "hsva" | "hsv" => chunked::<4>(&mut iter)
                         .into_iter()
-                        .map(|chunk| D10HSV::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
+                        .map(|chunk| D10Hsv::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
                         .collect(),
                     "yuva" | "yuv" => chunked::<4>(&mut iter)
                         .into_iter()
-                        .map(|chunk| D10YUV::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
+                        .map(|chunk| D10Yuv::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
                         .collect(),
                     _ => return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)))
                 }
@@ -366,23 +366,23 @@ impl Image {
                 match colorspace {
                     "rgb" | "auto" => chunked::<3>(&mut iter)
                         .into_iter()
-                        .map(|chunk| D10RGB::new(chunk[0], chunk[1], chunk[2]))
+                        .map(|chunk| D10Rgb::new(chunk[0], chunk[1], chunk[2]))
                         .collect(),
                     "srgb" => chunked::<3>(&mut iter)
                         .into_iter()
-                        .map(|chunk| D10SRGB::new(chunk[0], chunk[1], chunk[2]).to_rgb())
+                        .map(|chunk| D10Srgb::new(chunk[0], chunk[1], chunk[2]).to_rgb())
                         .collect(),
                     "hsl" => chunked::<3>(&mut iter)
                         .into_iter()
-                        .map(|chunk| D10HSL::new(chunk[0], chunk[1], chunk[2]).to_rgb())
+                        .map(|chunk| D10Hsl::new(chunk[0], chunk[1], chunk[2]).to_rgb())
                         .collect(),
                     "hsv" => chunked::<3>(&mut iter)
                         .into_iter()
-                        .map(|chunk| D10HSV::new(chunk[0], chunk[1], chunk[2]).to_rgb())
+                        .map(|chunk| D10Hsv::new(chunk[0], chunk[1], chunk[2]).to_rgb())
                         .collect(),
                     "yuv" => chunked::<3>(&mut iter)
                         .into_iter()
-                        .map(|chunk| D10YUV::new(chunk[0], chunk[1], chunk[2]).to_rgb())
+                        .map(|chunk| D10Yuv::new(chunk[0], chunk[1], chunk[2]).to_rgb())
                         .collect(),
                     _ => return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)))
                 }
@@ -390,7 +390,7 @@ impl Image {
                 if colorspace != "gray" && colorspace != "auto" {
                     return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)));
                 }
-                iter.map(|value| D10RGB::new_with_alpha(value, value, value, 1.0)).collect()
+                iter.map(|value| D10Rgb::new_with_alpha(value, value, value, 1.0)).collect()
             } else {
                 return Err(PyOSError::new_err(format!("Bad color dimensions: {}", dims[2])));
             }
@@ -398,7 +398,7 @@ impl Image {
             if colorspace != "gray" && colorspace != "auto" {
                 return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)));
             }
-            iter.map(|value| D10RGB::new_with_alpha(value, value, value, 1.0)).collect()
+            iter.map(|value| D10Rgb::new_with_alpha(value, value, value, 1.0)).collect()
         } else {
             return Err(PyOSError::new_err(format!("Bad number of dimensions: {}", ndims)));
         };

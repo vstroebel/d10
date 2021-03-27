@@ -4,11 +4,11 @@ use pyo3::types::PyFunction;
 use pyo3::basic::CompareOp;
 
 use d10::{Color,
-          Rgb as D10RGB,
-          Srgb as D10SRGB,
-          Hsl as D10HSL,
-          Hsv as D10HSV,
-          Yuv as D10YUV};
+          Rgb as D10Rgb,
+          Srgb as D10Srgb,
+          Hsl as D10Hsl,
+          Hsv as D10Hsv,
+          Yuv as D10Yuv};
 
 use crate::IntoPyErr;
 
@@ -16,7 +16,7 @@ use crate::IntoPyErr;
 #[pyclass]
 #[derive(Clone)]
 pub struct Rgb {
-    pub inner: D10RGB
+    pub inner: D10Rgb
 }
 
 #[pymethods]
@@ -24,7 +24,7 @@ impl Rgb {
     #[new]
     pub fn new(red: f32, green: f32, blue: f32, alpha: Option<f32>) -> Self {
         Self {
-            inner: D10RGB::new_with_alpha(red, green, blue, alpha.unwrap_or(1.0))
+            inner: D10Rgb::new_with_alpha(red, green, blue, alpha.unwrap_or(1.0))
         }
     }
 
@@ -179,16 +179,16 @@ impl Rgb {
     }
 }
 
-impl From<D10RGB> for Rgb {
-    fn from(color: D10RGB) -> Rgb {
+impl From<D10Rgb> for Rgb {
+    fn from(color: D10Rgb) -> Rgb {
         Rgb {
             inner: color
         }
     }
 }
 
-impl From<&D10RGB> for Rgb {
-    fn from(color: &D10RGB) -> Rgb {
+impl From<&D10Rgb> for Rgb {
+    fn from(color: &D10Rgb) -> Rgb {
         Rgb {
             inner: *color
         }
@@ -216,7 +216,7 @@ impl PyObjectProtocol for Rgb {
 #[pyclass]
 #[derive(Clone)]
 pub struct Srgb {
-    pub inner: D10SRGB
+    pub inner: D10Srgb
 }
 
 #[pymethods]
@@ -224,7 +224,7 @@ impl Srgb {
     #[new]
     fn new(red: f32, green: f32, blue: f32, alpha: Option<f32>) -> Srgb {
         Srgb {
-            inner: D10SRGB::new_with_alpha(red, green, blue, alpha.unwrap_or(1.0))
+            inner: D10Srgb::new_with_alpha(red, green, blue, alpha.unwrap_or(1.0))
         }
     }
 
@@ -286,8 +286,8 @@ impl Srgb {
     }
 }
 
-impl From<D10SRGB> for Srgb {
-    fn from(color: D10SRGB) -> Srgb {
+impl From<D10Srgb> for Srgb {
+    fn from(color: D10Srgb) -> Srgb {
         Srgb {
             inner: color
         }
@@ -315,14 +315,14 @@ impl PyObjectProtocol for Srgb {
 #[pyclass]
 #[derive(Clone)]
 pub struct Hsl {
-    pub inner: D10HSL
+    pub inner: D10Hsl
 }
 
 #[pymethods]
 impl Hsl {
     #[new]
     fn new(h: f32, s: f32, l: f32, alpha: Option<f32>) -> Hsl {
-        D10HSL::new_with_alpha(h, s, l, alpha.unwrap_or(1.0)).into()
+        D10Hsl::new_with_alpha(h, s, l, alpha.unwrap_or(1.0)).into()
     }
 
     #[getter]
@@ -387,8 +387,8 @@ impl Hsl {
     }
 }
 
-impl From<D10HSL> for Hsl {
-    fn from(hsl: D10HSL) -> Hsl {
+impl From<D10Hsl> for Hsl {
+    fn from(hsl: D10Hsl) -> Hsl {
         Hsl {
             inner: hsl
         }
@@ -416,7 +416,7 @@ impl PyObjectProtocol for Hsl {
 #[pyclass]
 #[derive(Clone)]
 pub struct Hsv {
-    pub inner: D10HSV
+    pub inner: D10Hsv
 }
 
 
@@ -424,7 +424,7 @@ pub struct Hsv {
 impl Hsv {
     #[new]
     fn new(h: f32, s: f32, v: f32, alpha: Option<f32>) -> Hsv {
-        D10HSV::new_with_alpha(h, s, v, alpha.unwrap_or(1.0)).into()
+        D10Hsv::new_with_alpha(h, s, v, alpha.unwrap_or(1.0)).into()
     }
 
     #[getter]
@@ -489,8 +489,8 @@ impl Hsv {
     }
 }
 
-impl From<D10HSV> for Hsv {
-    fn from(hsv: D10HSV) -> Hsv {
+impl From<D10Hsv> for Hsv {
+    fn from(hsv: D10Hsv) -> Hsv {
         Hsv {
             inner: hsv
         }
@@ -518,7 +518,7 @@ impl PyObjectProtocol for Hsv {
 #[pyclass]
 #[derive(Clone)]
 pub struct Yuv {
-    pub inner: D10YUV
+    pub inner: D10Yuv
 }
 
 
@@ -526,7 +526,7 @@ pub struct Yuv {
 impl Yuv {
     #[new]
     fn new(y: f32, u: f32, v: f32, alpha: Option<f32>) -> Yuv {
-        D10YUV::new_with_alpha(y, u, v, alpha.unwrap_or(1.0)).into()
+        D10Yuv::new_with_alpha(y, u, v, alpha.unwrap_or(1.0)).into()
     }
 
     #[getter]
@@ -591,8 +591,8 @@ impl Yuv {
     }
 }
 
-impl From<D10YUV> for Yuv {
-    fn from(yuv: D10YUV) -> Yuv {
+impl From<D10Yuv> for Yuv {
+    fn from(yuv: D10Yuv) -> Yuv {
         Yuv {
             inner: yuv
         }
