@@ -203,7 +203,7 @@ impl Rgb {
 
     pub fn with_vibrance(&self, factor: f32) -> Rgb {
 
-        //TODO: Find good algorithm for this
+        //TODO: Find a good algorithm for this
 
         /*
          * Increase saturation using a sinus function based on the original saturation.
@@ -215,7 +215,7 @@ impl Rgb {
 
         let mut scale = factor;
 
-        //Try do not saturate red colors a much as others
+        // Try to not saturate red colors a much as others
         scale *= ((hsl.hue() * std::f32::consts::PI).sin() * 1.5).min(1.0);
 
         let s = s + (s * std::f32::consts::PI).sin() * scale;

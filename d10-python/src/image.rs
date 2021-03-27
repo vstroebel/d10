@@ -558,11 +558,11 @@ mod numpy_helper {
 
     pub fn into_f32_array<'a>(array: &'a PyAny) -> PyResult<(usize, IxDyn, Box<dyn Iterator<Item=f32> + 'a>)> {
 
-        //WARNING: In order to find out what data type this numpy array has, we
-        //         blindly cast it into an f32 one, which might result into an
-        //         array with broken data. This seems to be "save" on the rust side
-        //         but might still causes undefined behavior...
-        //
+        /* WARNING: In order to find out what data type this numpy array has, we
+         *         blindly cast it into a f32 one, which might result into an
+         *         array with broken data. This seems to be "save" on the rust side
+         *         but might still cause undefined behavior...
+         */
         //TODO: Find a way to not use this hackish way to do it
 
         let py_array: &PyArrayDyn<f32> = array.cast_as()?;

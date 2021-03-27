@@ -32,7 +32,7 @@ fn linear_interpolate(v1: f32, v2: f32, t: f32) -> f32 {
     v1 + (v2 - v1) * t
 }
 
-/// Calculate the base pixel position and the relative offset used as a factor in calculating the linear or bicubic interpolated value
+/// Calculate the base pixel position and relative offset used as a factor in calculating interpolated values
 fn get_base_and_offset(pos: f32) -> (i32, f32) {
     let pos_b = pos.floor();
     let offset = pos - pos_b;

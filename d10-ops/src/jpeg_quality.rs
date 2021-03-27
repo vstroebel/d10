@@ -4,7 +4,7 @@ use d10_codecs::{encode, EncodingFormat, decode_buffer};
 
 /// Returns a new buffer with a simulated jpeg quality
 ///
-/// If `preserve_alpha` is not set all alpha values will be set to 1.0
+/// If `preserve_alpha` is not set, all alpha values will be set to 1.0
 pub fn jpeg_quality(buffer: &PixelBuffer<Rgb>, quality: u8, preserve_alpha: bool) -> PixelBuffer<Rgb> {
     let mut temp = vec![];
 

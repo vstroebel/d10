@@ -232,7 +232,7 @@ impl Image {
 
     /// Returns a new image with a simulated jpeg quality
     ///
-    /// If `preserve_alpha` is not set all alpha values will be set to 1.0
+    /// If `preserve_alpha` is not set, all alpha values will be set to 1.0
     pub fn with_jpeg_quality(&self, quality: u8, preserve_alpha: bool) -> Image {
         Self::new_from_buffer_with_meta(self, ops::jpeg_quality(&self.buffer, quality, preserve_alpha))
     }
@@ -272,7 +272,7 @@ impl Image {
         Self::new_from_buffer_with_meta(self, ops::gaussian_blur(&self.buffer, radius, sigma))
     }
 
-    /// Return a new image with unsharp mask applied
+    /// Return a new image with an unsharp mask applied
     pub fn unsharp(&self, radius: u32, sigma: f32, factor: f32) -> Image {
         Self::new_from_buffer_with_meta(self, ops::unsharp(&self.buffer, radius, sigma, factor))
     }

@@ -14,10 +14,10 @@ pub use iter::{ColorIter, ColorIterRef};
 
 use std::fmt::{Debug, Display};
 
-// Minimal error to detect identical colors channel values
-//
-// The precision is based on `2.pow(15)` because we want to be somewhere near 16 Bit per channel
-// and avoid problems with rounding errors when dealing with 16 bit images.
+/// Minimal error to detect identical colors channel values
+///
+/// The precision is based on `2.pow(15)` because we want to be somewhere near 16 Bit per channel
+/// and avoid problems with rounding errors when dealing with 16 bit images.
 pub(crate) const EPSILON: f32 = 1.0 / 32768.0;
 
 pub(crate) fn clamp(value: f32) -> f32 {
@@ -220,7 +220,7 @@ pub(crate) fn apply_matrix(color: &[f32; 4], matrix: &[[f32; 3]; 3]) -> [f32; 4]
 mod private {
     use crate::color::Color;
 
-    // Using a non public trait is used to make it impossible for other crate to implement their own color type
+    // Using a private to make it impossible for other crates to implement their own color type
     pub trait Sealed {}
 
     impl<T: Color> Sealed for T {}
