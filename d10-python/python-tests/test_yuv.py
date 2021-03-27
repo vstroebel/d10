@@ -1,22 +1,23 @@
 import unittest
-from d10 import YUV
+from d10 import Yuv
 
 delta = 0.0001
 
-class TestYUV(unittest.TestCase):
+
+class TestYuv(unittest.TestCase):
 
     def assertChannelValue(self, first, second):
         self.assertAlmostEqual(first, second, delta=delta)
 
     def test_new(self):
-        color = YUV(1.0, 0.666, 0.333, 0.5)
+        color = Yuv(1.0, 0.666, 0.333, 0.5)
         self.assertChannelValue(color.y, 1.0)
         self.assertChannelValue(color.u, 0.666)
         self.assertChannelValue(color.v, 0.333)
         self.assertChannelValue(color.alpha, 0.5)
 
     def test_with_channels(self):
-        color = YUV(0.0, 0.0, 0.0, 0.0)
+        color = Yuv(0.0, 0.0, 0.0, 0.0)
         self.assertChannelValue(color.y, 0.0)
         self.assertChannelValue(color.u, 0.0)
         self.assertChannelValue(color.v, 0.0)
@@ -47,7 +48,7 @@ class TestYUV(unittest.TestCase):
         self.assertChannelValue(color.alpha, 1.0)
 
     def test_conversion(self):
-        color = YUV(0.114, 0.43601036, -0.10001026, 0.5)
+        color = Yuv(0.114, 0.43601036, -0.10001026, 0.5)
 
         color = color.to_rgb().to_yuv()
 

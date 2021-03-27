@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 
-from d10 import Image, RGB
+from d10 import Image, Rgb
 
 
 class TestImage(unittest.TestCase):
@@ -14,34 +14,34 @@ class TestImage(unittest.TestCase):
 
     def test_from_list(self):
         image = Image.from_list(2, 3, [
-            RGB(0.0, 0.0, 1.0), RGB(1.0, 0.0, 1.0),
-            RGB(0.0, 1.0, 1.0), RGB(1.0, 0.0, 1.0),
-            RGB(1.0, 0.0, 1.0), RGB(1.0, 0.0, 1.0),
+            Rgb(0.0, 0.0, 1.0), Rgb(1.0, 0.0, 1.0),
+            Rgb(0.0, 1.0, 1.0), Rgb(1.0, 0.0, 1.0),
+            Rgb(1.0, 0.0, 1.0), Rgb(1.0, 0.0, 1.0),
         ])
 
         self.assertEqual(image.width, 2)
         self.assertEqual(image.height, 3)
 
-        self.assertEqual(image.get_pixel(0, 0), RGB(0.0, 0.0, 1.0))
-        self.assertEqual(image.get_pixel(1, 2), RGB(1.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(0, 0), Rgb(0.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(1, 2), Rgb(1.0, 0.0, 1.0))
 
     def test_to_list(self):
         image = Image.from_list(2, 2, [
-            RGB(0.0, 0.0, 1.0), RGB(1.0, 0.0, 1.0),
-            RGB(0.0, 1.0, 1.0), RGB(1.0, 0.0, 1.0),
+            Rgb(0.0, 0.0, 1.0), Rgb(1.0, 0.0, 1.0),
+            Rgb(0.0, 1.0, 1.0), Rgb(1.0, 0.0, 1.0),
         ])
 
-        data = image.to_list();
+        data = image.to_list()
 
-        self.assertEqual(data[0], RGB(0.0, 0.0, 1.0))
-        self.assertEqual(data[1], RGB(1.0, 0.0, 1.0))
-        self.assertEqual(data[2], RGB(0.0, 1.0, 1.0))
-        self.assertEqual(data[3], RGB(1.0, 0.0, 1.0))
+        self.assertEqual(data[0], Rgb(0.0, 0.0, 1.0))
+        self.assertEqual(data[1], Rgb(1.0, 0.0, 1.0))
+        self.assertEqual(data[2], Rgb(0.0, 1.0, 1.0))
+        self.assertEqual(data[3], Rgb(1.0, 0.0, 1.0))
 
     def test_mapping_get(self):
         colors = [
-            RGB(0.0, 0.0, 1.0), RGB(1.0, 0.0, 1.0),
-            RGB(0.0, 1.0, 1.0), RGB(1.0, 0.0, 1.0),
+            Rgb(0.0, 0.0, 1.0), Rgb(1.0, 0.0, 1.0),
+            Rgb(0.0, 1.0, 1.0), Rgb(1.0, 0.0, 1.0),
         ]
 
         image = Image.from_list(2, 2, colors)
@@ -53,8 +53,8 @@ class TestImage(unittest.TestCase):
 
     def test_mapping_set(self):
         colors = [
-            RGB(0.0, 0.0, 1.0), RGB(1.0, 0.0, 1.0),
-            RGB(0.0, 1.0, 1.0), RGB(1.0, 0.0, 1.0),
+            Rgb(0.0, 0.0, 1.0), Rgb(1.0, 0.0, 1.0),
+            Rgb(0.0, 1.0, 1.0), Rgb(1.0, 0.0, 1.0),
         ]
 
         image = Image(2, 2)
@@ -74,23 +74,23 @@ class TestImage(unittest.TestCase):
         self.assertEqual(len(Image(5, 2)), 10)
 
     def test_has_transparency(self):
-        image = Image(4, 7, RGB(1.0, 1.0, 1.0))
+        image = Image(4, 7, Rgb(1.0, 1.0, 1.0))
 
         self.assertFalse(image.has_transparency())
-        image.put_pixel(0, 0, RGB(0.0, 0.0, 0.0, 0.0))
+        image.put_pixel(0, 0, Rgb(0.0, 0.0, 0.0, 0.0))
         self.assertTrue(image.has_transparency())
 
     def test_is_grayscale(self):
-        image = Image(4, 7, RGB(1.0, 1.0, 1.0))
+        image = Image(4, 7, Rgb(1.0, 1.0, 1.0))
 
         self.assertTrue(image.is_grayscale())
-        image.put_pixel(0, 0, RGB(1.0, 0.0, 0.0, 1.0))
+        image.put_pixel(0, 0, Rgb(1.0, 0.0, 0.0, 1.0))
         self.assertFalse(image.is_grayscale())
 
     def test_mod_colors(self):
-        image = Image(2, 2, RGB(1.0, 1.0, 1.0))
+        image = Image(2, 2, Rgb(1.0, 1.0, 1.0))
 
-        color = RGB(1.0, 0.0, 0.0)
+        color = Rgb(1.0, 0.0, 0.0)
 
         image.mod_colors(lambda c: color)
 
@@ -100,11 +100,11 @@ class TestImage(unittest.TestCase):
         self.assertEqual(image.get_pixel(1, 1), color)
 
     def test_mod_colors_enumerated(self):
-        image = Image(2, 2, RGB(1.0, 1.0, 1.0))
+        image = Image(2, 2, Rgb(1.0, 1.0, 1.0))
 
         colors = [
-            [RGB(1.0, 0.0, 0.0), RGB(1.0, 1.0, 0.0)],
-            [RGB(1.0, 0.0, 1.0), RGB(1.0, 1.0, 1.0)]
+            [Rgb(1.0, 0.0, 0.0), Rgb(1.0, 1.0, 0.0)],
+            [Rgb(1.0, 0.0, 1.0), Rgb(1.0, 1.0, 1.0)]
         ]
 
         image.mod_colors_enumerated(lambda x, y, c: colors[x][y])
@@ -115,9 +115,9 @@ class TestImage(unittest.TestCase):
         self.assertEqual(image.get_pixel(1, 1), colors[1][1])
 
     def test_map_colors(self):
-        image = Image(2, 2, RGB(1.0, 1.0, 1.0))
+        image = Image(2, 2, Rgb(1.0, 1.0, 1.0))
 
-        color = RGB(1.0, 0.0, 0.0)
+        color = Rgb(1.0, 0.0, 0.0)
 
         image_out = image.map_colors(lambda c: color)
 
@@ -127,11 +127,11 @@ class TestImage(unittest.TestCase):
         self.assertEqual(image_out.get_pixel(1, 1), color)
 
     def test_map_colors_enumerated(self):
-        image = Image(2, 2, RGB(1.0, 1.0, 1.0))
+        image = Image(2, 2, Rgb(1.0, 1.0, 1.0))
 
         colors = [
-            [RGB(1.0, 0.0, 0.0), RGB(1.0, 1.0, 0.0)],
-            [RGB(1.0, 0.0, 1.0), RGB(1.0, 1.0, 1.0)]
+            [Rgb(1.0, 0.0, 0.0), Rgb(1.0, 1.0, 0.0)],
+            [Rgb(1.0, 0.0, 1.0), Rgb(1.0, 1.0, 1.0)]
         ]
 
         image_out = image.map_colors_enumerated(lambda x, y, c: colors[x][y])
@@ -142,7 +142,7 @@ class TestImage(unittest.TestCase):
         self.assertEqual(image_out.get_pixel(1, 1), colors[1][1])
 
     def test_is_in_image(self):
-        image = Image(2, 2, RGB(1.0, 1.0, 1.0))
+        image = Image(2, 2, Rgb(1.0, 1.0, 1.0))
 
         self.assertTrue(image.is_in_image(0, 0))
         self.assertTrue(image.is_in_image(1, 1))
@@ -151,69 +151,69 @@ class TestImage(unittest.TestCase):
 
     def test_flip_horizontal(self):
         image = Image.from_list(2, 2, [
-            RGB(0.0, 0.0, 1.0), RGB(1.0, 0.0, 1.0),
-            RGB(0.0, 1.0, 1.0), RGB(1.0, 0.0, 1.0),
+            Rgb(0.0, 0.0, 1.0), Rgb(1.0, 0.0, 1.0),
+            Rgb(0.0, 1.0, 1.0), Rgb(1.0, 0.0, 1.0),
         ]).flip_horizontal()
 
-        self.assertEqual(image.get_pixel(0, 0), RGB(1.0, 0.0, 1.0))
-        self.assertEqual(image.get_pixel(1, 0), RGB(0.0, 0.0, 1.0))
-        self.assertEqual(image.get_pixel(0, 1), RGB(1.0, 0.0, 1.0))
-        self.assertEqual(image.get_pixel(1, 1), RGB(0.0, 1.0, 1.0))
+        self.assertEqual(image.get_pixel(0, 0), Rgb(1.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(1, 0), Rgb(0.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(0, 1), Rgb(1.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(1, 1), Rgb(0.0, 1.0, 1.0))
 
     def test_flip_vertical(self):
         image = Image.from_list(2, 2, [
-            RGB(0.0, 0.0, 1.0), RGB(1.0, 0.0, 1.0),
-            RGB(0.0, 1.0, 1.0), RGB(1.0, 0.0, 1.0),
+            Rgb(0.0, 0.0, 1.0), Rgb(1.0, 0.0, 1.0),
+            Rgb(0.0, 1.0, 1.0), Rgb(1.0, 0.0, 1.0),
         ]).flip_vertical()
 
-        self.assertEqual(image.get_pixel(0, 0), RGB(0.0, 1.0, 1.0))
-        self.assertEqual(image.get_pixel(1, 0), RGB(1.0, 0.0, 1.0))
-        self.assertEqual(image.get_pixel(0, 1), RGB(0.0, 0.0, 1.0))
-        self.assertEqual(image.get_pixel(1, 1), RGB(1.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(0, 0), Rgb(0.0, 1.0, 1.0))
+        self.assertEqual(image.get_pixel(1, 0), Rgb(1.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(0, 1), Rgb(0.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(1, 1), Rgb(1.0, 0.0, 1.0))
 
     def test_rotate_90(self):
         image = Image.from_list(2, 2, [
-            RGB(0.0, 0.0, 1.0), RGB(1.0, 0.0, 1.0),
-            RGB(0.0, 1.0, 1.0), RGB(1.0, 0.0, 1.0),
+            Rgb(0.0, 0.0, 1.0), Rgb(1.0, 0.0, 1.0),
+            Rgb(0.0, 1.0, 1.0), Rgb(1.0, 0.0, 1.0),
         ]).rotate90()
 
-        self.assertEqual(image.get_pixel(1, 0), RGB(0.0, 0.0, 1.0))
-        self.assertEqual(image.get_pixel(1, 1), RGB(1.0, 0.0, 1.0))
-        self.assertEqual(image.get_pixel(0, 0), RGB(0.0, 1.0, 1.0))
-        self.assertEqual(image.get_pixel(0, 1), RGB(1.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(1, 0), Rgb(0.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(1, 1), Rgb(1.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(0, 0), Rgb(0.0, 1.0, 1.0))
+        self.assertEqual(image.get_pixel(0, 1), Rgb(1.0, 0.0, 1.0))
 
     def test_rotate_180(self):
         image = Image.from_list(2, 2, [
-            RGB(0.0, 0.0, 1.0), RGB(1.0, 0.0, 1.0),
-            RGB(0.0, 1.0, 1.0), RGB(1.0, 0.0, 1.0),
+            Rgb(0.0, 0.0, 1.0), Rgb(1.0, 0.0, 1.0),
+            Rgb(0.0, 1.0, 1.0), Rgb(1.0, 0.0, 1.0),
         ]).rotate180()
 
-        self.assertEqual(image.get_pixel(1, 1), RGB(0.0, 0.0, 1.0))
-        self.assertEqual(image.get_pixel(0, 1), RGB(1.0, 0.0, 1.0))
-        self.assertEqual(image.get_pixel(1, 0), RGB(0.0, 1.0, 1.0))
-        self.assertEqual(image.get_pixel(0, 0), RGB(1.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(1, 1), Rgb(0.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(0, 1), Rgb(1.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(1, 0), Rgb(0.0, 1.0, 1.0))
+        self.assertEqual(image.get_pixel(0, 0), Rgb(1.0, 0.0, 1.0))
 
     def test_rotate_270(self):
         image = Image.from_list(2, 2, [
-            RGB(0.0, 0.0, 1.0), RGB(1.0, 0.0, 1.0),
-            RGB(0.0, 1.0, 1.0), RGB(1.0, 0.0, 1.0),
+            Rgb(0.0, 0.0, 1.0), Rgb(1.0, 0.0, 1.0),
+            Rgb(0.0, 1.0, 1.0), Rgb(1.0, 0.0, 1.0),
         ]).rotate270()
 
-        self.assertEqual(image.get_pixel(0, 1), RGB(0.0, 0.0, 1.0))
-        self.assertEqual(image.get_pixel(0, 0), RGB(1.0, 0.0, 1.0))
-        self.assertEqual(image.get_pixel(1, 1), RGB(0.0, 1.0, 1.0))
-        self.assertEqual(image.get_pixel(1, 0), RGB(1.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(0, 1), Rgb(0.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(0, 0), Rgb(1.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(1, 1), Rgb(0.0, 1.0, 1.0))
+        self.assertEqual(image.get_pixel(1, 0), Rgb(1.0, 0.0, 1.0))
 
     def test_rotate(self):
         image = Image.from_list(2, 2, [
-            RGB(0.0, 0.0, 1.0), RGB(1.0, 0.0, 1.0),
-            RGB(0.0, 1.0, 1.0), RGB(1.0, 0.0, 1.0),
+            Rgb(0.0, 0.0, 1.0), Rgb(1.0, 0.0, 1.0),
+            Rgb(0.0, 1.0, 1.0), Rgb(1.0, 0.0, 1.0),
         ]).rotate(180, 'nearest')
 
-        self.assertEqual(image.get_pixel(1, 1), RGB(0.0, 0.0, 1.0))
-        self.assertEqual(image.get_pixel(0, 1), RGB(1.0, 0.0, 1.0))
-        self.assertEqual(image.get_pixel(1, 0), RGB(0.0, 1.0, 1.0))
-        self.assertEqual(image.get_pixel(0, 0), RGB(1.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(1, 1), Rgb(0.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(0, 1), Rgb(1.0, 0.0, 1.0))
+        self.assertEqual(image.get_pixel(1, 0), Rgb(0.0, 1.0, 1.0))
+        self.assertEqual(image.get_pixel(0, 0), Rgb(1.0, 0.0, 1.0))
 
     def test_resize(self):
         image = Image(2, 3).resize(7, 5)
@@ -245,7 +245,7 @@ class TestImage(unittest.TestCase):
         self.assertEqual(image.width, 2)
         self.assertEqual(image.height, 3)
 
-    def test_random_noise(self):
+    def test_add_random_noise(self):
         image = Image(2, 3)
         image.add_random_noise(0.5)
 
@@ -302,9 +302,9 @@ class TestNumpy(unittest.TestCase):
 
     def test_to_array(self):
         colors = [
-            RGB(0.0, 0.0, 1.0), RGB(1.0, 0.0, 1.0),
-            RGB(0.0, 1.0, 1.0), RGB(1.0, 0.0, 1.0),
-            RGB(1.0, 0.0, 1.0), RGB(1.0, 0.0, 1.0),
+            Rgb(0.0, 0.0, 1.0), Rgb(1.0, 0.0, 1.0),
+            Rgb(0.0, 1.0, 1.0), Rgb(1.0, 0.0, 1.0),
+            Rgb(1.0, 0.0, 1.0), Rgb(1.0, 0.0, 1.0),
         ]
 
         arr = Image.from_list(2, 3, colors).to_np_array()
@@ -312,12 +312,12 @@ class TestNumpy(unittest.TestCase):
         shape = np.shape(arr)
         self.assertEqual(shape, (3, 2, 4))
 
-        self.assertEqual(RGB(arr[0, 0, 0], arr[0, 0, 1], arr[0, 0, 2]), colors[0])
-        self.assertEqual(RGB(arr[0, 1, 0], arr[0, 1, 1], arr[0, 1, 2]), colors[1])
-        self.assertEqual(RGB(arr[1, 0, 0], arr[1, 0, 1], arr[1, 0, 2]), colors[2])
-        self.assertEqual(RGB(arr[1, 1, 0], arr[1, 1, 1], arr[1, 1, 2]), colors[3])
-        self.assertEqual(RGB(arr[2, 0, 0], arr[2, 0, 1], arr[2, 0, 2]), colors[4])
-        self.assertEqual(RGB(arr[2, 1, 0], arr[2, 1, 1], arr[2, 1, 2]), colors[5])
+        self.assertEqual(Rgb(arr[0, 0, 0], arr[0, 0, 1], arr[0, 0, 2]), colors[0])
+        self.assertEqual(Rgb(arr[0, 1, 0], arr[0, 1, 1], arr[0, 1, 2]), colors[1])
+        self.assertEqual(Rgb(arr[1, 0, 0], arr[1, 0, 1], arr[1, 0, 2]), colors[2])
+        self.assertEqual(Rgb(arr[1, 1, 0], arr[1, 1, 1], arr[1, 1, 2]), colors[3])
+        self.assertEqual(Rgb(arr[2, 0, 0], arr[2, 0, 1], arr[2, 0, 2]), colors[4])
+        self.assertEqual(Rgb(arr[2, 1, 0], arr[2, 1, 1], arr[2, 1, 2]), colors[5])
 
     def test_to_array_color_types(self):
         self.assertEqual(np.shape(Image(1, 2).to_np_array('hsl')), (2, 1, 3))
