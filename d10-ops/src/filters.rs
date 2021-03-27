@@ -133,6 +133,8 @@ fn lanczos3(v: f32) -> f32 {
 
 
 /// Get the pixel at the given position applying a lanczos filter with a window of 3
+// Silence clippy because this would result in a mixture of range and non range loops...
+#[allow(clippy::needless_range_loop)]
 pub fn get_pixel_lanczos3(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Rgb {
     let (x, tx) = get_base_and_offset(x);
     let (y, ty) = get_base_and_offset(y);
@@ -160,7 +162,6 @@ pub fn get_pixel_lanczos3(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Rgb {
             }
         }
     }
-
 
     let mut data = [0.0; 4];
 
