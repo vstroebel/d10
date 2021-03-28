@@ -1,9 +1,9 @@
 use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::Rgb;
-use d10_core::kernel::Kernel;
+use d10_core::kernel_dyn::KernelDyn;
 
 pub fn unsharp(buffer: &PixelBuffer<Rgb>, radius: u32, sigma: f32, factor: f32) -> PixelBuffer<Rgb> {
-    let kernel = Kernel::new_gaussian(radius * 2 + 1, sigma);
+    let kernel = KernelDyn::new_gaussian(radius * 2 + 1, sigma);
 
     buffer.map_colors_enumerated(|x, y, c| {
         let c_blurred = buffer.get_kernel_value(x, y, &kernel);

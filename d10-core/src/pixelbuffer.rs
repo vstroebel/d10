@@ -1,5 +1,6 @@
 use crate::color::*;
 use crate::kernel::Kernel;
+use crate::kernel_dyn::KernelDyn;
 
 pub const MAX_BUFFER_SIZE: u64 = (i32::MAX as u64) / 2;
 
@@ -286,11 +287,21 @@ impl PixelBuffer<Rgb> {
         self.data.iter().all(Rgb::is_grayscale)
     }
 
-    pub fn apply_kernel(&self, kernel: &Kernel) -> PixelBuffer<Rgb> {
+    pub fn apply_kernel<const N: usize>(&self, kernel: &Kernel<N>) -> PixelBuffer<Rgb> {
+        self.map_colors_enumerated(|x, y, _| {
+            let buffer_k = self.get_kernel::<N>(x as i32, y as i32);
+
+            Rgb {
+                data: kernel.apply_kernel(&buffer_k, |c, i| c.data[i])
+            }
+        })
+    }
+
+    pub fn apply_kernel_dyn(&self, kernel: &KernelDyn) -> PixelBuffer<Rgb> {
         self.map_colors_enumerated(|x, y, _| self.get_kernel_value(x, y, kernel))
     }
 
-    pub fn get_kernel_value(&self, image_x: u32, image_y: u32, kernel: &Kernel) -> Rgb {
+    pub fn get_kernel_value(&self, image_x: u32, image_y: u32, kernel: &KernelDyn) -> Rgb {
         let offset_x = kernel.get_offset_x();
         let offset_y = kernel.get_offset_y();
 
