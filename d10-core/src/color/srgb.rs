@@ -19,20 +19,32 @@ impl Srgb {
         self.data[0]
     }
 
-    pub fn green(&self) -> f32 {
-        self.data[1]
-    }
-
-    pub fn blue(&self) -> f32 {
-        self.data[2]
+    pub fn set_red(&mut self, red: f32) {
+        self.data[0] = red;
     }
 
     pub fn with_red(&self, red: f32) -> Srgb {
         Srgb { data: [red, self.data[1], self.data[2], self.data[3]] }
     }
 
+    pub fn green(&self) -> f32 {
+        self.data[1]
+    }
+
+    pub fn set_green(&mut self, green: f32) {
+        self.data[1] = green;
+    }
+
     pub fn with_green(&self, green: f32) -> Srgb {
         Srgb { data: [self.data[0], green, self.data[2], self.data[3]] }
+    }
+
+    pub fn blue(&self) -> f32 {
+        self.data[2]
+    }
+
+    pub fn set_blue(&mut self, blue: f32) {
+        self.data[2] = blue;
     }
 
     pub fn with_blue(&self, blue: f32) -> Srgb {
@@ -58,6 +70,10 @@ impl Color for Srgb {
 
     fn alpha(&self) -> f32 {
         self.data[3]
+    }
+
+    fn set_alpha(&mut self, alpha: f32) {
+        self.data[3] = alpha;
     }
 
     fn with_alpha(&self, alpha: f32) -> Srgb {
@@ -136,5 +152,29 @@ mod tests {
         assert_eq!(Srgb::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "srgba(0.0, 0.0, 0.0, 0.0)");
         assert_eq!(Srgb::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "srgba(0.3, 0.6, 0.9, 0.5)");
         assert_eq!(Srgb::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "srgba(0.33, 0.666, 0.999, 0.5555)");
+    }
+
+    #[test]
+    fn test_setters() {
+        let mut color = Srgb::new_with_alpha(0.1, 0.3, 0.5, 0.7);
+        assert_eq!(color.red(), 0.1);
+        assert_eq!(color.with_red(0.2).red(), 0.2);
+        color.set_red(0.2);
+        assert_eq!(color.red(), 0.2);
+
+        assert_eq!(color.green(), 0.3);
+        assert_eq!(color.with_green(0.4).green(), 0.4);
+        color.set_green(0.4);
+        assert_eq!(color.green(), 0.4);
+
+        assert_eq!(color.blue(), 0.5);
+        assert_eq!(color.with_blue(0.6).blue(), 0.6);
+        color.set_blue(0.6);
+        assert_eq!(color.blue(), 0.6);
+
+        assert_eq!(color.alpha(), 0.7);
+        assert_eq!(color.with_alpha(0.8).alpha(), 0.8);
+        color.set_alpha(0.8);
+        assert_eq!(color.alpha(), 0.8);
     }
 }

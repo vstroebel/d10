@@ -16,6 +16,24 @@ class TestYuv(unittest.TestCase):
         self.assertChannelValue(color.v, 0.333)
         self.assertChannelValue(color.alpha, 0.5)
 
+    def test_setters(self):
+        color = Yuv(0.1, 0.3, 0.5, 0.7)
+
+        self.assertChannelValue(color.y, 0.1)
+        self.assertChannelValue(color.u, 0.3)
+        self.assertChannelValue(color.v, 0.5)
+        self.assertChannelValue(color.alpha, 0.7)
+
+        color.y = 0.2
+        color.u = 0.4
+        color.v = 0.6
+        color.alpha = 0.8
+
+        self.assertChannelValue(color.y, 0.2)
+        self.assertChannelValue(color.u, 0.4)
+        self.assertChannelValue(color.v, 0.6)
+        self.assertChannelValue(color.alpha, 0.8)
+
     def test_with_channels(self):
         color = Yuv(0.0, 0.0, 0.0, 0.0)
         self.assertChannelValue(color.y, 0.0)

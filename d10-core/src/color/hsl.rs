@@ -20,12 +20,24 @@ impl Hsl {
         self.data[0]
     }
 
+    pub fn set_hue(&mut self, hue: f32) {
+        self.data[0] = hue;
+    }
+
     pub fn saturation(&self) -> f32 {
         self.data[1]
     }
 
+    pub fn set_saturation(&mut self, saturation: f32) {
+        self.data[1] = saturation;
+    }
+
     pub fn lightness(&self) -> f32 {
         self.data[2]
+    }
+
+    pub fn set_lightness(&mut self, lightness: f32) {
+        self.data[2] = lightness;
     }
 
     pub fn with_hue(&self, hue: f32) -> Hsl {
@@ -90,6 +102,10 @@ impl Color for Hsl {
 
     fn alpha(&self) -> f32 {
         self.data[3]
+    }
+
+    fn set_alpha(&mut self, alpha: f32) {
+        self.data[3] = alpha;
     }
 
     fn with_alpha(&self, alpha: f32) -> Hsl {
@@ -179,5 +195,29 @@ mod tests {
         assert_eq!(Hsl::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "hsla(0.0, 0.0, 0.0, 0.0)");
         assert_eq!(Hsl::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "hsla(0.3, 0.6, 0.9, 0.5)");
         assert_eq!(Hsl::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "hsla(0.33, 0.666, 0.999, 0.5555)");
+    }
+
+    #[test]
+    fn test_setters() {
+        let mut color = Hsl::new_with_alpha(0.1, 0.3, 0.5, 0.7);
+        assert_eq!(color.hue(), 0.1);
+        assert_eq!(color.with_hue(0.2).hue(), 0.2);
+        color.set_hue(0.2);
+        assert_eq!(color.hue(), 0.2);
+
+        assert_eq!(color.saturation(), 0.3);
+        assert_eq!(color.with_saturation(0.4).saturation(), 0.4);
+        color.set_saturation(0.4);
+        assert_eq!(color.saturation(), 0.4);
+
+        assert_eq!(color.lightness(), 0.5);
+        assert_eq!(color.with_lightness(0.6).lightness(), 0.6);
+        color.set_lightness(0.6);
+        assert_eq!(color.lightness(), 0.6);
+
+        assert_eq!(color.alpha(), 0.7);
+        assert_eq!(color.with_alpha(0.8).alpha(), 0.8);
+        color.set_alpha(0.8);
+        assert_eq!(color.alpha(), 0.8);
     }
 }

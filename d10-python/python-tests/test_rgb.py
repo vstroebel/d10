@@ -16,6 +16,24 @@ class TestRgb(unittest.TestCase):
         self.assertChannelValue(color.blue, 0.333)
         self.assertChannelValue(color.alpha, 0.5)
 
+    def test_setters(self):
+        color = Rgb(0.1, 0.3, 0.5, 0.7)
+
+        self.assertChannelValue(color.red, 0.1)
+        self.assertChannelValue(color.green, 0.3)
+        self.assertChannelValue(color.blue, 0.5)
+        self.assertChannelValue(color.alpha, 0.7)
+
+        color.red = 0.2
+        color.green = 0.4
+        color.blue = 0.6
+        color.alpha = 0.8
+
+        self.assertChannelValue(color.red, 0.2)
+        self.assertChannelValue(color.green, 0.4)
+        self.assertChannelValue(color.blue, 0.6)
+        self.assertChannelValue(color.alpha, 0.8)
+
     def test_with_channels(self):
         color = Rgb(0.0, 0.0, 0.0, 0.0)
         self.assertChannelValue(color.red, 0.0)

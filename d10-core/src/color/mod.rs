@@ -33,6 +33,8 @@ pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug + Disp
 
     fn alpha(&self) -> f32;
 
+    fn set_alpha(&mut self, alpha: f32);
+
     fn with_alpha(&self, alpha: f32) -> Self;
 
     fn data(&self) -> &[f32];

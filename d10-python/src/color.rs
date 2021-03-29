@@ -33,9 +33,19 @@ impl Rgb {
         self.inner.red()
     }
 
+    #[setter]
+    fn set_red(&mut self, red: f32) {
+        self.inner.set_red(red);
+    }
+
     #[getter]
     fn get_green(&self) -> f32 {
         self.inner.green()
+    }
+
+    #[setter]
+    fn set_green(&mut self, green: f32) {
+        self.inner.set_green(green);
     }
 
     #[getter]
@@ -43,9 +53,19 @@ impl Rgb {
         self.inner.blue()
     }
 
+    #[setter]
+    fn set_blue(&mut self, blue: f32) {
+        self.inner.set_blue(blue);
+    }
+
     #[getter]
     fn get_alpha(&self) -> f32 {
         self.inner.alpha()
+    }
+
+    #[setter]
+    fn set_alpha(&mut self, alpha: f32) {
+        self.inner.set_alpha(alpha);
     }
 
     fn is_grayscale(&self) -> bool {
@@ -233,9 +253,19 @@ impl Srgb {
         self.inner.red()
     }
 
+    #[setter]
+    fn set_red(&mut self, red: f32) {
+        self.inner.set_red(red);
+    }
+
     #[getter]
     fn get_green(&self) -> f32 {
         self.inner.green()
+    }
+
+    #[setter]
+    fn set_green(&mut self, green: f32) {
+        self.inner.set_green(green);
     }
 
     #[getter]
@@ -243,9 +273,19 @@ impl Srgb {
         self.inner.blue()
     }
 
+    #[setter]
+    fn set_blue(&mut self, blue: f32) {
+        self.inner.set_blue(blue);
+    }
+
     #[getter]
     fn get_alpha(&self) -> f32 {
         self.inner.alpha()
+    }
+
+    #[setter]
+    fn set_alpha(&mut self, alpha: f32) {
+        self.inner.set_alpha(alpha);
     }
 
     fn with_red(&self, red: f32) -> Srgb {
@@ -330,9 +370,19 @@ impl Hsl {
         self.inner.hue()
     }
 
+    #[setter]
+    fn set_hue(&mut self, hue: f32) {
+        self.inner.set_hue(hue);
+    }
+
     #[getter]
     fn get_saturation(&self) -> f32 {
         self.inner.saturation()
+    }
+
+    #[setter]
+    fn set_saturation(&mut self, saturation: f32) {
+        self.inner.set_saturation(saturation);
     }
 
     #[getter]
@@ -340,9 +390,19 @@ impl Hsl {
         self.inner.lightness()
     }
 
+    #[setter]
+    fn set_lightness(&mut self, lightness: f32) {
+        self.inner.set_lightness(lightness);
+    }
+
     #[getter]
     fn get_alpha(&self) -> f32 {
         self.inner.alpha()
+    }
+
+    #[setter]
+    fn set_alpha(&mut self, alpha: f32) {
+        self.inner.set_alpha(alpha);
     }
 
     fn has_transparency(&self) -> bool {
@@ -432,9 +492,19 @@ impl Hsv {
         self.inner.hue()
     }
 
+    #[setter]
+    fn set_hue(&mut self, hue: f32) {
+        self.inner.set_hue(hue);
+    }
+
     #[getter]
     fn get_saturation(&self) -> f32 {
         self.inner.saturation()
+    }
+
+    #[setter]
+    fn set_saturation(&mut self, saturation: f32) {
+        self.inner.set_saturation(saturation);
     }
 
     #[getter]
@@ -442,9 +512,19 @@ impl Hsv {
         self.inner.value()
     }
 
+    #[setter]
+    fn set_value(&mut self, value: f32) {
+        self.inner.set_value(value);
+    }
+
     #[getter]
     fn get_alpha(&self) -> f32 {
         self.inner.alpha()
+    }
+
+    #[setter]
+    fn set_alpha(&mut self, alpha: f32) {
+        self.inner.set_alpha(alpha);
     }
 
     fn has_transparency(&self) -> bool {
@@ -534,9 +614,19 @@ impl Yuv {
         self.inner.y()
     }
 
+    #[setter]
+    fn set_y(&mut self, y: f32) {
+        self.inner.set_y(y);
+    }
+
     #[getter]
     fn get_u(&self) -> f32 {
         self.inner.u()
+    }
+
+    #[setter]
+    fn set_u(&mut self, u: f32) {
+        self.inner.set_u(u);
     }
 
     #[getter]
@@ -544,9 +634,19 @@ impl Yuv {
         self.inner.v()
     }
 
+    #[setter]
+    fn set_v(&mut self, v: f32) {
+        self.inner.set_v(v);
+    }
+
     #[getter]
     fn get_alpha(&self) -> f32 {
         self.inner.alpha()
+    }
+
+    #[setter]
+    fn set_alpha(&mut self, alpha: f32) {
+        self.inner.set_alpha(alpha);
     }
 
     fn has_transparency(&self) -> bool {

@@ -32,16 +32,20 @@ impl Yuv {
         self.data[0]
     }
 
-    pub fn u(&self) -> f32 {
-        self.data[1]
-    }
-
-    pub fn v(&self) -> f32 {
-        self.data[2]
+    pub fn set_y(&mut self, y: f32) {
+        self.data[0] = y;
     }
 
     pub fn with_y(&self, y: f32) -> Yuv {
         Yuv { data: [y, self.data[1], self.data[2], self.data[3]] }
+    }
+
+    pub fn u(&self) -> f32 {
+        self.data[1]
+    }
+
+    pub fn set_u(&mut self, u: f32) {
+        self.data[1] = u;
     }
 
     pub fn with_u(&self, u: f32) -> Yuv {
@@ -50,6 +54,14 @@ impl Yuv {
 
     pub fn with_v(&self, v: f32) -> Yuv {
         Yuv { data: [self.data[0], self.data[1], v, self.data[3]] }
+    }
+
+    pub fn set_v(&mut self, v: f32) {
+        self.data[2] = v;
+    }
+
+    pub fn v(&self) -> f32 {
+        self.data[2]
     }
 }
 
@@ -78,6 +90,10 @@ impl Color for Yuv {
 
     fn alpha(&self) -> f32 {
         self.data[3]
+    }
+
+    fn set_alpha(&mut self, alpha: f32) {
+        self.data[3] = alpha;
     }
 
     fn with_alpha(&self, alpha: f32) -> Yuv {
@@ -165,5 +181,29 @@ mod tests {
         assert_eq!(Yuv::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "yuva(0.0, 0.0, 0.0, 0.0)");
         assert_eq!(Yuv::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "yuva(0.3, 0.6, 0.9, 0.5)");
         assert_eq!(Yuv::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "yuva(0.33, 0.666, 0.999, 0.5555)");
+    }
+
+    #[test]
+    fn test_setters() {
+        let mut color = Yuv::new_with_alpha(0.1, 0.3, 0.5, 0.7);
+        assert_eq!(color.y(), 0.1);
+        assert_eq!(color.with_y(0.2).y(), 0.2);
+        color.set_y(0.2);
+        assert_eq!(color.y(), 0.2);
+
+        assert_eq!(color.u(), 0.3);
+        assert_eq!(color.with_u(0.4).u(), 0.4);
+        color.set_u(0.4);
+        assert_eq!(color.u(), 0.4);
+
+        assert_eq!(color.v(), 0.5);
+        assert_eq!(color.with_v(0.6).v(), 0.6);
+        color.set_v(0.6);
+        assert_eq!(color.v(), 0.6);
+
+        assert_eq!(color.alpha(), 0.7);
+        assert_eq!(color.with_alpha(0.8).alpha(), 0.8);
+        color.set_alpha(0.8);
+        assert_eq!(color.alpha(), 0.8);
     }
 }

@@ -20,20 +20,32 @@ impl Hsv {
         self.data[0]
     }
 
-    pub fn saturation(&self) -> f32 {
-        self.data[1]
-    }
-
-    pub fn value(&self) -> f32 {
-        self.data[2]
+    pub fn set_hue(&mut self, hue: f32) {
+        self.data[0] = hue;
     }
 
     pub fn with_hue(&self, hue: f32) -> Hsv {
         Hsv { data: [hue, self.data[1], self.data[2], self.data[3]] }
     }
 
+    pub fn saturation(&self) -> f32 {
+        self.data[1]
+    }
+
+    pub fn set_saturation(&mut self, saturation: f32) {
+        self.data[1] = saturation;
+    }
+
     pub fn with_saturation(&self, saturation: f32) -> Hsv {
         Hsv { data: [self.data[0], saturation, self.data[2], self.data[3]] }
+    }
+
+    pub fn value(&self) -> f32 {
+        self.data[2]
+    }
+
+    pub fn set_value(&mut self, value: f32) {
+        self.data[2] = value;
     }
 
     pub fn with_value(&self, value: f32) -> Hsv {
@@ -94,6 +106,10 @@ impl Color for Hsv {
 
     fn alpha(&self) -> f32 {
         self.data[3]
+    }
+
+    fn set_alpha(&mut self, alpha: f32) {
+        self.data[3] = alpha;
     }
 
     fn with_alpha(&self, alpha: f32) -> Hsv {
@@ -183,5 +199,29 @@ mod tests {
         assert_eq!(Hsv::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "hsva(0.0, 0.0, 0.0, 0.0)");
         assert_eq!(Hsv::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "hsva(0.3, 0.6, 0.9, 0.5)");
         assert_eq!(Hsv::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "hsva(0.33, 0.666, 0.999, 0.5555)");
+    }
+
+    #[test]
+    fn test_setters() {
+        let mut color = Hsv::new_with_alpha(0.1, 0.3, 0.5, 0.7);
+        assert_eq!(color.hue(), 0.1);
+        assert_eq!(color.with_hue(0.2).hue(), 0.2);
+        color.set_hue(0.2);
+        assert_eq!(color.hue(), 0.2);
+
+        assert_eq!(color.saturation(), 0.3);
+        assert_eq!(color.with_saturation(0.4).saturation(), 0.4);
+        color.set_saturation(0.4);
+        assert_eq!(color.saturation(), 0.4);
+
+        assert_eq!(color.value(), 0.5);
+        assert_eq!(color.with_value(0.6).value(), 0.6);
+        color.set_value(0.6);
+        assert_eq!(color.value(), 0.6);
+
+        assert_eq!(color.alpha(), 0.7);
+        assert_eq!(color.with_alpha(0.8).alpha(), 0.8);
+        color.set_alpha(0.8);
+        assert_eq!(color.alpha(), 0.8);
     }
 }

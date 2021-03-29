@@ -56,12 +56,36 @@ impl Rgb {
         self.data[0]
     }
 
+    pub fn set_red(&mut self, red: f32) {
+        self.data[0] = red;
+    }
+
+    pub fn with_red(&self, red: f32) -> Rgb {
+        Rgb { data: [red, self.data[1], self.data[2], self.data[3]] }
+    }
+
     pub fn green(&self) -> f32 {
         self.data[1]
     }
 
+    pub fn set_green(&mut self, green: f32) {
+        self.data[1] = green;
+    }
+
+    pub fn with_green(&self, green: f32) -> Rgb {
+        Rgb { data: [self.data[0], green, self.data[2], self.data[3]] }
+    }
+
     pub fn blue(&self) -> f32 {
         self.data[2]
+    }
+
+    pub fn set_blue(&mut self, blue: f32) {
+        self.data[2] = blue;
+    }
+
+    pub fn with_blue(&self, blue: f32) -> Rgb {
+        Rgb { data: [self.data[0], self.data[1], blue, self.data[3]] }
     }
 
     pub fn is_grayscale(&self) -> bool {
@@ -180,18 +204,6 @@ impl Rgb {
         })
     }
 
-    pub fn with_red(&self, red: f32) -> Rgb {
-        Rgb { data: [red, self.data[1], self.data[2], self.data[3]] }
-    }
-
-    pub fn with_green(&self, green: f32) -> Rgb {
-        Rgb { data: [self.data[0], green, self.data[2], self.data[3]] }
-    }
-
-    pub fn with_blue(&self, blue: f32) -> Rgb {
-        Rgb { data: [self.data[0], self.data[1], blue, self.data[3]] }
-    }
-
     pub fn alpha_blend(&self, color: Rgb) -> Rgb {
         Rgb::new_with_alpha(
             color.data[0] * color.alpha() + (1.0 - color.alpha()) * self.data[0],
@@ -301,6 +313,10 @@ impl Color for Rgb {
 
     fn alpha(&self) -> f32 {
         self.data[3]
+    }
+
+    fn set_alpha(&mut self, alpha: f32) {
+        self.data[3] = alpha;
     }
 
     fn with_alpha(&self, alpha: f32) -> Rgb {
@@ -438,5 +454,29 @@ mod tests {
         let res = res.unwrap_err();
         assert_eq!(res.input, "bad value");
         assert_eq!(res.enum_type, "Intensity");
+    }
+
+    #[test]
+    fn test_setters() {
+        let mut color = Rgb::new_with_alpha(0.1, 0.3, 0.5, 0.7);
+        assert_eq!(color.red(), 0.1);
+        assert_eq!(color.with_red(0.2).red(), 0.2);
+        color.set_red(0.2);
+        assert_eq!(color.red(), 0.2);
+
+        assert_eq!(color.green(), 0.3);
+        assert_eq!(color.with_green(0.4).green(), 0.4);
+        color.set_green(0.4);
+        assert_eq!(color.green(), 0.4);
+
+        assert_eq!(color.blue(), 0.5);
+        assert_eq!(color.with_blue(0.6).blue(), 0.6);
+        color.set_blue(0.6);
+        assert_eq!(color.blue(), 0.6);
+
+        assert_eq!(color.alpha(), 0.7);
+        assert_eq!(color.with_alpha(0.8).alpha(), 0.8);
+        color.set_alpha(0.8);
+        assert_eq!(color.alpha(), 0.8);
     }
 }
