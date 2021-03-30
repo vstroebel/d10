@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use pyo3::types::PyFunction;
+use pyo3::types::{PyFunction, PyList};
 use pyo3::PyMappingProtocol;
 use pyo3::exceptions::PyOSError;
 
@@ -242,6 +242,35 @@ impl Image {
         self.inner.unsharp(radius, sigma.unwrap_or(1.0), factor.unwrap_or(1.0)).into()
     }
 
+    #[staticmethod]
+    pub fn compose(images: &PyList, default: Option<Rgb>, func: &PyFunction) -> PyResult<Image> {
+        let default = default.map(|c| c.inner).unwrap_or_default();
+
+        //TODO: Find out if we really need to map images three times to make the borrow checker happy
+
+        let images: Vec<&PyCell<Image>> = images.iter()
+            .map(|i| i.cast_as::<PyCell<Image>>().map_err(|err| err.into()))
+            .collect::<PyResult<Vec<_>>>()?;
+
+        let images = images.into_iter()
+            .map(|r| r.borrow())
+            .collect::<Vec<_>>();
+
+        let images = images.iter()
+            .map(|r| &r.inner)
+            .collect::<Vec<_>>();
+
+        let res: PyResult<D10Image> = D10Image::try_compose_slice(&images, default, |x, y, colors| {
+            let colors = colors.iter().map(|c| Rgb {
+                inner: *c
+            }).collect::<Vec<_>>();
+
+            let r = func.call1((x, y, colors))?;
+            Ok(r.extract::<Rgb>()?.inner)
+        });
+
+        res.map(|i| i.into())
+    }
 
     #[cfg(feature = "numpy")]
     fn to_np_array(&self, py: Python, colorspace: Option<&str>, data_type: Option<&PyAny>) -> PyResult<Py<PyAny>> {
@@ -557,7 +586,6 @@ mod numpy_helper {
     }
 
     pub fn into_f32_array<'a>(array: &'a PyAny) -> PyResult<(usize, IxDyn, Box<dyn Iterator<Item=f32> + 'a>)> {
-
         /* WARNING: In order to find out what data type this numpy array has, we
          *         blindly cast it into a f32 one, which might result into an
          *         array with broken data. This seems to be "save" on the rust side

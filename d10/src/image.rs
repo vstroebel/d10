@@ -3,6 +3,7 @@ use std::path::Path;
 use d10_ops::FilterMode;
 use d10_codecs::{EncodingFormat, DecodingError, EncodingError};
 use std::io::Write;
+use std::convert::TryInto;
 
 #[derive(Clone)]
 pub struct Image {
@@ -276,6 +277,42 @@ impl Image {
     pub fn unsharp(&self, radius: u32, sigma: f32, factor: f32) -> Image {
         Self::new_from_buffer_with_meta(self, ops::unsharp(&self.buffer, radius, sigma, factor))
     }
+
+    pub fn try_compose<E, F, const N: usize>(images: [&Image; N], default: Rgb, func: F) -> Result<Image, E>
+        where
+            F: FnMut(u32, u32, [Rgb; N]) -> Result<Rgb, E>
+    {
+        let buffers: [&PixelBuffer<Rgb>; N] = images.iter().map(|image| &image.buffer).collect::<Vec<_>>().try_into().unwrap();
+        let result = ops::try_compose(buffers, default, func)?;
+        Ok(Self::new_from_buffer_with_meta(images[0], result))
+    }
+
+    pub fn compose<F, const N: usize>(images: [&Image; N], default: Rgb, func: F) -> Image
+        where
+            F: FnMut(u32, u32, [Rgb; N]) -> Rgb
+    {
+        let buffers: [&PixelBuffer<Rgb>; N] = images.iter().map(|image| &image.buffer).collect::<Vec<_>>().try_into().unwrap();
+        let result = ops::compose(buffers, default, func);
+        Self::new_from_buffer_with_meta(images[0], result)
+    }
+
+    pub fn try_compose_slice<E, F>(images: &[&Image], default: Rgb, func: F) -> Result<Image, E>
+        where
+            F: FnMut(u32, u32, &[Rgb]) -> Result<Rgb, E>
+    {
+        let buffers: Vec<_> = images.iter().map(|image| &image.buffer).collect::<Vec<_>>();
+        let result = ops::try_compose_slice(&buffers, default, func)?;
+        Ok(Self::new_from_buffer_with_meta(images[0], result))
+    }
+
+    pub fn compose_slice<F>(images: &[&Image], default: Rgb, func: F) -> Image
+        where
+            F: FnMut(u32, u32, &[Rgb]) -> Rgb
+    {
+        let buffers: Vec<_> = images.iter().map(|image| &image.buffer).collect::<Vec<_>>();
+        let result = ops::compose_slice(&buffers, default, func);
+        Self::new_from_buffer_with_meta(images[0], result)
+    }
 }
 
 #[cfg(test)]
@@ -545,5 +582,50 @@ mod tests {
         let cropped = image.crop(50, 50, 100, 200);
         assert_eq!(cropped.width(), 50);
         assert_eq!(cropped.height(), 150);
+    }
+
+
+    #[cfg(test)]
+    mod tests {
+        use d10_core::color::Rgb;
+        use super::*;
+
+        #[test]
+        fn test_compose() {
+            let b1 = Image::new_with_color(4, 2, Rgb::GREEN);
+            let b2 = Image::new_with_color(2, 5, Rgb::BLUE);
+            let b3 = Image::new_with_color(2, 2, Rgb::RED);
+
+            let result = Image::compose([&b1, &b2, &b3], Rgb::NONE, |_, _, colors| {
+                colors.iter().fold(Rgb::NONE, |c1, c2| c1.alpha_blend(*c2))
+            });
+
+            assert_eq!(result.width(), 4);
+            assert_eq!(result.height(), 5);
+
+            assert_eq!(result.get_pixel(3, 0), &Rgb::GREEN);
+            assert_eq!(result.get_pixel(0, 4), &Rgb::BLUE);
+            assert_eq!(result.get_pixel(1, 1), &Rgb::RED);
+            assert_eq!(result.get_pixel(3, 4), &Rgb::default());
+        }
+
+        #[test]
+        fn test_compose_slice() {
+            let b1 = Image::new_with_color(4, 2, Rgb::GREEN);
+            let b2 = Image::new_with_color(2, 5, Rgb::BLUE);
+            let b3 = Image::new_with_color(2, 2, Rgb::RED);
+
+            let result = Image::compose_slice(&[&b1, &b2, &b3], Rgb::NONE, |_, _, colors| {
+                colors.iter().fold(Rgb::NONE, |c1, c2| c1.alpha_blend(*c2))
+            });
+
+            assert_eq!(result.width(), 4);
+            assert_eq!(result.height(), 5);
+
+            assert_eq!(result.get_pixel(3, 0), &Rgb::GREEN);
+            assert_eq!(result.get_pixel(0, 4), &Rgb::BLUE);
+            assert_eq!(result.get_pixel(1, 1), &Rgb::RED);
+            assert_eq!(result.get_pixel(3, 4), &Rgb::default());
+        }
     }
 }

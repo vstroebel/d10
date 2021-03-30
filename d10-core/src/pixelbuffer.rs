@@ -1,6 +1,8 @@
 use crate::color::*;
 use crate::kernel::Kernel;
 use crate::kernel_dyn::KernelDyn;
+use std::fmt::{Debug, Formatter};
+use std::any::type_name;
 
 pub const MAX_BUFFER_SIZE: u64 = (i32::MAX as u64) / 2;
 
@@ -352,6 +354,12 @@ impl PixelBuffer<Rgb> {
         Rgb {
             data
         }
+    }
+}
+
+impl<C: Color> Debug for PixelBuffer<C> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "PixelBuffer({}, {}x{})", type_name::<C>(), self.width, self.height)
     }
 }
 

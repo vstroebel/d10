@@ -297,6 +297,29 @@ class TestImage(unittest.TestCase):
         self.assertEqual(cropped.width, 10)
         self.assertEqual(cropped.height, 20)
 
+    def test_compose(self):
+        red = Rgb(1, 0, 0)
+        green = Rgb(0, 1, 0)
+        blue = Rgb(0, 0, 1)
+        none = Rgb(0, 0, 0, 0)
+
+        b1 = Image(4, 2, green)
+        b2 = Image(2, 5, blue)
+        b3 = Image(2, 2, red)
+
+        def blend(colors):
+            return colors[0].alpha_blend(colors[1]).alpha_blend(colors[2])
+
+        result = Image.compose([b1, b2, b3], none, lambda x, y, colors: blend(colors))
+
+        self.assertEqual(result.width, 4)
+        self.assertEqual(result.height, 5)
+
+        self.assertEqual(result.get_pixel(3, 0), green)
+        self.assertEqual(result.get_pixel(0, 4), blue)
+        self.assertEqual(result.get_pixel(1, 1), red)
+        self.assertEqual(result.get_pixel(3, 4), none)
+
 
 class TestNumpy(unittest.TestCase):
 
