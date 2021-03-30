@@ -242,6 +242,12 @@ impl Image {
         self.inner.unsharp(radius, sigma.unwrap_or(1.0), factor.unwrap_or(1.0)).into()
     }
 
+    pub fn drawing(&self, radius: u32, mode: Option<&str>) -> PyResult<Image> {
+        let mode = mode.unwrap_or("default").parse().py_err()?;
+
+        Ok(self.inner.drawing(radius, mode).into())
+    }
+
     #[staticmethod]
     pub fn compose(images: &PyList, default: Option<Rgb>, func: &PyFunction) -> PyResult<Image> {
         let default = default.map(|c| c.inner).unwrap_or_default();

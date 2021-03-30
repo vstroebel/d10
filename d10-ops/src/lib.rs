@@ -12,6 +12,7 @@ mod unsharp;
 mod rotate;
 mod crop;
 mod compose;
+mod drawing;
 
 pub use flip::{flip_vertical, flip_horizontal};
 pub use rotate_90::{rotate90, rotate180, rotate270};
@@ -27,3 +28,4 @@ pub use gaussian_blur::gaussian_blur;
 pub use unsharp::unsharp;
 pub use crop::crop;
 pub use compose::{compose, try_compose, compose_slice, try_compose_slice};
+pub use drawing::{drawing, DrawingMode};

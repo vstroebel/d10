@@ -1,6 +1,6 @@
 use crate::{ops, Rgb, PixelBuffer};
 use std::path::Path;
-use d10_ops::FilterMode;
+use d10_ops::{FilterMode, DrawingMode};
 use d10_codecs::{EncodingFormat, DecodingError, EncodingError};
 use std::io::Write;
 use std::convert::TryInto;
@@ -313,13 +313,17 @@ impl Image {
         let result = ops::compose_slice(&buffers, default, func);
         Self::new_from_buffer_with_meta(images[0], result)
     }
+
+    pub fn drawing(&self, radius: u32, mode: DrawingMode) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::drawing(&self.buffer, radius, mode))
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::Image;
     use crate::Rgb;
-    use d10_ops::FilterMode;
+    use d10_ops::{FilterMode, DrawingMode};
 
     fn test_image_3_2() -> Image {
         Image::new_from_raw(3, 2, vec![
@@ -627,5 +631,22 @@ mod tests {
             assert_eq!(result.get_pixel(1, 1), &Rgb::RED);
             assert_eq!(result.get_pixel(3, 4), &Rgb::default());
         }
+    }
+
+    #[test]
+    fn test_drawing() {
+        let img = test_image_4_2();
+
+        let res = img.drawing(5, DrawingMode::Gray);
+        assert_eq!(img.width(), res.width());
+        assert_eq!(img.height(), res.height());
+
+        let res = img.drawing(5, DrawingMode::Colored);
+        assert_eq!(img.width(), res.width());
+        assert_eq!(img.height(), res.height());
+
+        let res = img.drawing(5, DrawingMode::ReducedColors);
+        assert_eq!(img.width(), res.width());
+        assert_eq!(img.height(), res.height());
     }
 }

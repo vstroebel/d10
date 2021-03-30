@@ -320,6 +320,25 @@ class TestImage(unittest.TestCase):
         self.assertEqual(result.get_pixel(1, 1), red)
         self.assertEqual(result.get_pixel(3, 4), none)
 
+    def test_drawing(self):
+        img = Image(3, 4)
+
+        result = img.drawing(5)
+        self.assertEqual(result.width, 3)
+        self.assertEqual(result.height, 4)
+
+        result = img.drawing(5, 'gray')
+        self.assertEqual(result.width, 3)
+        self.assertEqual(result.height, 4)
+
+        result = img.drawing(5, 'colored')
+        self.assertEqual(result.width, 3)
+        self.assertEqual(result.height, 4)
+
+        result = img.drawing(5, 'reduced_colors')
+        self.assertEqual(result.width, 3)
+        self.assertEqual(result.height, 4)
+
 
 class TestNumpy(unittest.TestCase):
 
