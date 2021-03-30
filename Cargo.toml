@@ -8,5 +8,8 @@ members = [
     "d10-python",
 ]
 
+[profile.dev]
+opt-level = 1
+
 [profile.release]
 lto = true
