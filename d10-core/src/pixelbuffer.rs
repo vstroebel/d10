@@ -67,6 +67,40 @@ impl<T: Color> PixelBuffer<T> {
         }
     }
 
+    pub fn try_new_from_func<E, F>(width: u32, height: u32, mut func: F) -> Result<PixelBuffer<T>, E>
+        where
+            F: FnMut(u32, u32) -> Result<T, E>
+    {
+        validate_size(width, height);
+
+        let data: Result<Vec<T>, E> = (0..(width * height)).map(|i| {
+            func(i % width, i / width)
+        }).collect();
+
+        data.map(|data| Self {
+            width,
+            height,
+            data,
+        })
+    }
+
+    pub fn new_from_func<F>(width: u32, height: u32, mut func: F) -> PixelBuffer<T>
+        where
+            F: FnMut(u32, u32) -> T
+    {
+        validate_size(width, height);
+
+        let data = (0..(width * height)).map(|i| {
+            func(i % width, i / width)
+        }).collect();
+
+        Self {
+            width,
+            height,
+            data,
+        }
+    }
+
     pub fn width(&self) -> u32 {
         self.width
     }
@@ -456,5 +490,49 @@ mod tests {
         assert!(buffer.is_grayscale());
         buffer.put_pixel(0, 0, Rgb::new(1.0, 0.5, 0.5));
         assert!(!buffer.is_grayscale());
+    }
+
+    #[test]
+    fn test_new_from_func() {
+        let buffer = PixelBuffer::new_from_func(2, 3, |x, y| {
+            Rgb::new(x as f32 / 4.0, y as f32 / 4.0, 1.0)
+        });
+
+        assert_eq!(buffer.width, 2);
+        assert_eq!(buffer.height, 3);
+
+        assert_eq!(buffer.get_pixel(0, 0), &Rgb::new(0.0 / 4.0, 0.0 / 4.0, 1.0));
+        assert_eq!(buffer.get_pixel(1, 0), &Rgb::new(1.0 / 4.0, 0.0 / 4.0, 1.0));
+        assert_eq!(buffer.get_pixel(0, 1), &Rgb::new(0.0 / 4.0, 1.0 / 4.0, 1.0));
+        assert_eq!(buffer.get_pixel(1, 1), &Rgb::new(1.0 / 4.0, 1.0 / 4.0, 1.0));
+        assert_eq!(buffer.get_pixel(0, 2), &Rgb::new(0.0 / 4.0, 2.0 / 4.0, 1.0));
+        assert_eq!(buffer.get_pixel(1, 2), &Rgb::new(1.0 / 4.0, 2.0 / 4.0, 1.0));
+    }
+
+    #[test]
+    fn test_try_new_from_func() {
+        let buffer = PixelBuffer::try_new_from_func::<(), _>(2, 3, |x, y| {
+            Ok(Rgb::new(x as f32 / 4.0, y as f32 / 4.0, 1.0))
+        }).unwrap();
+
+        assert_eq!(buffer.width, 2);
+        assert_eq!(buffer.height, 3);
+
+        assert_eq!(buffer.get_pixel(0, 0), &Rgb::new(0.0 / 4.0, 0.0 / 4.0, 1.0));
+        assert_eq!(buffer.get_pixel(1, 0), &Rgb::new(1.0 / 4.0, 0.0 / 4.0, 1.0));
+        assert_eq!(buffer.get_pixel(0, 1), &Rgb::new(0.0 / 4.0, 1.0 / 4.0, 1.0));
+        assert_eq!(buffer.get_pixel(1, 1), &Rgb::new(1.0 / 4.0, 1.0 / 4.0, 1.0));
+        assert_eq!(buffer.get_pixel(0, 2), &Rgb::new(0.0 / 4.0, 2.0 / 4.0, 1.0));
+        assert_eq!(buffer.get_pixel(1, 2), &Rgb::new(1.0 / 4.0, 2.0 / 4.0, 1.0));
+
+        let res = PixelBuffer::try_new_from_func(2, 3, |x, _y| {
+            if x == 0 {
+                Ok(Rgb::WHITE)
+            } else {
+                Err(())
+            }
+        });
+
+        assert!(res.is_err());
     }
 }
