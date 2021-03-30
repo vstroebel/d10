@@ -12,6 +12,3 @@ doc = false
 
 [dependencies]
 d10 = { path = "../d10" }
-
-[profile.release]
-lto = true

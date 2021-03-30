@@ -7,3 +7,6 @@ members = [
     "d10-cli",
     "d10-python",
 ]
+
+[profile.release]
+lto = true
