@@ -1,4 +1,4 @@
-use crate::color::{Color, Rgb, Srgb, Hsl, Hsv, Yuv};
+use crate::color::{Color, Rgb, Srgb, Hsl, Hsv, Yuv, Xyz};
 
 use std::iter::Cloned;
 use std::marker::PhantomData;
@@ -93,6 +93,24 @@ impl<I, C: Color> Iterator for ToYuvIter<I, C>
     }
 }
 
+pub struct ToXyzIter<I, C: Color> {
+    iter: I,
+    _phantom: PhantomData<C>,
+}
+
+impl<I, C: Color> Iterator for ToXyzIter<I, C>
+    where I: Iterator<Item=C> {
+    type Item = Xyz;
+
+    fn next(&mut self) -> Option<Xyz> {
+        self.iter.next().map(|v| v.to_xyz())
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+}
+
 pub trait ColorIter<T: Color>: Iterator<Item=T> {
     fn into_rgb(self) -> ToRgbIter<Self, Self::Item>
         where Self: Sized
@@ -134,6 +152,15 @@ pub trait ColorIter<T: Color>: Iterator<Item=T> {
         where Self: Sized
     {
         ToYuvIter {
+            iter: self,
+            _phantom: PhantomData::default(),
+        }
+    }
+
+    fn into_xyz(self) -> ToXyzIter<Self, Self::Item>
+        where Self: Sized
+    {
+        ToXyzIter {
             iter: self,
             _phantom: PhantomData::default(),
         }
@@ -187,13 +214,22 @@ pub trait ColorIterRef<'a, C: Color, T: 'a + Color>: Iterator<Item=&'a T> {
             _phantom: PhantomData::default(),
         }
     }
+
+    fn into_xyz(self) -> ToXyzIter<Cloned<Self>, C>
+        where Self: Sized
+    {
+        ToXyzIter {
+            iter: self.cloned(),
+            _phantom: PhantomData::default(),
+        }
+    }
 }
 
 impl<'a, T: ?Sized, C: Color, T2: 'a + Color> ColorIterRef<'a, C, T2> for T where T: Iterator<Item=&'a T2> {}
 
 #[cfg(test)]
 mod tests {
-    use crate::color::{Rgb, Hsl, Hsv, Yuv, ColorIter, ColorIterRef};
+    use crate::color::{Rgb, Hsl, Hsv, Yuv, ColorIter, ColorIterRef, Srgb, Xyz};
 
     const RGB_HSL: [((f32, f32, f32), (f32, f32, f32)); 15] = [
         ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)),
@@ -248,6 +284,18 @@ mod tests {
         ((0.0, 0.5, 0.5), (0.51548525, 0.1082013, -0.45222644))
     ];
 
+    const SRGB_XYZ: [((f32, f32, f32), (f32, f32, f32)); 9] = [
+        ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)),
+        ((1.0, 1.0, 1.0), (0.950_456, 1.0, 1.088_754)),
+        ((0.5, 0.5, 0.5), (0.203_436_69, 0.214_041_14, 0.233_038_15)),
+        ((1.0, 0.0, 0.0), (0.412453, 0.212671, 0.019334)),
+        ((0.0, 1.0, 0.0), (0.35758, 0.71516, 0.119193)),
+        ((0.0, 0.0, 1.0), (0.180423, 0.072169, 0.950227)),
+        ((1.0, 0.5, 0.5), (0.52760778, 0.3811918, 0.24823388)),
+        ((0.5, 1.0, 0.5), (0.48447986, 0.77612748, 0.32671894)),
+        ((0.5, 0.5, 1.0), (0.34524174, 0.27076301, 0.97987748)),
+    ];
+
     #[test]
     fn test_to_rgb_iter() {
         let to: Vec<_> = RGB_HSL.iter().map(|(v, _)| Rgb::new(v.0, v.1, v.2)).collect();
@@ -281,6 +329,14 @@ mod tests {
     }
 
     #[test]
+    fn test_to_xyz_iter() {
+        let from: Vec<_> = SRGB_XYZ.iter().map(|(v, _)| Srgb::new(v.0, v.1, v.2)).collect();
+        let to: Vec<_> = SRGB_XYZ.iter().map(|(_, v)| Xyz::new(v.0, v.1, v.2)).collect();
+        let result: Vec<_> = from.into_iter().into_xyz().collect();
+        assert_eq!(to, result)
+    }
+
+    #[test]
     fn test_to_rgb_iter_ref() {
         let to: Vec<_> = RGB_HSL.iter().map(|(v, _)| Rgb::new(v.0, v.1, v.2)).collect();
         let from: Vec<_> = RGB_HSL.iter().map(|(_, v)| Hsl::new(v.0, v.1, v.2)).collect();
@@ -309,6 +365,14 @@ mod tests {
         let from: Vec<_> = RGB_YUV.iter().map(|(v, _)| Rgb::new(v.0, v.1, v.2)).collect();
         let to: Vec<_> = RGB_YUV.iter().map(|(_, v)| Yuv::new(v.0, v.1, v.2)).collect();
         let result: Vec<_> = from.iter().into_yuv().collect();
+        assert_eq!(to, result)
+    }
+
+    #[test]
+    fn test_to_xyz_iter_ref() {
+        let from: Vec<_> = SRGB_XYZ.iter().map(|(v, _)| Srgb::new(v.0, v.1, v.2)).collect();
+        let to: Vec<_> = SRGB_XYZ.iter().map(|(_, v)| Xyz::new(v.0, v.1, v.2)).collect();
+        let result: Vec<_> = from.iter().into_xyz().collect();
         assert_eq!(to, result)
     }
 }

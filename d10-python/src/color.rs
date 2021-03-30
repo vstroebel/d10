@@ -8,7 +8,8 @@ use d10::{Color,
           Srgb as D10Srgb,
           Hsl as D10Hsl,
           Hsv as D10Hsv,
-          Yuv as D10Yuv};
+          Yuv as D10Yuv,
+          Xyz as D10Xyz, };
 
 use crate::IntoPyErr;
 
@@ -193,6 +194,10 @@ impl Rgb {
         self.inner.to_yuv().into()
     }
 
+    fn to_xyz(&self) -> Xyz {
+        self.inner.to_xyz().into()
+    }
+
     #[getter]
     fn type_name(&self) -> &str {
         self.inner.type_name()
@@ -320,6 +325,10 @@ impl Srgb {
         self.inner.to_yuv().into()
     }
 
+    fn to_xyz(&self) -> Xyz {
+        self.inner.to_xyz().into()
+    }
+
     #[getter]
     fn type_name(&self) -> &str {
         self.inner.type_name()
@@ -439,6 +448,10 @@ impl Hsl {
 
     fn to_yuv(&self) -> Yuv {
         self.inner.to_yuv().into()
+    }
+
+    fn to_xyz(&self) -> Xyz {
+        self.inner.to_xyz().into()
     }
 
     #[getter]
@@ -563,6 +576,10 @@ impl Hsv {
         self.inner.to_yuv().into()
     }
 
+    fn to_xyz(&self) -> Xyz {
+        self.inner.to_xyz().into()
+    }
+
     #[getter]
     fn type_name(&self) -> &str {
         self.inner.type_name()
@@ -685,6 +702,10 @@ impl Yuv {
         self.inner.to_hsv().into()
     }
 
+    fn to_xyz(&self) -> Xyz {
+        self.inner.to_xyz().into()
+    }
+
     #[getter]
     fn type_name(&self) -> &str {
         self.inner.type_name()
@@ -701,6 +722,132 @@ impl From<D10Yuv> for Yuv {
 
 #[pyproto]
 impl PyObjectProtocol for Yuv {
+    fn __str__(&self) -> PyResult<String> {
+        Ok(self.inner.to_string())
+    }
+
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(self.inner.to_string())
+    }
+
+    fn __richcmp__(&self, other: PyRef<Self>, op: CompareOp) -> PyResult<PyObject> {
+        match op {
+            CompareOp::Eq => Ok(self.inner.eq(&other.inner).into_py(other.py())),
+            _ => Ok(other.py().NotImplemented()),
+        }
+    }
+}
+
+#[pyclass]
+#[derive(Clone)]
+pub struct Xyz {
+    pub inner: D10Xyz
+}
+
+
+#[pymethods]
+impl Xyz {
+    #[new]
+    fn new(x: f32, y: f32, z: f32, alpha: Option<f32>) -> Xyz {
+        D10Xyz::new_with_alpha(x, y, z, alpha.unwrap_or(1.0)).into()
+    }
+
+    #[getter]
+    fn get_x(&self) -> f32 {
+        self.inner.x()
+    }
+
+    #[setter]
+    fn set_x(&mut self, x: f32) {
+        self.inner.set_x(x);
+    }
+
+    #[getter]
+    fn get_y(&self) -> f32 {
+        self.inner.y()
+    }
+
+    #[setter]
+    fn set_y(&mut self, y: f32) {
+        self.inner.set_y(y);
+    }
+
+    #[getter]
+    fn get_z(&self) -> f32 {
+        self.inner.z()
+    }
+
+    #[setter]
+    fn set_z(&mut self, v: f32) {
+        self.inner.set_z(v);
+    }
+
+    #[getter]
+    fn get_alpha(&self) -> f32 {
+        self.inner.alpha()
+    }
+
+    #[setter]
+    fn set_alpha(&mut self, alpha: f32) {
+        self.inner.set_alpha(alpha);
+    }
+
+    fn has_transparency(&self) -> bool {
+        self.inner.has_transparency()
+    }
+
+    fn with_x(&self, x: f32) -> Xyz {
+        self.inner.with_x(x).into()
+    }
+
+    fn with_y(&self, y: f32) -> Xyz {
+        self.inner.with_y(y).into()
+    }
+
+    fn with_z(&self, z: f32) -> Xyz {
+        self.inner.with_z(z).into()
+    }
+
+    fn with_alpha(&self, alpha: f32) -> Xyz {
+        self.inner.with_alpha(alpha).into()
+    }
+
+    fn to_srgb(&self) -> Srgb {
+        self.inner.to_srgb().into()
+    }
+
+    fn to_rgb(&self) -> Rgb {
+        self.inner.to_rgb().into()
+    }
+
+    fn to_hsl(&self) -> Hsl {
+        self.inner.to_hsl().into()
+    }
+
+    fn to_hsv(&self) -> Hsv {
+        self.inner.to_hsv().into()
+    }
+
+    fn to_yuv(&self) -> Yuv {
+        self.inner.to_yuv().into()
+    }
+
+    #[getter]
+    fn type_name(&self) -> &str {
+        self.inner.type_name()
+    }
+}
+
+impl From<D10Xyz> for Xyz {
+    fn from(xyz: D10Xyz) -> Xyz {
+        Xyz {
+            inner: xyz
+        }
+    }
+}
+
+#[pyproto]
+impl PyObjectProtocol for Xyz {
     fn __str__(&self) -> PyResult<String> {
         Ok(self.inner.to_string())
     }

@@ -3,6 +3,7 @@ mod srgb;
 mod hsl;
 mod hsv;
 mod yuv;
+mod xyz;
 mod iter;
 
 pub use rgb::{Rgb, Intensity};
@@ -10,6 +11,7 @@ pub use srgb::{Srgb, gamma_to_linear, linear_to_gamma};
 pub use hsv::Hsv;
 pub use hsl::Hsl;
 pub use yuv::Yuv;
+pub use xyz::Xyz;
 pub use iter::{ColorIter, ColorIterRef};
 
 use std::fmt::{Debug, Display};
@@ -140,6 +142,12 @@ pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug + Disp
     fn to_yuv(&self) -> Yuv {
         Yuv {
             data: apply_matrix(&self.to_srgb().data, &yuv::RGB_TO_YUV)
+        }
+    }
+
+    fn to_xyz(&self) -> Xyz {
+        Xyz {
+            data: apply_matrix(&self.to_rgb().data, &xyz::RGB_TO_XYZ)
         }
     }
 
