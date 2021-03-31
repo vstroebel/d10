@@ -235,3 +235,119 @@ mod private {
 
     impl<T: Color> Sealed for T {}
 }
+
+#[cfg(test)]
+mod conversion_tests {
+    /*
+     * Tests that are checking if conversion from rgb to other colorspaces and back is working.
+     */
+
+    use crate::color::{Rgb, Color, ColorIterRef, ColorIter};
+    use rand::{thread_rng, Rng};
+
+    const RGB: [(f32, f32, f32); 15] = [
+        (0.0, 0.0, 0.0),
+        (1.0, 1.0, 1.0),
+        (0.5, 0.5, 0.5),
+        (1.0, 0.0, 0.0),
+        (0.0, 1.0, 0.0),
+        (0.0, 0.0, 1.0),
+        (1.0, 0.5, 0.5),
+        (0.5, 1.0, 0.5),
+        (0.5, 0.5, 1.0),
+        (0.5, 0.0, 0.0),
+        (0.0, 0.5, 0.0),
+        (0.0, 0.0, 0.5),
+        (0.5, 0.0, 0.5),
+        (0.5, 0.5, 0.0),
+        (0.0, 0.5, 0.5),
+    ];
+
+    fn get_rgb() -> Vec<Rgb> {
+        let mut rgb: Vec<Rgb> = RGB.iter().map(|rgb| Rgb::new(rgb.0, rgb.1, rgb.2)).collect();
+
+        let mut rng = thread_rng();
+
+        for _ in 0..100 {
+            let r = rng.gen_range(0.0..1.0);
+            let g = rng.gen_range(0.0..1.0);
+            let b = rng.gen_range(0.0..1.0);
+            let a = rng.gen_range(0.0..1.0);
+
+            rgb.push(Rgb::new_with_alpha(r, g, b, a));
+        }
+
+        rgb
+    }
+
+    #[test]
+    fn test_rgb_srgb() {
+        for rgb in get_rgb() {
+            assert_eq!(rgb, rgb.to_srgb().to_rgb())
+        }
+    }
+
+    #[test]
+    fn test_rgb_hsv() {
+        for rgb in get_rgb() {
+            assert_eq!(rgb, rgb.to_hsv().to_rgb())
+        }
+    }
+
+    #[test]
+    fn test_rgb_hsl() {
+        for rgb in get_rgb() {
+            assert_eq!(rgb, rgb.to_hsl().to_rgb())
+        }
+    }
+
+    #[test]
+    fn test_rgb_yuv() {
+        for rgb in get_rgb() {
+            assert_eq!(rgb, rgb.to_yuv().to_rgb())
+        }
+    }
+
+    #[test]
+    fn test_rgb_xyz() {
+        for rgb in get_rgb() {
+            assert_eq!(rgb, rgb.to_xyz().to_rgb())
+        }
+    }
+
+    #[test]
+    fn test_rgb_srgb_iter() {
+        let rgb = get_rgb();
+        let res: Vec<_> = rgb.iter().into_srgb().into_rgb().collect();
+        assert_eq!(rgb, res);
+    }
+
+    #[test]
+    fn test_rgb_hsv_iter() {
+        let rgb = get_rgb();
+        let res: Vec<_> = rgb.iter().into_hsv().into_rgb().collect();
+        assert_eq!(rgb, res);
+    }
+
+    #[test]
+    fn test_rgb_hsl_iter() {
+        let rgb = get_rgb();
+        let res: Vec<_> = rgb.iter().into_hsl().into_rgb().collect();
+        assert_eq!(rgb, res);
+    }
+
+
+    #[test]
+    fn test_rgb_yuv_iter() {
+        let rgb = get_rgb();
+        let res: Vec<_> = rgb.iter().into_yuv().into_rgb().collect();
+        assert_eq!(rgb, res);
+    }
+
+    #[test]
+    fn test_rgb_xyz_iter() {
+        let rgb = get_rgb();
+        let res: Vec<_> = rgb.iter().into_xyz().into_rgb().collect();
+        assert_eq!(rgb, res);
+    }
+}
