@@ -1,7 +1,8 @@
-use crate::color::{Color, Rgb, Srgb, Hsl, Hsv, Yuv, Xyz};
+use crate::color::{Color, Rgb, Srgb, Hsl, Hsv, Yuv, Xyz, Lab};
 
 use std::iter::Cloned;
 use std::marker::PhantomData;
+use crate::color::lab::{Illuminant, Observer};
 
 pub struct ToRgbIter<I, C: Color> {
     iter: I,
@@ -111,6 +112,26 @@ impl<I, C: Color> Iterator for ToXyzIter<I, C>
     }
 }
 
+pub struct ToLabIter<I, C: Color, IL: Illuminant, O: Observer> {
+    iter: I,
+    _phantom: PhantomData<C>,
+    _phantom2: PhantomData<IL>,
+    _phantom3: PhantomData<O>,
+}
+
+impl<I, C: Color, IL: Illuminant, O: Observer> Iterator for ToLabIter<I, C, IL, O>
+    where I: Iterator<Item=C> {
+    type Item = Lab<IL, O>;
+
+    fn next(&mut self) -> Option<Lab<IL, O>> {
+        self.iter.next().map(|v| v.to_lab())
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+}
+
 pub trait ColorIter<T: Color>: Iterator<Item=T> {
     fn into_rgb(self) -> ToRgbIter<Self, Self::Item>
         where Self: Sized
@@ -163,6 +184,17 @@ pub trait ColorIter<T: Color>: Iterator<Item=T> {
         ToXyzIter {
             iter: self,
             _phantom: PhantomData::default(),
+        }
+    }
+
+    fn into_lab<IL: Illuminant, O: Observer>(self) -> ToLabIter<Self, Self::Item, IL, O>
+        where Self: Sized
+    {
+        ToLabIter {
+            iter: self,
+            _phantom: PhantomData::default(),
+            _phantom2: PhantomData::default(),
+            _phantom3: PhantomData::default(),
         }
     }
 }
@@ -223,13 +255,26 @@ pub trait ColorIterRef<'a, C: Color, T: 'a + Color>: Iterator<Item=&'a T> {
             _phantom: PhantomData::default(),
         }
     }
+
+    fn into_lab<IL: Illuminant, O: Observer>(self) -> ToLabIter<Cloned<Self>, C, IL, O>
+        where Self: Sized
+    {
+        ToLabIter {
+            iter: self.cloned(),
+            _phantom: PhantomData::default(),
+            _phantom2: PhantomData::default(),
+            _phantom3: PhantomData::default(),
+        }
+    }
 }
 
 impl<'a, T: ?Sized, C: Color, T2: 'a + Color> ColorIterRef<'a, C, T2> for T where T: Iterator<Item=&'a T2> {}
 
 #[cfg(test)]
 mod tests {
-    use crate::color::{Rgb, Hsl, Hsv, Yuv, ColorIter, ColorIterRef, Srgb, Xyz};
+    use crate::color::{Rgb, Hsl, Hsv, Yuv, ColorIter, ColorIterRef, Srgb, Xyz, Lab};
+    use crate::color::illuminant::D65;
+    use crate::color::observer::O2;
 
     const RGB_HSL: [((f32, f32, f32), (f32, f32, f32)); 15] = [
         ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)),
@@ -294,6 +339,15 @@ mod tests {
         ((1.0, 0.5, 0.5), (0.52760778, 0.3811918, 0.24823388)),
         ((0.5, 1.0, 0.5), (0.48447986, 0.77612748, 0.32671894)),
         ((0.5, 0.5, 1.0), (0.34524174, 0.27076301, 0.97987748)),
+    ];
+
+    const SRGB_LAB_65_2: [((f32, f32, f32), (f32, f32, f32)); 6] = [
+        ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)),
+        ((1.0, 1.0, 1.0), (1.0, -0.000_019, 0.000_036)),
+        ((0.5, 0.5, 0.5), (0.533_889_6, 0.0, 0.0)),
+        ((1.0, 0.0, 0.0), (0.532_405_879_4, 0.625_721_16, 0.525_021_49)),
+        ((0.0, 1.0, 0.0), (0.877_350_994_9, -0.673_304_92, 0.649_841_43)),
+        ((0.0, 0.0, 1.0), (0.322_956_725_7, 0.618_637_43, -0.842_635_16)),
     ];
 
     #[test]
@@ -373,6 +427,14 @@ mod tests {
         let from: Vec<_> = SRGB_XYZ.iter().map(|(v, _)| Srgb::new(v.0, v.1, v.2)).collect();
         let to: Vec<_> = SRGB_XYZ.iter().map(|(_, v)| Xyz::new(v.0, v.1, v.2)).collect();
         let result: Vec<_> = from.iter().into_xyz().collect();
+        assert_eq!(to, result)
+    }
+
+    #[test]
+    fn test_to_lab_iter_ref() {
+        let from: Vec<_> = SRGB_LAB_65_2.iter().map(|(v, _)| Srgb::new(v.0, v.1, v.2)).collect();
+        let to: Vec<_> = SRGB_LAB_65_2.iter().map(|(_, v)| Lab::<D65, O2>::new(v.0, v.1, v.2)).collect();
+        let result: Vec<_> = from.iter().into_lab().collect();
         assert_eq!(to, result)
     }
 }

@@ -1,3 +1,5 @@
+#![allow(clippy::upper_case_acronyms)]
+
 use pyo3::prelude::*;
 use pyo3::PyObjectProtocol;
 use pyo3::types::PyFunction;
@@ -9,7 +11,11 @@ use d10::{Color,
           Hsl as D10Hsl,
           Hsv as D10Hsv,
           Yuv as D10Yuv,
-          Xyz as D10Xyz, };
+          Xyz as D10Xyz,
+          Lab as D10Lab,
+          illuminant,
+          observer,
+};
 
 use crate::IntoPyErr;
 
@@ -38,7 +44,7 @@ macro_rules! color_type {
         #[pymethods]
         impl $type_name {
             #[new]
-            fn new($value_1: f32, $value_2: f32, $value_3: f32, alpha: Option<f32>) -> $type_name {
+            pub fn new($value_1: f32, $value_2: f32, $value_3: f32, alpha: Option<f32>) -> $type_name {
                 $d10_type_name::new_with_alpha($value_1, $value_2, $value_3, alpha.unwrap_or(1.0)).into()
             }
 
@@ -126,6 +132,24 @@ macro_rules! color_type {
                 self.inner.to_xyz().into()
             }
 
+            fn to_lab(&self, py: Python, illuminant: Option<&str>, observer: Option<&str>) -> PyResult<Py<PyAny>> {
+                use pyo3::conversion::IntoPy;
+                use pyo3::exceptions::PyOSError;
+
+                let illuminant = illuminant.unwrap_or("D65");
+                let observer = observer.unwrap_or("2");
+
+                match (illuminant, observer) {
+                    ("D65", "2") => Ok(LabD65O2 {inner : self.inner.to_lab()}.into_py(py)),
+                    ("D65", "10") => Ok(LabD65O10 {inner : self.inner.to_lab()}.into_py(py)),
+                    ("D50", "2") => Ok(LabD50O2 {inner : self.inner.to_lab()}.into_py(py)),
+                    ("D50", "10") => Ok(LabD50O10 {inner : self.inner.to_lab()}.into_py(py)),
+                    ("E", "2") => Ok(LabEO2 {inner : self.inner.to_lab()}.into_py(py)),
+                    ("E", "10") => Ok(LabEO10 {inner : self.inner.to_lab()}.into_py(py)),
+                    _ => Err(PyOSError::new_err(format!("Unsupported Lab type: {} {}", illuminant, observer))),
+                }
+            }
+
             fn map_color_channels(&self, func: &PyFunction) -> PyResult<$type_name> {
                 let map = |v: f32| -> PyResult<f32> {
                     let r = func.call1((v, ))?;
@@ -183,6 +207,21 @@ color_type!(Hsl, D10Hsl, hue, saturation, lightness, get_hue, get_saturation, ge
 color_type!(Hsv, D10Hsv, hue, saturation, value, get_hue, get_saturation, get_value, set_hue, set_saturation, set_value, with_hue, with_saturation, with_value);
 color_type!(Yuv, D10Yuv, y, u, v, get_y, get_u, get_v, set_y, set_u, set_v, with_y, with_u, with_v);
 color_type!(Xyz, D10Xyz, x, y, z, get_x, get_y, get_z, set_x, set_y, set_z, with_x, with_y, with_z);
+
+pub type D10LabD65O2 = D10Lab<illuminant::D65, observer::O2>;
+pub type D10LabD65O10 = D10Lab<illuminant::D65, observer::O10>;
+pub type D10LabD50O2 = D10Lab<illuminant::D50, observer::O2>;
+pub type D10LabD50O10 = D10Lab<illuminant::D50, observer::O10>;
+pub type D10LabEO2 = D10Lab<illuminant::E, observer::O2>;
+pub type D10LabEO10 = D10Lab<illuminant::E, observer::O10>;
+
+color_type!(LabD65O2, D10LabD65O2, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
+color_type!(LabD65O10, D10LabD65O10, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
+color_type!(LabD50O2, D10LabD50O2, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
+color_type!(LabD50O10, D10LabD50O10, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
+color_type!(LabEO2, D10LabEO2, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
+color_type!(LabEO10, D10LabEO10, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
+
 
 #[pymethods]
 impl Rgb {

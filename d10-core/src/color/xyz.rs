@@ -2,7 +2,7 @@ use crate::color::{Color, Rgb, apply_matrix, EPSILON, format_color};
 use std::fmt::Display;
 
 pub(crate) const RGB_TO_XYZ: [[f32; 3]; 3] = [
-    [0.412_453, 0.357_580, 0.180_423, ],
+    [0.412_453, 0.357_580, 0.180_423],
     [0.212_671, 0.715_160, 0.072_169],
     [0.019_334, 0.119_193, 0.950_227]
 ];

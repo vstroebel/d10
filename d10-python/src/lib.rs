@@ -26,8 +26,33 @@ fn d10(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<color::Hsv>()?;
     m.add_class::<color::Yuv>()?;
     m.add_class::<color::Xyz>()?;
+    m.add_class::<color::LabD65O2>()?;
+    m.add_class::<color::LabD65O10>()?;
+    m.add_class::<color::LabD50O2>()?;
+    m.add_class::<color::LabD50O10>()?;
+    m.add_class::<color::LabEO2>()?;
+    m.add_class::<color::LabEO10>()?;
     m.add_class::<image::Image>()?;
     m.add_class::<image::EncodingFormat>()?;
+
+    #[pyfn(m, "Lab")]
+    fn lab(py: Python, l: f32, a: f32, b: f32, alpha: Option<f32>, illuminant: Option<&str>, observer: Option<&str>) -> PyResult<Py<PyAny>> {
+        use pyo3::conversion::IntoPy;
+        use crate::color::{LabD65O10, LabD65O2, LabD50O10, LabEO2, LabEO10, LabD50O2};
+
+        let illuminant = illuminant.unwrap_or("D65");
+        let observer = observer.unwrap_or("2");
+
+        match (illuminant, observer) {
+            ("D65", "2") => Ok(LabD65O2::new(l, a, b, alpha).into_py(py)),
+            ("D65", "10") => Ok(LabD65O10::new(l, a, b, alpha).into_py(py)),
+            ("D50", "2") => Ok(LabD50O2::new(l, a, b, alpha).into_py(py)),
+            ("D50", "10") => Ok(LabD50O10::new(l, a, b, alpha).into_py(py)),
+            ("E", "2") => Ok(LabEO2::new(l, a, b, alpha).into_py(py)),
+            ("E", "10") => Ok(LabEO10::new(l, a, b, alpha).into_py(py)),
+            _ => Err(PyOSError::new_err(format!("Unsupported Lab type: {} {}", illuminant, observer))),
+        }
+    }
 
     Ok(())
 }

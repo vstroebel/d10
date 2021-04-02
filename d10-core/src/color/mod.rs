@@ -5,6 +5,7 @@ mod hsv;
 mod yuv;
 mod xyz;
 mod iter;
+mod lab;
 
 pub use rgb::{Rgb, Intensity};
 pub use srgb::{Srgb, gamma_to_linear, linear_to_gamma};
@@ -12,9 +13,11 @@ pub use hsv::Hsv;
 pub use hsl::Hsl;
 pub use yuv::Yuv;
 pub use xyz::Xyz;
+pub use lab::{Lab, DefaultLab, illuminant, observer};
 pub use iter::{ColorIter, ColorIterRef};
 
 use std::fmt::{Debug, Display};
+use crate::color::lab::{Illuminant, Observer, get_refs};
 
 /// Minimal error to detect identical colors channel values
 ///
@@ -151,6 +154,34 @@ pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug + Disp
         }
     }
 
+    fn to_lab<I: Illuminant, O: Observer>(&self) -> Lab<I, O> {
+        fn func(v: f32) -> f32 {
+            if v < 0.008856 {
+                (903.3 * v + 16.0) / 116.0
+            } else {
+                v.powf(1.0 / 3.0)
+            }
+        }
+
+        let xyz = self.to_xyz();
+
+        let refs = get_refs::<I, O>();
+
+        let rx = xyz.x() / refs[0];
+        let ry = xyz.y() / refs[1];
+        let rz = xyz.z() / refs[2];
+
+        let l = 116.0 * func(ry) - 16.0;
+        let a = 500.0 * (func(rx) - func(ry));
+        let b = 200.0 * (func(ry) - func(rz));
+
+        let l = l / 100.0;
+        let a = a / 128.0;
+        let b = b / 128.0;
+
+        Lab::new_with_alpha(l, a, b, xyz.alpha())
+    }
+
     fn has_transparency(&self) -> bool {
         (1.0 - self.alpha()).abs() > EPSILON
     }
@@ -244,6 +275,8 @@ mod conversion_tests {
 
     use crate::color::{Rgb, Color, ColorIterRef, ColorIter};
     use rand::{thread_rng, Rng};
+    use crate::color::illuminant::D65;
+    use crate::color::observer::O2;
 
     const RGB: [(f32, f32, f32); 15] = [
         (0.0, 0.0, 0.0),
@@ -316,6 +349,13 @@ mod conversion_tests {
     }
 
     #[test]
+    fn test_rgb_lab() {
+        for rgb in get_rgb() {
+            assert_eq!(rgb, rgb.to_lab::<D65, O2>().to_rgb())
+        }
+    }
+
+    #[test]
     fn test_rgb_srgb_iter() {
         let rgb = get_rgb();
         let res: Vec<_> = rgb.iter().into_srgb().into_rgb().collect();
@@ -348,6 +388,13 @@ mod conversion_tests {
     fn test_rgb_xyz_iter() {
         let rgb = get_rgb();
         let res: Vec<_> = rgb.iter().into_xyz().into_rgb().collect();
+        assert_eq!(rgb, res);
+    }
+
+    #[test]
+    fn test_lab_xyz_iter() {
+        let rgb = get_rgb();
+        let res: Vec<_> = rgb.iter().into_lab::<D65, O2>().into_rgb().collect();
         assert_eq!(rgb, res);
     }
 }
