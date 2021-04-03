@@ -24,44 +24,25 @@ pub trait Illuminant: Debug + Copy + Clone + Send + Sync {
 pub mod illuminant {
     use super::Illuminant;
 
-    #[derive(Debug, Copy, Clone)]
-    pub struct D50 {}
+    #[macro_export]
+    macro_rules! illuminant { ($name:ident, $refs:expr) => {
+        #[derive(Debug, Copy, Clone)]
+        pub struct $name {}
 
-    impl Illuminant for D50 {
-        fn get_refs() -> &'static [[f32; 3]; 2] {
-            &[[0.964_212, 1.0, 0.825_188_3], [0.967_206_3, 1.0, 0.814_280_15]]
+        impl Illuminant for $name {
+            fn get_refs() -> &'static [[f32; 3]; 2] {
+                &$refs
+            }
+
+            fn type_name() -> &'static [&'static str] {
+                &[concat!("lab<",stringify!($name),",O2>"), concat!("lab<",stringify!($name),",O10>")]
+            }
         }
+    }}
 
-        fn type_name() -> &'static [&'static str] {
-            &["lab<D50,O2>", "lab<D50,O10>"]
-        }
-    }
-
-    #[derive(Debug, Copy, Clone)]
-    pub struct D65 {}
-
-    impl Illuminant for D65 {
-        fn get_refs() -> &'static [[f32; 3]; 2] {
-            &[[0.950_47, 1.0, 1.088_83], [0.948_096_7, 1.0, 1.073_051_3]]
-        }
-
-        fn type_name() -> &'static [&'static str] {
-            &["lab<D65,O2>", "lab<D65,O10>"]
-        }
-    }
-
-    #[derive(Debug, Copy, Clone)]
-    pub struct E {}
-
-    impl Illuminant for E {
-        fn get_refs() -> &'static [[f32; 3]; 2] {
-            &[[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]
-        }
-
-        fn type_name() -> &'static [&'static str] {
-            &["lab<E,O2>", "lab<E,O10>"]
-        }
-    }
+    illuminant!(D50, [[0.964_212, 1.0, 0.825_188_3], [0.967_206_3, 1.0, 0.814_280_15]]);
+    illuminant!(D65, [[0.950_47, 1.0, 1.088_83], [0.948_096_7, 1.0, 1.073_051_3]]);
+    illuminant!(E, [[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]);
 }
 
 pub trait Observer: Debug + Copy + Clone + Send + Sync {
