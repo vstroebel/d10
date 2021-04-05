@@ -9,6 +9,17 @@ use crate::utils::{to_rgb8_vec, read_into_buffer, to_l8_vec};
 use crate::{DecodedImage, EncodingError, DecodingError};
 
 pub(crate) fn encode_jpeg<W>(w: &mut W, buffer: &PixelBuffer<Rgb>, quality: u8, grayscale: bool) -> Result<(), EncodingError> where W: Write {
+    let width = buffer.width();
+    let height = buffer.height();
+
+    if width > u16::MAX as u32 || height > u16::MAX as u32 {
+        return Err(EncodingError::BadDimensions {
+            format: "jpeg",
+            width,
+            height,
+        });
+    }
+
     let (out, color_type) = if grayscale {
         (to_l8_vec(buffer), ColorType::L8)
     } else {
@@ -20,8 +31,8 @@ pub(crate) fn encode_jpeg<W>(w: &mut W, buffer: &PixelBuffer<Rgb>, quality: u8, 
 
     if let Err(err) = JpegEncoder::new_with_quality(w, quality).encode(
         &out,
-        buffer.width(),
-        buffer.height(),
+        width,
+        height,
         color_type) {
         Err(match err {
             ImageError::IoError(err) => EncodingError::IoError(err),
