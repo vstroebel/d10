@@ -235,11 +235,11 @@ impl Image {
     }
 
     pub fn gaussian_blur(&self, radius: u32, sigma: Option<f32>) -> Image {
-        self.inner.gaussian_blur(radius, sigma.unwrap_or(1.0)).into()
+        self.inner.gaussian_blur(radius, sigma).into()
     }
 
-    pub fn unsharp(&self, radius: u32, sigma: Option<f32>, factor: Option<f32>) -> Image {
-        self.inner.unsharp(radius, sigma.unwrap_or(1.0), factor.unwrap_or(1.0)).into()
+    pub fn unsharp(&self, radius: u32, factor: Option<f32>, sigma: Option<f32>) -> Image {
+        self.inner.unsharp(radius, factor.unwrap_or(1.0), sigma).into()
     }
 
     pub fn drawing(&self, radius: u32, mode: Option<&str>) -> PyResult<Image> {

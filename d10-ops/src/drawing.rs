@@ -35,14 +35,14 @@ pub fn drawing(buffer: &PixelBuffer<Rgb>, radius: u32, mode: DrawingMode) -> Pix
     });
 
     let b1 = {
-        let b = gaussian_blur(&lightened, 1, 1.0);
-        let b = unsharp(&b, 4, 5.0, 4.0);
+        let b = gaussian_blur(&lightened, 1, None);
+        let b = unsharp(&b, 4, 4.0, Some(5.0));
 
         b.map_colors(|c| c.with_contrast(1.05))
     };
 
     let b2 = {
-        let b = gaussian_blur(&lightened, radius, 1.0);
+        let b = gaussian_blur(&lightened, radius, None);
         b.map_colors(|c| c.invert())
     };
 
@@ -109,13 +109,13 @@ fn merge_color(drawing: PixelBuffer<Rgb>, orig: &PixelBuffer<Rgb>, reduced: bool
         None
     };
 
-    let out1 = compose([&drawing, &gaussian_blur(reduced_color.as_ref().unwrap_or(&orig), 2, 1.0)], Rgb::NONE, |_, _, [c1, c2]| {
+    let out1 = compose([&drawing, &gaussian_blur(reduced_color.as_ref().unwrap_or(&orig), 2, None)], Rgb::NONE, |_, _, [c1, c2]| {
         c1.to_hsv()
             .with_saturation(c2.to_hsv().saturation())
             .to_rgb()
     });
 
-    let out1 = compose([&out1, &gaussian_blur(&orig, 3, 1.0)], Rgb::NONE, |_, _, [c1, c2]| {
+    let out1 = compose([&out1, &gaussian_blur(&orig, 3, None)], Rgb::NONE, |_, _, [c1, c2]| {
         let mut c = c1.to_hsv()
             .with_hue(c2.to_hsv().hue())
             .to_rgb();
@@ -129,16 +129,18 @@ fn merge_color(drawing: PixelBuffer<Rgb>, orig: &PixelBuffer<Rgb>, reduced: bool
         c
     });
 
-    let out1 = compose([&out1, &gaussian_blur(&orig, 4, 1.0)], Rgb::NONE, |_, _, [c1, c2]| {
+    let out1 = compose([&out1, &gaussian_blur(&orig, 4, None)], Rgb::NONE, |_, _, [c1, c2]| {
         let c = c1.to_hsv();
 
         c.with_value(c.value() * c2.to_hsv().value())
             .to_rgb()
     });
 
-    unsharp(&out1, 3, 1.5, 1.5)
+    unsharp(&out1, 3, 1.5, None)
         .map_colors(|x|
             x.with_saturation(1.3)
+                .with_brightness_contrast(-0.05, 1.05)
                 .with_gamma(1.1)
+                .with_vibrance(0.8)
         )
 }

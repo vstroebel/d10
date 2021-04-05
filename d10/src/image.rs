@@ -269,13 +269,13 @@ impl Image {
     }
 
     /// Return a new image with gaussian blur
-    pub fn gaussian_blur(&self, radius: u32, sigma: f32) -> Image {
+    pub fn gaussian_blur(&self, radius: u32, sigma: Option<f32>) -> Image {
         Self::new_from_buffer_with_meta(self, ops::gaussian_blur(&self.buffer, radius, sigma))
     }
 
     /// Return a new image with an unsharp mask applied
-    pub fn unsharp(&self, radius: u32, sigma: f32, factor: f32) -> Image {
-        Self::new_from_buffer_with_meta(self, ops::unsharp(&self.buffer, radius, sigma, factor))
+    pub fn unsharp(&self, radius: u32, factor: f32, sigma: Option<f32>) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::unsharp(&self.buffer, radius, factor, sigma))
     }
 
     pub fn try_compose<E, F, const N: usize>(images: [&Image; N], default: Rgb, func: F) -> Result<Image, E>
