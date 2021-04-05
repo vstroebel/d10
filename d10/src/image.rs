@@ -557,7 +557,7 @@ mod tests {
 
         let img_in = test_image_3_2();
 
-        let img_out = img_in.gaussian_blur(1, 0.5);
+        let img_out = img_in.gaussian_blur(1, Some(0.5));
 
         assert_eq!(img_in.width(), img_out.width());
         assert_eq!(img_in.height(), img_out.height());
@@ -569,7 +569,7 @@ mod tests {
 
         let img_in = test_image_3_2();
 
-        let img_out = img_in.unsharp(1, 0.5, 0.5);
+        let img_out = img_in.unsharp(1, 0.5, Some(0.5));
 
         assert_eq!(img_in.width(), img_out.width());
         assert_eq!(img_in.height(), img_out.height());
