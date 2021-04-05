@@ -248,6 +248,10 @@ impl Image {
         Ok(self.inner.drawing(radius, mode).into())
     }
 
+    pub fn interlace(&self, offset: u32) -> PyResult<Image> {
+        Ok(self.inner.interlace(offset).into())
+    }
+
     #[staticmethod]
     pub fn compose(images: &PyList, default: Option<Rgb>, func: &PyFunction) -> PyResult<Image> {
         let default = default.map(|c| c.inner).unwrap_or_default();

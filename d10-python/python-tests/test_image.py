@@ -339,6 +339,13 @@ class TestImage(unittest.TestCase):
         self.assertEqual(result.width, 3)
         self.assertEqual(result.height, 4)
 
+    def test_interlace(self):
+        img = Image(3, 4)
+
+        result = img.interlace(1)
+        self.assertEqual(result.width, 3)
+        self.assertEqual(result.height, 4)
+
 
 class TestNumpy(unittest.TestCase):
 

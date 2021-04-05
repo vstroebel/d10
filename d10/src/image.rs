@@ -317,6 +317,10 @@ impl Image {
     pub fn drawing(&self, radius: u32, mode: DrawingMode) -> Image {
         Self::new_from_buffer_with_meta(self, ops::drawing(&self.buffer, radius, mode))
     }
+
+    pub fn interlace(&self, offset: u32) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::interlace(&self.buffer, offset))
+    }
 }
 
 #[cfg(test)]
@@ -648,5 +652,18 @@ mod tests {
         let res = img.drawing(5, DrawingMode::ReducedColors);
         assert_eq!(img.width(), res.width());
         assert_eq!(img.height(), res.height());
+    }
+
+    #[test]
+    fn test_interlace() {
+        let img = test_image_4_2();
+
+        let img_out = img.interlace(1);
+
+        assert_eq!(img_out.get_pixel(0, 0), img.get_pixel(0, 0));
+        assert_eq!(img_out.get_pixel(3, 0), img.get_pixel(2, 0));
+
+        assert_eq!(img_out.get_pixel(0, 1), img.get_pixel(1, 1));
+        assert_eq!(img_out.get_pixel(3, 1), img.get_pixel(3, 1));
     }
 }
