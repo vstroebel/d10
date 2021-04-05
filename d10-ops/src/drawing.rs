@@ -53,7 +53,7 @@ pub fn drawing(buffer: &PixelBuffer<Rgb>, radius: u32, mode: DrawingMode) -> Pix
         let g1 = c1.to_gray_with_intensity(Intensity::Average).red();
         let g2 = c2.to_gray_with_intensity(Intensity::Average).red();
 
-        if g1 > 0.025 || g2 < 0.975 {
+        if g1 > 0.05 || g2 < 0.95 {
             v1.push(g1);
             v2.push(g2);
         }
@@ -76,16 +76,17 @@ pub fn drawing(buffer: &PixelBuffer<Rgb>, radius: u32, mode: DrawingMode) -> Pix
             .zip(v2.iter())
             .map(|(v1, v2)| c(*v1, *v2))
             .fold(1.0f32, |a, b| a.min(b));
-        //.fold(0.0f32, |a, b| a.max(b));
 
-        let diff = if diff > 0.9 {
+        let diff = if diff > 0.8 {
             1.0
         } else {
-            ((diff - 0.4) * 1.2).max(0.0)
+            ((diff - 0.5) * 1.2).max(0.0)
         };
 
         Rgb::new(diff, diff, diff)
     });
+
+    let drawing = unsharp(&drawing, 2, 1.0, None);
 
     match mode {
         DrawingMode::Gray => drawing,
@@ -116,17 +117,9 @@ fn merge_color(drawing: PixelBuffer<Rgb>, orig: &PixelBuffer<Rgb>, reduced: bool
     });
 
     let out1 = compose([&out1, &gaussian_blur(&orig, 3, None)], Rgb::NONE, |_, _, [c1, c2]| {
-        let mut c = c1.to_hsv()
+        c1.to_hsv()
             .with_hue(c2.to_hsv().hue())
-            .to_rgb();
-
-        let l = c2.to_hsv().value();
-
-        if l < 0.15 {
-            c = c.with_lightness(l * 2.0);
-        }
-
-        c
+            .to_rgb()
     });
 
     let out1 = compose([&out1, &gaussian_blur(&orig, 4, None)], Rgb::NONE, |_, _, [c1, c2]| {
@@ -139,8 +132,7 @@ fn merge_color(drawing: PixelBuffer<Rgb>, orig: &PixelBuffer<Rgb>, reduced: bool
     unsharp(&out1, 3, 1.5, None)
         .map_colors(|x|
             x.with_saturation(1.3)
-                .with_brightness_contrast(-0.05, 1.05)
                 .with_gamma(1.1)
-                .with_vibrance(0.8)
+                .with_vibrance(0.3)
         )
 }
