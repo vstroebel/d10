@@ -5,7 +5,10 @@ use std::f32::consts::PI;
 
 use crate::filters::{get_pixel_bicubic, get_pixel_bilinear, get_pixel_lanczos3};
 
-fn rotate_with_fn<F: Fn(&PixelBuffer<Rgb>, f32, f32) -> Option<Rgb>>(buffer: &PixelBuffer<Rgb>, radians: f32, bg_color: Rgb, func: F) -> PixelBuffer<Rgb> {
+fn rotate_with_fn<F>(buffer: &PixelBuffer<Rgb>, radians: f32, bg_color: Rgb, func: F) -> PixelBuffer<Rgb>
+    where
+        F: Fn(&PixelBuffer<Rgb>, f32, f32) -> Option<Rgb>
+{
     let radians = radians / -180.0 * PI;
 
     let sinf = radians.sin();
@@ -17,21 +20,17 @@ fn rotate_with_fn<F: Fn(&PixelBuffer<Rgb>, f32, f32) -> Option<Rgb>>(buffer: &Pi
     let new_width = buffer.width();
     let new_height = buffer.height();
 
-    let result = (0..new_width * new_height)
-        .map(|i| (i % new_width, i / new_width))
-        .map(|(x, y)| {
-            let x = x as f32 + 1.0;
-            let y = y as f32 + 1.0;
+    PixelBuffer::new_from_func(new_width, new_height, |x, y| {
+        let x = x as f32 + 1.0;
+        let y = y as f32 + 1.0;
 
-            let a = x - center_x;
-            let b = y - center_y;
-            let xx = a * cosf - b * sinf + center_x - 1.0;
-            let yy = a * sinf + b * cosf + center_y - 1.0;
+        let a = x - center_x;
+        let b = y - center_y;
+        let xx = a * cosf - b * sinf + center_x - 1.0;
+        let yy = a * sinf + b * cosf + center_y - 1.0;
 
-            func(buffer, xx, yy).unwrap_or(bg_color)
-        }).collect();
-
-    PixelBuffer::new_from_raw(new_width, new_height, result)
+        func(buffer, xx, yy).unwrap_or(bg_color)
+    })
 }
 
 fn rotate_pixel_nearest(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Option<Rgb> {

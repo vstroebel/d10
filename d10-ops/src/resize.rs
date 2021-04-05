@@ -4,15 +4,14 @@ use d10_core::color::Rgb;
 use crate::FilterMode;
 
 /// Resize buffer
-fn resize_with_fn<F: Fn(&PixelBuffer<Rgb>, u32, u32, f32, f32) -> Rgb>(buffer: &PixelBuffer<Rgb>, new_width: u32, new_height: u32, func: F) -> PixelBuffer<Rgb> {
+fn resize_with_fn<F>(buffer: &PixelBuffer<Rgb>, new_width: u32, new_height: u32, func: F) -> PixelBuffer<Rgb>
+    where
+        F: Fn(&PixelBuffer<Rgb>, u32, u32, f32, f32) -> Rgb
+{
     let scale_x = (new_width as f32) / (buffer.width() as f32);
     let scale_y = (new_height as f32) / (buffer.height() as f32);
 
-    let result = (0..new_width * new_height)
-        .map(|i| (i % new_width, i / new_width))
-        .map(|(x, y)| func(buffer, x, y, scale_x, scale_y)).collect();
-
-    PixelBuffer::new_from_raw(new_width, new_height, result)
+    PixelBuffer::new_from_func(new_width, new_height, |x, y| func(buffer, x, y, scale_x, scale_y))
 }
 
 fn resize_pixel_nearest(buffer: &PixelBuffer<Rgb>, x: u32, y: u32, scale_x: f32, scale_y: f32) -> Rgb {
