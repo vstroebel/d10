@@ -90,27 +90,31 @@ pub fn drawing(buffer: &PixelBuffer<Rgb>, radius: u32, mode: DrawingMode) -> Pix
 
     match mode {
         DrawingMode::Gray => drawing,
-        DrawingMode::Colored => merge_color(drawing, &orig, false),
-        DrawingMode::ReducedColors => merge_color(drawing, &orig, true),
+        DrawingMode::Colored => merge_color(drawing, &orig),
+        DrawingMode::ReducedColors => merge_color_reduced(drawing, &orig),
     }
 }
 
+fn merge_color(drawing: PixelBuffer<Rgb>, orig: &PixelBuffer<Rgb>) -> PixelBuffer<Rgb> {
+    compose([&drawing, &orig], Rgb::NONE, |_, _, [d, o]| {
+        let d = d.to_hsl();
+        let o = o.to_hsl();
 
-fn merge_color(drawing: PixelBuffer<Rgb>, orig: &PixelBuffer<Rgb>, reduced: bool) -> PixelBuffer<Rgb> {
-    let reduced_color = if reduced {
-        Some(orig.map_colors(|c| {
-            let c = c.to_hsv();
+        o.with_lightness(o.lightness().min(d.lightness())).to_rgb()
+    })
+}
 
-            let c = c.with_saturation((c.saturation() * 6.0) / 12.0);
-            let c = c.with_value(((c.value() * 6.5 + 0.2) / 4.5).min(1.0));
+fn merge_color_reduced(drawing: PixelBuffer<Rgb>, orig: &PixelBuffer<Rgb>) -> PixelBuffer<Rgb> {
+    let reduced_color = orig.map_colors(|c| {
+        let c = c.to_hsv();
 
-            c.to_rgb()
-        }))
-    } else {
-        None
-    };
+        let c = c.with_saturation((c.saturation() * 6.0) / 12.0);
+        let c = c.with_value(((c.value() * 6.5 + 0.2) / 4.5).min(1.0));
 
-    let out1 = compose([&drawing, &gaussian_blur(reduced_color.as_ref().unwrap_or(&orig), 2, None)], Rgb::NONE, |_, _, [c1, c2]| {
+        c.to_rgb()
+    });
+
+    let out1 = compose([&drawing, &gaussian_blur(&reduced_color, 2, None)], Rgb::NONE, |_, _, [c1, c2]| {
         c1.to_hsv()
             .with_saturation(c2.to_hsv().saturation())
             .to_rgb()
