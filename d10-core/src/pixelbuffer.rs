@@ -316,6 +316,22 @@ impl<T: Color> PixelBuffer<T> {
             data: self.data.iter().into_yuv().collect(),
         }
     }
+
+    pub fn to_xyz(&self) -> PixelBuffer<Xyz> {
+        PixelBuffer {
+            width: self.width,
+            height: self.height,
+            data: self.data.iter().into_xyz().collect(),
+        }
+    }
+
+    pub fn to_lab<I: Illuminant, O: Observer>(&self) -> PixelBuffer<Lab<I, O>> {
+        PixelBuffer {
+            width: self.width,
+            height: self.height,
+            data: self.data.iter().into_lab().collect(),
+        }
+    }
 }
 
 impl PixelBuffer<Rgb> {
