@@ -252,6 +252,14 @@ impl Image {
         Ok(self.inner.interlace(offset).into())
     }
 
+    pub fn apply_palette(&self, palette: &Image) -> Image {
+        self.inner.apply_palette(&palette.inner).into()
+    }
+
+    pub fn apply_palette_in_place(&mut self, palette: &Image) {
+        self.inner.apply_palette_in_place(&palette.inner);
+    }
+
     #[staticmethod]
     pub fn compose(images: &PyList, default: Option<Rgb>, func: &PyFunction) -> PyResult<Image> {
         let default = default.map(|c| c.inner).unwrap_or_default();

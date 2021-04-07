@@ -321,6 +321,14 @@ impl Image {
     pub fn interlace(&self, offset: u32) -> Image {
         Self::new_from_buffer_with_meta(self, ops::interlace(&self.buffer, offset))
     }
+
+    pub fn apply_palette(&self, palette: &Image) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::apply_palette(&self.buffer, &palette.buffer))
+    }
+
+    pub fn apply_palette_in_place(&mut self, palette: &Image) {
+        ops::apply_palette_in_place(&mut self.buffer, &palette.buffer);
+    }
 }
 
 #[cfg(test)]
