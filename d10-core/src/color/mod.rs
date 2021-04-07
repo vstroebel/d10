@@ -13,11 +13,11 @@ pub use hsv::Hsv;
 pub use hsl::Hsl;
 pub use yuv::Yuv;
 pub use xyz::Xyz;
-pub use lab::{Lab, DefaultLab, illuminant, observer};
+pub use lab::{Lab, DefaultLab, Illuminant, Observer, illuminant, observer};
 pub use iter::{ColorIter, ColorIterRef};
 
 use std::fmt::{Debug, Display};
-use crate::color::lab::{Illuminant, Observer, get_refs};
+use crate::color::lab::get_refs;
 
 /// Minimal error to detect identical colors channel values
 ///
@@ -33,7 +33,17 @@ pub(crate) fn clamp(value: f32) -> f32 {
 ///
 /// As of now this type is sealed to prevent incompatibilities with future changes.
 /// This restriction might be removed when the crate is heading towards 1.0.
-pub trait Color: Copy + Clone + Default + PartialEq + Send + Sync + Debug + Display + private::Sealed {
+pub trait Color:
+Copy +
+Clone +
+Default +
+PartialEq +
+Send +
+Sync +
+Debug +
+Display +
+private::Sealed +
+{
     fn to_rgb(&self) -> Rgb;
 
     fn alpha(&self) -> f32;
