@@ -15,6 +15,7 @@ mod compose;
 mod drawing;
 mod interlace;
 mod apply_palette;
+mod despeckle;
 
 pub use flip::{flip_vertical, flip_horizontal};
 pub use rotate_90::{rotate90, rotate180, rotate270};
@@ -33,3 +34,4 @@ pub use compose::{compose, try_compose, compose_slice, try_compose_slice};
 pub use drawing::{drawing, DrawingMode};
 pub use interlace::interlace;
 pub use apply_palette::{apply_palette, apply_palette_in_place};
+pub use despeckle::despeckle;

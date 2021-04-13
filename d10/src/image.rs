@@ -329,6 +329,10 @@ impl Image {
     pub fn apply_palette_in_place(&mut self, palette: &Image) {
         ops::apply_palette_in_place(&mut self.buffer, &palette.buffer);
     }
+
+    pub fn despeckle(&mut self, threshold: f32, amount: u8) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::despeckle(&self.buffer, threshold, amount))
+    }
 }
 
 #[cfg(test)]

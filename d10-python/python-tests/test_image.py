@@ -346,6 +346,13 @@ class TestImage(unittest.TestCase):
         self.assertEqual(result.width, 3)
         self.assertEqual(result.height, 4)
 
+    def test_despeckle(self):
+        img = Image(3, 4)
+
+        result = img.despeckle(0.1, 1)
+        self.assertEqual(result.width, 3)
+        self.assertEqual(result.height, 4)
+
 
 class TestNumpy(unittest.TestCase):
 

@@ -260,6 +260,10 @@ impl Image {
         self.inner.apply_palette_in_place(&palette.inner);
     }
 
+    pub fn despeckle(&mut self, threshold: Option<f32>, amount: Option<u8>) -> Image {
+        self.inner.despeckle(threshold.unwrap_or(0.1), amount.unwrap_or(1)).into()
+    }
+
     #[staticmethod]
     pub fn compose(images: &PyList, default: Option<Rgb>, func: &PyFunction) -> PyResult<Image> {
         let default = default.map(|c| c.inner).unwrap_or_default();
