@@ -34,7 +34,7 @@ impl FromStr for IcoColorType {
     }
 }
 
-pub(crate) fn encode_ico<W>(w: &mut W,
+pub(crate) fn encode_ico<W>(w: W,
                             buffer: &PixelBuffer<Rgb>,
                             color_type: IcoColorType) -> Result<(), EncodingError>
     where W: Write {

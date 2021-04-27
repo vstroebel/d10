@@ -34,7 +34,7 @@ impl FromStr for BmpColorType {
     }
 }
 
-pub(crate) fn encode_bmp<W>(w: &mut W, buffer: &PixelBuffer<Rgb>, color_type: BmpColorType) -> Result<(), EncodingError> where W: Write {
+pub(crate) fn encode_bmp<W>(mut w: W, buffer: &PixelBuffer<Rgb>, color_type: BmpColorType) -> Result<(), EncodingError> where W: Write {
     let (out, color_type) = match color_type {
         BmpColorType::L8 => (to_l8_vec(buffer), ColorType::L8),
         BmpColorType::La8 => (to_la8_vec(buffer), ColorType::La8),
@@ -42,7 +42,7 @@ pub(crate) fn encode_bmp<W>(w: &mut W, buffer: &PixelBuffer<Rgb>, color_type: Bm
         BmpColorType::Rgba8 => (to_rgba8_vec(buffer), ColorType::Rgba8),
     };
 
-    if let Err(err) = BmpEncoder::new(w).encode(
+    if let Err(err) = BmpEncoder::new(&mut w).encode(
         &out,
         buffer.width(),
         buffer.height(),

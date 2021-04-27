@@ -185,7 +185,7 @@ pub fn encode_to_file<P>(path: P, buffer: &PixelBuffer<Rgb>, format: Option<Enco
     encode(&mut w, buffer, format)
 }
 
-pub fn encode<W>(w: &mut W, buffer: &PixelBuffer<Rgb>, format: EncodingFormat) -> Result<(), EncodingError> where W: Write {
+pub fn encode<W>(w: W, buffer: &PixelBuffer<Rgb>, format: EncodingFormat) -> Result<(), EncodingError> where W: Write {
     match format {
         EncodingFormat::Jpeg { quality, grayscale } => encode_jpeg(w, buffer, quality, grayscale),
         EncodingFormat::Png { color_type, compression, filter } => encode_png(w, buffer, color_type, compression, filter),

@@ -15,7 +15,7 @@ fn encode_error(err: GIFEncodingError) -> EncodingError {
     }
 }
 
-pub(crate) fn encode_gif<W>(w: &mut W, buffer: &PixelBuffer<Rgb>) -> Result<(), EncodingError>
+pub(crate) fn encode_gif<W>(w: W, buffer: &PixelBuffer<Rgb>) -> Result<(), EncodingError>
     where W: Write
 {
     let width = buffer.width();

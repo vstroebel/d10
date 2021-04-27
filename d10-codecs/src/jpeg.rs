@@ -8,7 +8,7 @@ use image::{ColorType, ImageError, DynamicImage};
 use crate::utils::{to_rgb8_vec, read_into_buffer, to_l8_vec};
 use crate::{DecodedImage, EncodingError, DecodingError};
 
-pub(crate) fn encode_jpeg<W>(w: &mut W, buffer: &PixelBuffer<Rgb>, quality: u8, grayscale: bool) -> Result<(), EncodingError> where W: Write {
+pub(crate) fn encode_jpeg<W>(mut w: W, buffer: &PixelBuffer<Rgb>, quality: u8, grayscale: bool) -> Result<(), EncodingError> where W: Write {
     let width = buffer.width();
     let height = buffer.height();
 
@@ -29,7 +29,7 @@ pub(crate) fn encode_jpeg<W>(w: &mut W, buffer: &PixelBuffer<Rgb>, quality: u8, 
     // Ensure quality is always in the valid range.
     let quality = quality.clamp(1, 100);
 
-    if let Err(err) = JpegEncoder::new_with_quality(w, quality).encode(
+    if let Err(err) = JpegEncoder::new_with_quality(&mut w, quality).encode(
         &out,
         width,
         height,

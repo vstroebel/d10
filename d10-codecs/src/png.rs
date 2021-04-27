@@ -125,7 +125,7 @@ fn encode_error(err: PngEncodingError) -> EncodingError {
     }
 }
 
-pub(crate) fn encode_png<W>(w: &mut W,
+pub(crate) fn encode_png<W>(w: W,
                             buffer: &PixelBuffer<Rgb>,
                             color_type: PngColorType,
                             compression: PngCompression,
