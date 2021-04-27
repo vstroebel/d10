@@ -332,6 +332,14 @@ impl<T: Color> PixelBuffer<T> {
             data: self.data.iter().into_lab().collect(),
         }
     }
+
+    pub fn to_lch<I: Illuminant, O: Observer>(&self) -> PixelBuffer<Lch<I, O>> {
+        PixelBuffer {
+            width: self.width,
+            height: self.height,
+            data: self.data.iter().into_lch().collect(),
+        }
+    }
 }
 
 impl PixelBuffer<Rgb> {

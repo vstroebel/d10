@@ -1,4 +1,4 @@
-use crate::color::{Color, Rgb, Srgb, Hsl, Hsv, Yuv, Xyz, Lab};
+use crate::color::{Color, Rgb, Srgb, Hsl, Hsv, Yuv, Xyz, Lab, Lch};
 
 use std::iter::Cloned;
 use std::marker::PhantomData;
@@ -132,6 +132,26 @@ impl<I, C: Color, IL: Illuminant, O: Observer> Iterator for ToLabIter<I, C, IL, 
     }
 }
 
+pub struct ToLchIter<I, C: Color, IL: Illuminant, O: Observer> {
+    iter: I,
+    _phantom: PhantomData<C>,
+    _phantom2: PhantomData<IL>,
+    _phantom3: PhantomData<O>,
+}
+
+impl<I, C: Color, IL: Illuminant, O: Observer> Iterator for ToLchIter<I, C, IL, O>
+    where I: Iterator<Item=C> {
+    type Item = Lch<IL, O>;
+
+    fn next(&mut self) -> Option<Lch<IL, O>> {
+        self.iter.next().map(|v| v.to_lch())
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+}
+
 pub trait ColorIter<T: Color>: Iterator<Item=T> {
     fn into_rgb(self) -> ToRgbIter<Self, Self::Item>
         where Self: Sized
@@ -191,6 +211,17 @@ pub trait ColorIter<T: Color>: Iterator<Item=T> {
         where Self: Sized
     {
         ToLabIter {
+            iter: self,
+            _phantom: PhantomData::default(),
+            _phantom2: PhantomData::default(),
+            _phantom3: PhantomData::default(),
+        }
+    }
+
+    fn into_lch<IL: Illuminant, O: Observer>(self) -> ToLchIter<Self, Self::Item, IL, O>
+        where Self: Sized
+    {
+        ToLchIter {
             iter: self,
             _phantom: PhantomData::default(),
             _phantom2: PhantomData::default(),
@@ -260,6 +291,17 @@ pub trait ColorIterRef<'a, C: Color, T: 'a + Color>: Iterator<Item=&'a T> {
         where Self: Sized
     {
         ToLabIter {
+            iter: self.cloned(),
+            _phantom: PhantomData::default(),
+            _phantom2: PhantomData::default(),
+            _phantom3: PhantomData::default(),
+        }
+    }
+
+    fn into_lch<IL: Illuminant, O: Observer>(self) -> ToLchIter<Cloned<Self>, C, IL, O>
+        where Self: Sized
+    {
+        ToLchIter {
             iter: self.cloned(),
             _phantom: PhantomData::default(),
             _phantom2: PhantomData::default(),

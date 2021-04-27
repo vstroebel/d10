@@ -13,11 +13,11 @@ pub use hsv::Hsv;
 pub use hsl::Hsl;
 pub use yuv::Yuv;
 pub use xyz::Xyz;
-pub use lab::{Lab, DefaultLab, Illuminant, Observer, illuminant, observer};
+pub use lab::{Lab, Lch, DefaultLab, Illuminant, Observer, illuminant, observer};
 pub use iter::{ColorIter, ColorIterRef};
 
 use std::fmt::{Debug, Display};
-use crate::color::lab::get_refs;
+use crate::color::lab::{get_refs};
 
 /// Minimal error to detect identical colors channel values
 ///
@@ -190,6 +190,18 @@ private::Sealed +
         let b = b / 128.0;
 
         Lab::new_with_alpha(l, a, b, xyz.alpha())
+    }
+
+    fn to_lch<I: Illuminant, O: Observer>(&self) -> Lch<I, O> {
+        let lab = self.to_lab::<I, O>();
+
+        let a = lab.a();
+        let b = lab.b();
+
+        let c = (a * a + b * b).sqrt();
+        let h = (b).atan2(a);
+
+        Lch::new_with_alpha(lab.l(), c, h, lab.alpha())
     }
 
     fn has_transparency(&self) -> bool {
@@ -402,9 +414,16 @@ mod conversion_tests {
     }
 
     #[test]
-    fn test_lab_xyz_iter() {
+    fn test_rgb_lab_iter() {
         let rgb = get_rgb();
         let res: Vec<_> = rgb.iter().into_lab::<D65, O2>().into_rgb().collect();
+        assert_eq!(rgb, res);
+    }
+
+    #[test]
+    fn test_rgb_lch_iter() {
+        let rgb = get_rgb();
+        let res: Vec<_> = rgb.iter().into_lch::<D65, O2>().into_rgb().collect();
         assert_eq!(rgb, res);
     }
 }

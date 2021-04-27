@@ -26,12 +26,21 @@ fn d10(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<color::Hsv>()?;
     m.add_class::<color::Yuv>()?;
     m.add_class::<color::Xyz>()?;
+
     m.add_class::<color::LabD65O2>()?;
     m.add_class::<color::LabD65O10>()?;
     m.add_class::<color::LabD50O2>()?;
     m.add_class::<color::LabD50O10>()?;
     m.add_class::<color::LabEO2>()?;
     m.add_class::<color::LabEO10>()?;
+
+    m.add_class::<color::LchD65O2>()?;
+    m.add_class::<color::LchD65O10>()?;
+    m.add_class::<color::LchD50O2>()?;
+    m.add_class::<color::LchD50O10>()?;
+    m.add_class::<color::LchEO2>()?;
+    m.add_class::<color::LchEO10>()?;
+
     m.add_class::<image::Image>()?;
     m.add_class::<image::EncodingFormat>()?;
 
@@ -51,6 +60,25 @@ fn d10(_py: Python, m: &PyModule) -> PyResult<()> {
             ("E", "2") => Ok(LabEO2::new(l, a, b, alpha).into_py(py)),
             ("E", "10") => Ok(LabEO10::new(l, a, b, alpha).into_py(py)),
             _ => Err(PyOSError::new_err(format!("Unsupported Lab type: {} {}", illuminant, observer))),
+        }
+    }
+
+    #[pyfn(m, "Lch")]
+    fn lch(py: Python, l: f32, c: f32, h: f32, alpha: Option<f32>, illuminant: Option<&str>, observer: Option<&str>) -> PyResult<Py<PyAny>> {
+        use pyo3::conversion::IntoPy;
+        use crate::color::{LchD65O10, LchD65O2, LchD50O10, LchEO2, LchEO10, LchD50O2};
+
+        let illuminant = illuminant.unwrap_or("D65");
+        let observer = observer.unwrap_or("2");
+
+        match (illuminant, observer) {
+            ("D65", "2") => Ok(LchD65O2::new(l, c, h, alpha).into_py(py)),
+            ("D65", "10") => Ok(LchD65O10::new(l, c, h, alpha).into_py(py)),
+            ("D50", "2") => Ok(LchD50O2::new(l, c, h, alpha).into_py(py)),
+            ("D50", "10") => Ok(LchD50O10::new(l, c, h, alpha).into_py(py)),
+            ("E", "2") => Ok(LchEO2::new(l, c, h, alpha).into_py(py)),
+            ("E", "10") => Ok(LchEO10::new(l, c, h, alpha).into_py(py)),
+            _ => Err(PyOSError::new_err(format!("Unsupported Lch type: {} {}", illuminant, observer))),
         }
     }
 

@@ -18,7 +18,10 @@ pub trait Illuminant: Debug + Copy + Clone + Send + Sync {
     fn get_refs() -> &'static [[f32; 3]; 2];
 
     #[doc(hidden)]
-    fn type_name() -> &'static [&'static str];
+    fn type_name_lab() -> &'static [&'static str];
+
+    #[doc(hidden)]
+    fn type_name_lch() -> &'static [&'static str];
 }
 
 pub mod illuminant {
@@ -34,8 +37,12 @@ pub mod illuminant {
                 &$refs
             }
 
-            fn type_name() -> &'static [&'static str] {
+            fn type_name_lab() -> &'static [&'static str] {
                 &[concat!("lab<",stringify!($name),",O2>"), concat!("lab<",stringify!($name),",O10>")]
+            }
+
+            fn type_name_lch() -> &'static [&'static str] {
+                &[concat!("lch<",stringify!($name),",O2>"), concat!("lch<",stringify!($name),",O10>")]
             }
         }
     }}
@@ -50,7 +57,10 @@ pub trait Observer: Debug + Copy + Clone + Send + Sync {
     fn get_refs(refs: &'static [[f32; 3]; 2]) -> &'static [f32; 3];
 
     #[doc(hidden)]
-    fn type_name(refs: &'static [&'static str]) -> &'static str;
+    fn type_name_lab(refs: &'static [&'static str]) -> &'static str;
+
+    #[doc(hidden)]
+    fn type_name_lch(refs: &'static [&'static str]) -> &'static str;
 }
 
 pub mod observer {
@@ -64,7 +74,11 @@ pub mod observer {
             &refs[0]
         }
 
-        fn type_name(refs: &'static [&'static str]) -> &'static str {
+        fn type_name_lab(refs: &'static [&'static str]) -> &'static str {
+            refs[0]
+        }
+
+        fn type_name_lch(refs: &'static [&'static str]) -> &'static str {
             refs[0]
         }
     }
@@ -77,7 +91,11 @@ pub mod observer {
             &refs[1]
         }
 
-        fn type_name(refs: &'static [&'static str]) -> &'static str {
+        fn type_name_lab(refs: &'static [&'static str]) -> &'static str {
+            refs[1]
+        }
+
+        fn type_name_lch(refs: &'static [&'static str]) -> &'static str {
             refs[1]
         }
     }
@@ -195,7 +213,7 @@ impl<I: Illuminant, O: Observer> Color for Lab<I, O> {
     }
 
     fn type_name(&self) -> &'static str {
-        O::type_name(I::type_name())
+        O::type_name_lab(I::type_name_lab())
     }
 }
 
@@ -219,6 +237,127 @@ impl<I: Illuminant, O: Observer> Display for Lab<I, O> {
 pub(crate) fn get_refs<I: Illuminant, O: Observer>() -> &'static [f32; 3] {
     O::get_refs(I::get_refs())
 }
+
+#[derive(Debug, Copy, Clone)]
+pub struct Lch<I: Illuminant = D65, O: Observer = O2> {
+    pub data: [f32; 4],
+    _phantom: PhantomData<I>,
+    _phantom2: PhantomData<O>,
+}
+
+impl<I: Illuminant, O: Observer> Lch<I, O> {
+    pub fn new(l: f32, c: f32, h: f32) -> Lch<I, O> {
+        Self::new_with_alpha(l, c, h, 1.0)
+    }
+
+    pub fn new_with_alpha(l: f32, c: f32, h: f32, alpha: f32) -> Lch<I, O> {
+        Lch {
+            data: [l, c, h, alpha],
+            _phantom: PhantomData,
+            _phantom2: PhantomData,
+        }
+    }
+
+    pub fn l(&self) -> f32 {
+        self.data[0]
+    }
+
+    pub fn set_l(&mut self, l: f32) {
+        self.data[0] = l;
+    }
+
+    pub fn with_l(&self, l: f32) -> Self {
+        Self::new_with_alpha(l, self.data[1], self.data[2], self.data[3])
+    }
+
+    pub fn c(&self) -> f32 {
+        self.data[1]
+    }
+
+    pub fn set_c(&mut self, c: f32) {
+        self.data[1] = c;
+    }
+
+    pub fn with_c(&self, c: f32) -> Self {
+        Self::new_with_alpha(self.data[0], c, self.data[2], self.data[3])
+    }
+
+    pub fn h(&self) -> f32 {
+        self.data[2]
+    }
+
+    pub fn set_h(&mut self, h: f32) {
+        self.data[2] = h;
+    }
+
+    pub fn with_h(&self, h: f32) -> Self {
+        Self::new_with_alpha(self.data[0], self.data[1], h, self.data[3])
+    }
+}
+
+impl<I: Illuminant, O: Observer> Default for Lch<I, O> {
+    fn default() -> Self {
+        Self::new_with_alpha(0.0, 0.0, 0.0, 0.0)
+    }
+}
+
+impl<I: Illuminant, O: Observer> Color for Lch<I, O> {
+    fn to_rgb(&self) -> Rgb {
+        self.to_lab::<I, O>().to_rgb()
+    }
+
+    fn to_xyz(&self) -> Xyz {
+        let a = self.c() * self.h().cos();
+        let b = self.c() * self.h().sin();
+        Lab::<I, O>::new_with_alpha(self.l(), a, b, self.alpha()).to_xyz()
+    }
+
+    fn data(&self) -> &[f32] {
+        &self.data
+    }
+
+    fn alpha(&self) -> f32 {
+        self.data[3]
+    }
+
+    fn set_alpha(&mut self, alpha: f32) {
+        self.data[3] = alpha;
+    }
+
+    fn with_alpha(&self, alpha: f32) -> Self {
+        Self::new_with_alpha(self.data[0], self.data[1], self.data[2], alpha)
+    }
+
+    fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(&self, mut func: F) -> Result<Self, E> {
+        Ok(Self::new_with_alpha(
+            func(self.data[0])?,
+            func(self.data[1])?,
+            func(self.data[2])?,
+            self.data[3]))
+    }
+
+    fn type_name(&self) -> &'static str {
+        O::type_name_lch(I::type_name_lch())
+    }
+}
+
+impl<I: Illuminant, O: Observer> PartialEq for Lch<I, O> {
+    fn eq(&self, other: &Self) -> bool {
+        for (v1, v2) in self.data.iter().zip(other.data.iter()) {
+            if (v1 - v2).abs() > EPSILON {
+                return false;
+            }
+        }
+        true
+    }
+}
+
+impl<I: Illuminant, O: Observer> Display for Lch<I, O> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        format_color(self, f)
+    }
+}
+
 
 #[cfg(test)]
 mod tests {

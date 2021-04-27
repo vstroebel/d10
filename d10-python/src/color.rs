@@ -13,6 +13,7 @@ use d10::{Color,
           Yuv as D10Yuv,
           Xyz as D10Xyz,
           Lab as D10Lab,
+          Lch as D10Lch,
           illuminant,
           observer,
 };
@@ -150,6 +151,24 @@ macro_rules! color_type {
                 }
             }
 
+            fn to_lch(&self, py: Python, illuminant: Option<&str>, observer: Option<&str>) -> PyResult<Py<PyAny>> {
+                use pyo3::conversion::IntoPy;
+                use pyo3::exceptions::PyOSError;
+
+                let illuminant = illuminant.unwrap_or("D65");
+                let observer = observer.unwrap_or("2");
+
+                match (illuminant, observer) {
+                    ("D65", "2") => Ok(LchD65O2 {inner : self.inner.to_lch()}.into_py(py)),
+                    ("D65", "10") => Ok(LchD65O10 {inner : self.inner.to_lch()}.into_py(py)),
+                    ("D50", "2") => Ok(LchD50O2 {inner : self.inner.to_lch()}.into_py(py)),
+                    ("D50", "10") => Ok(LchD50O10 {inner : self.inner.to_lch()}.into_py(py)),
+                    ("E", "2") => Ok(LchEO2 {inner : self.inner.to_lch()}.into_py(py)),
+                    ("E", "10") => Ok(LchEO10 {inner : self.inner.to_lch()}.into_py(py)),
+                    _ => Err(PyOSError::new_err(format!("Unsupported Lch type: {} {}", illuminant, observer))),
+                }
+            }
+
             fn map_color_channels(&self, func: &PyFunction) -> PyResult<$type_name> {
                 let map = |v: f32| -> PyResult<f32> {
                     let r = func.call1((v, ))?;
@@ -221,6 +240,20 @@ color_type!(LabD50O2, D10LabD50O2, l, a, b, get_l, get_a, get_b, set_l, set_a, s
 color_type!(LabD50O10, D10LabD50O10, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
 color_type!(LabEO2, D10LabEO2, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
 color_type!(LabEO10, D10LabEO10, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
+
+pub type D10LchD65O2 = D10Lch<illuminant::D65, observer::O2>;
+pub type D10LchD65O10 = D10Lch<illuminant::D65, observer::O10>;
+pub type D10LchD50O2 = D10Lch<illuminant::D50, observer::O2>;
+pub type D10LchD50O10 = D10Lch<illuminant::D50, observer::O10>;
+pub type D10LchEO2 = D10Lch<illuminant::E, observer::O2>;
+pub type D10LchEO10 = D10Lch<illuminant::E, observer::O10>;
+
+color_type!(LchD65O2, D10LchD65O2, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
+color_type!(LchD65O10, D10LchD65O10, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
+color_type!(LchD50O2, D10LchD50O2, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
+color_type!(LchD50O10, D10LchD50O10, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
+color_type!(LchEO2, D10LchEO2, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
+color_type!(LchEO10, D10LchEO10, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
 
 
 #[pymethods]
