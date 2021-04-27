@@ -24,7 +24,7 @@ use crate::gif::{decode_gif, encode_gif};
 use crate::bmp::{decode_bmp, encode_bmp};
 use crate::ico::{decode_ico, encode_ico};
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Format {
     Jpeg,
     Png,
@@ -148,15 +148,13 @@ pub struct DecodedImage {
 }
 
 pub fn decode_file<P>(path: P) -> Result<DecodedImage, DecodingError> where P: AsRef<Path> {
-    let format = match Format::from_path(path.as_ref()) {
-        Some(format) => format,
-        None => return Err(DecodingError::BadFileExtension(path.as_ref().to_string_lossy().to_string()))
-    };
-
     let file = File::open(path)?;
-    let reader = BufReader::new(file);
-
-    decode(reader, format)
+    let mut reader = BufReader::new(file);
+    if let Ok(format) = Format::from_reader(&mut reader) {
+        decode(reader, format)
+    } else {
+        Err(DecodingError::UnknownFormat)
+    }
 }
 
 pub fn decode_buffer(buffer: &[u8]) -> Result<DecodedImage, DecodingError> {
