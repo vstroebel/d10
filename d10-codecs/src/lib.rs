@@ -13,6 +13,7 @@ use std::path::Path;
 use std::io::{Cursor, Read, Seek, Write, SeekFrom, BufReader, BufRead, BufWriter};
 use std::fs::File;
 
+pub use crate::jpeg::JpegSamplingFactor;
 pub use crate::png::{PngColorType, PngCompression, PngFilterType};
 pub use crate::bmp::BmpColorType;
 pub use crate::ico::IcoColorType;
@@ -73,6 +74,8 @@ impl Format {
 pub enum EncodingFormat {
     Jpeg {
         quality: u8,
+        progressive: bool,
+        sampling_factor: Option<JpegSamplingFactor>,
         grayscale: bool,
     },
     Png {
@@ -103,6 +106,17 @@ impl EncodingFormat {
     pub fn jpeg_default() -> Self {
         Self::Jpeg {
             quality: 85,
+            progressive: false,
+            sampling_factor: None,
+            grayscale: false,
+        }
+    }
+
+    pub fn jpeg_with_quality(quality: u8) -> Self {
+        Self::Jpeg {
+            quality,
+            progressive: false,
+            sampling_factor: None,
             grayscale: false,
         }
     }
@@ -144,7 +158,7 @@ impl EncodingFormat {
 }
 
 pub struct DecodedImage {
-    pub buffer: PixelBuffer<Rgb>
+    pub buffer: PixelBuffer<Rgb>,
 }
 
 pub fn decode_file<P>(path: P) -> Result<DecodedImage, DecodingError> where P: AsRef<Path> {
@@ -187,7 +201,13 @@ pub fn encode_to_file<P>(path: P, buffer: &PixelBuffer<Rgb>, format: Option<Enco
 
 pub fn encode<W>(w: W, buffer: &PixelBuffer<Rgb>, format: EncodingFormat) -> Result<(), EncodingError> where W: Write {
     match format {
-        EncodingFormat::Jpeg { quality, grayscale } => encode_jpeg(w, buffer, quality, grayscale),
+        EncodingFormat::Jpeg { quality, progressive, sampling_factor, grayscale } =>
+            encode_jpeg(w,
+                        buffer,
+                        quality,
+                        progressive,
+                        sampling_factor,
+                        grayscale),
         EncodingFormat::Png { color_type, compression, filter } => encode_png(w, buffer, color_type, compression, filter),
         EncodingFormat::Gif => encode_gif(w, buffer),
         EncodingFormat::Bmp { color_type } => encode_bmp(w, buffer, color_type),

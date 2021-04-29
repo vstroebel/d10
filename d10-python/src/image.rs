@@ -28,7 +28,7 @@ use {
 
 #[pyclass]
 pub struct Image {
-    pub inner: D10Image
+    pub inner: D10Image,
 }
 
 #[pymethods]
@@ -494,19 +494,26 @@ impl PyMappingProtocol for Image {
 
 #[pyclass]
 pub struct EncodingFormat {
-    pub inner: D10EncodingFormat
+    pub inner: D10EncodingFormat,
 }
 
 #[pymethods]
 impl EncodingFormat {
     #[staticmethod]
-    fn jpeg(quality: Option<u8>, grayscale: Option<bool>) -> EncodingFormat {
-        EncodingFormat {
+    fn jpeg(quality: Option<u8>, progressive: Option<bool>, sampling_factor: Option<String>, grayscale: Option<bool>) -> PyResult<EncodingFormat> {
+        let sampling_factor = match sampling_factor {
+            Some(v) => Some(v.parse().py_err()?),
+            None => None,
+        };
+
+        Ok(EncodingFormat {
             inner: D10EncodingFormat::Jpeg {
                 quality: quality.unwrap_or(85),
+                progressive: progressive.unwrap_or(false),
+                sampling_factor,
                 grayscale: grayscale.unwrap_or(false),
             }
-        }
+        })
     }
 
     #[staticmethod]
@@ -679,7 +686,7 @@ mod numpy_helper {
     }
 
     pub struct ChunkedIter<'a, const N: usize> {
-        iter: &'a mut dyn Iterator<Item=f32>
+        iter: &'a mut dyn Iterator<Item=f32>,
     }
 
     pub fn chunked<const N: usize>(iter: &mut dyn Iterator<Item=f32>) -> ChunkedIter<N> {

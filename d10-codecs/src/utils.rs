@@ -206,6 +206,21 @@ pub fn read_into_buffer(img: DynamicImage) -> Result<PixelBuffer<Rgb>, DecodingE
     Ok(PixelBuffer::new_from_raw(width, height, data))
 }
 
+/// Convert CMYK to RGB without color profile
+#[allow(clippy::many_single_char_names)]
+pub fn cmyk_to_rgb(c: u8, m: u8, y: u8, k: u8) -> Rgb {
+    let c = 255.0 - c as f32;
+    let m = 255.0 - m as f32;
+    let y = 255.0 - y as f32;
+    let k = 255.0 - k as f32;
+
+    let r = c * k / 65536.0;
+    let g = m * k / 65536.0;
+    let b = y * k / 65536.0;
+
+    Srgb::new(r, g, b).to_rgb()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
