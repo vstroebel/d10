@@ -40,7 +40,7 @@ impl FromStr for Intensity {
 
 #[derive(Debug, Copy, Clone)]
 pub struct Rgb {
-    pub data: [f32; 4]
+    pub data: [f32; 4],
 }
 
 impl Rgb {
@@ -143,7 +143,11 @@ impl Rgb {
             let v = v - black_point;
             let v = v * factor;
 
-            v.powf(1.0 / gamma)
+            if gamma == 1.0 {
+                v
+            } else {
+                clamp(v).powf(1.0 / gamma)
+            }
         })
     }
 
