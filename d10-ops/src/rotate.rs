@@ -65,6 +65,10 @@ fn rotate_pixel_lanczos3(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Option<Rg
 }
 
 pub fn rotate(buffer: &PixelBuffer<Rgb>, radians: f32, bg_color: Rgb, filter: FilterMode) -> PixelBuffer<Rgb> {
+    if (radians - 360.0).abs() < f32::EPSILON {
+        return buffer.clone();
+    }
+
     match filter {
         FilterMode::Nearest => rotate_with_fn(buffer, radians, bg_color, rotate_pixel_nearest),
         FilterMode::Bilinear => rotate_with_fn(buffer, radians, bg_color, rotate_pixel_bilinear),
