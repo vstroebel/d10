@@ -143,11 +143,7 @@ impl Rgb {
             let v = v - black_point;
             let v = v * factor;
 
-            if gamma == 1.0 {
-                v
-            } else {
-                clamp(v).powf(1.0 / gamma)
-            }
+            clamp(v).powf(1.0 / gamma)
         })
     }
 
