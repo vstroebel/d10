@@ -8,25 +8,20 @@ pub fn despeckle(img: &PixelBuffer<Rgb>, threshold: f32, amount: u8) -> PixelBuf
 
             let mut count = 0;
 
-            for y in 0..3 {
-                for x in 0..3 {
-                    if k[y][x].to_gray_with_intensity(Intensity::Average).red() < threshold {
-                        count += 1;
-                    }
+            for c in k.iter().flat_map(|row| row.iter()) {
+                if c.to_gray_with_intensity(Intensity::Average).red() < threshold {
+                    count += 1;
                 }
             }
 
             if count <= amount {
                 let mut data = [0f32; 3];
 
-                for y in 0..3 {
-                    for x in 0..3 {
-                        let kc = k[y][x];
-                        if kc.to_gray_with_intensity(Intensity::Average).red() >= threshold {
-                            data[0] += kc.data[0];
-                            data[1] += kc.data[1];
-                            data[2] += kc.data[2];
-                        }
+                for c in k.iter().flat_map(|row| row.iter()) {
+                    if c.to_gray_with_intensity(Intensity::Average).red() >= threshold {
+                        data[0] += c.data[0];
+                        data[1] += c.data[1];
+                        data[2] += c.data[2];
                     }
                 }
 
