@@ -38,8 +38,11 @@ fn resize_pixel_lanczos3(buffer: &PixelBuffer<Rgb>, x: u32, y: u32, scale_x: f32
     crate::filters::get_pixel_lanczos3(buffer, gx, gy)
 }
 
-
 pub fn resize(buffer: &PixelBuffer<Rgb>, new_width: u32, new_height: u32, filter: FilterMode) -> PixelBuffer<Rgb> {
+    if buffer.width() == new_width && buffer.height() == new_height {
+        return buffer.clone();
+    }
+
     match filter {
         FilterMode::Nearest => resize_with_fn(buffer, new_width, new_height, resize_pixel_nearest),
         FilterMode::Bilinear => resize_with_fn(buffer, new_width, new_height, resize_pixel_bilinear),
