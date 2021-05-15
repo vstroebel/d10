@@ -4,7 +4,7 @@ use pyo3::PyMappingProtocol;
 use pyo3::exceptions::PyOSError;
 
 use crate::IntoPyErr;
-use crate::color::Rgb;
+use crate::color::{Rgb, D10LabD65O2, D10LchD65O2};
 
 use d10::{Image as D10Image,
           Rgb as D10Rgb,
@@ -23,8 +23,11 @@ use {
           Srgb as D10Srgb,
           Hsl as D10Hsl,
           Hsv as D10Hsv,
-          Yuv as D10Yuv},
+          Yuv as D10Yuv,
+          Xyz as D10Xyz},
 };
+use d10::illuminant::D65;
+use d10::observer::O2;
 
 #[pyclass]
 pub struct Image {
@@ -347,6 +350,30 @@ impl Image {
                            .iter()
                            .map(|c| c.to_gray().red())
                            .collect(), 1),
+            "xyz" => (self.inner.buffer().data()
+                          .iter()
+                          .flat_map(|c| color_iter::<3>(&c.to_xyz().data))
+                          .collect(), 3),
+            "xyza" => (self.inner.buffer().data()
+                           .iter()
+                           .flat_map(|c| color_iter::<4>(&c.to_xyz().data))
+                           .collect(), 4),
+            "lab" => (self.inner.buffer().data()
+                          .iter()
+                          .flat_map(|c| color_iter::<3>(&c.to_lab::<D65, O2>().data))
+                          .collect(), 3),
+            "laba" => (self.inner.buffer().data()
+                           .iter()
+                           .flat_map(|c| color_iter::<4>(&c.to_lab::<D65, O2>().data))
+                           .collect(), 4),
+            "lch" => (self.inner.buffer().data()
+                          .iter()
+                          .flat_map(|c| color_iter::<3>(&c.to_lch::<D65, O2>().data))
+                          .collect(), 3),
+            "lcha" => (self.inner.buffer().data()
+                           .iter()
+                           .flat_map(|c| color_iter::<4>(&c.to_lch::<D65, O2>().data))
+                           .collect(), 4),
             _ => return Err(PyOSError::new_err(format!("Unknown colorspace: {}", colorspace)))
         };
 
@@ -411,6 +438,18 @@ impl Image {
                         .into_iter()
                         .map(|chunk| D10Yuv::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
                         .collect(),
+                    "xyza" | "xyz" => chunked::<4>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10Xyz::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
+                        .collect(),
+                    "laba" | "lab" => chunked::<4>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10LabD65O2::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
+                        .collect(),
+                    "lcha" | "lch" => chunked::<4>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10LabD65O2::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
+                        .collect(),
                     _ => return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)))
                 }
             } else if dims[2] == 3 {
@@ -434,6 +473,18 @@ impl Image {
                     "yuv" => chunked::<3>(&mut iter)
                         .into_iter()
                         .map(|chunk| D10Yuv::new(chunk[0], chunk[1], chunk[2]).to_rgb())
+                        .collect(),
+                    "xyz" => chunked::<3>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10Xyz::new(chunk[0], chunk[1], chunk[2]).to_rgb())
+                        .collect(),
+                    "lab" => chunked::<3>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10LabD65O2::new(chunk[0], chunk[1], chunk[2]).to_rgb())
+                        .collect(),
+                    "lch" => chunked::<3>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10LchD65O2::new(chunk[0], chunk[1], chunk[2]).to_rgb())
                         .collect(),
                     _ => return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)))
                 }
