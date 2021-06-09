@@ -1,7 +1,6 @@
 use d10_core::pixelbuffer::{PixelBuffer, is_valid_buffer_size};
 use d10_core::color::{Color, Rgb, Srgb};
 use image::{DynamicImage, GenericImageView};
-use byteorder::{BigEndian, WriteBytesExt};
 
 use crate::DecodingError;
 
@@ -72,8 +71,7 @@ pub(crate) fn to_l16_be_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
 
     for color in buffer.data().iter() {
         let color = color.to_gray().to_srgb();
-
-        out.write_u16::<BigEndian>(as_u16(color.red())).unwrap();
+        out.extend_from_slice(&color.red().to_be_bytes());
     }
 
     out
@@ -86,8 +84,8 @@ pub(crate) fn to_la16_be_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
     for color in buffer.data().iter() {
         let color = color.to_gray().to_srgb();
 
-        out.write_u16::<BigEndian>(as_u16(color.red())).unwrap();
-        out.write_u16::<BigEndian>(as_u16(color.alpha())).unwrap();
+        out.extend_from_slice(&as_u16(color.red()).to_be_bytes());
+        out.extend_from_slice(&as_u16(color.alpha()).to_be_bytes());
     }
 
     out
@@ -99,9 +97,9 @@ pub(crate) fn to_rgb16_be_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
     for color in buffer.data().iter() {
         let color = color.to_srgb();
 
-        out.write_u16::<BigEndian>(as_u16(color.red())).unwrap();
-        out.write_u16::<BigEndian>(as_u16(color.green())).unwrap();
-        out.write_u16::<BigEndian>(as_u16(color.blue())).unwrap();
+        out.extend_from_slice(&as_u16(color.red()).to_be_bytes());
+        out.extend_from_slice(&as_u16(color.green()).to_be_bytes());
+        out.extend_from_slice(&as_u16(color.blue()).to_be_bytes());
     }
 
     out
@@ -113,10 +111,10 @@ pub(crate) fn to_rgba16_be_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
     for color in buffer.data().iter() {
         let color = color.to_srgb();
 
-        out.write_u16::<BigEndian>(as_u16(color.red())).unwrap();
-        out.write_u16::<BigEndian>(as_u16(color.green())).unwrap();
-        out.write_u16::<BigEndian>(as_u16(color.blue())).unwrap();
-        out.write_u16::<BigEndian>(as_u16(color.alpha())).unwrap();
+        out.extend_from_slice(&as_u16(color.red()).to_be_bytes());
+        out.extend_from_slice(&as_u16(color.green()).to_be_bytes());
+        out.extend_from_slice(&as_u16(color.blue()).to_be_bytes());
+        out.extend_from_slice(&as_u16(color.alpha()).to_be_bytes());
     }
 
     out
