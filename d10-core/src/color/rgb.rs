@@ -92,11 +92,11 @@ impl Rgb {
         (self.red() - self.green()).abs() < EPSILON && (self.green() - self.blue()).abs() < EPSILON
     }
 
-    pub fn to_gray(&self) -> Rgb {
+    pub fn to_gray(self) -> Rgb {
         self.to_gray_with_intensity(Intensity::Rec709Luma)
     }
 
-    pub fn to_gray_with_intensity(&self, intensity: Intensity) -> Rgb {
+    pub fn to_gray_with_intensity(self, intensity: Intensity) -> Rgb {
         use Intensity::*;
         let v = match intensity {
             Rec601Luma => self.data[0] * 0.298_839 + self.data[1] * 0.586_811 + self.data[2] * 0.114_350,
