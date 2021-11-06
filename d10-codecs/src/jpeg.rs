@@ -104,7 +104,8 @@ pub(crate) fn encode_jpeg<W>(w: W,
                              quality: u8,
                              progressive: bool,
                              sampling_factor: Option<JpegSamplingFactor>,
-                             grayscale: bool) -> Result<(), EncodingError> where W: Write {
+                             grayscale: bool,
+                             optimize_huffman_tables: bool) -> Result<(), EncodingError> where W: Write {
     let width = buffer.width();
     let height = buffer.height();
 
@@ -133,6 +134,10 @@ pub(crate) fn encode_jpeg<W>(w: W,
 
     if progressive {
         encoder.set_progressive(true);
+    }
+
+    if optimize_huffman_tables {
+        encoder.set_optimized_huffman_tables(true);
     }
 
     if let Err(err) = encoder.encode(

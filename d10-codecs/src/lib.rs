@@ -77,6 +77,7 @@ pub enum EncodingFormat {
         progressive: bool,
         sampling_factor: Option<JpegSamplingFactor>,
         grayscale: bool,
+        optimize_huffman_tables: bool,
     },
     Png {
         color_type: PngColorType,
@@ -109,6 +110,7 @@ impl EncodingFormat {
             progressive: false,
             sampling_factor: None,
             grayscale: false,
+            optimize_huffman_tables: true,
         }
     }
 
@@ -118,6 +120,7 @@ impl EncodingFormat {
             progressive: false,
             sampling_factor: None,
             grayscale: false,
+            optimize_huffman_tables: true,
         }
     }
 
@@ -201,13 +204,14 @@ pub fn encode_to_file<P>(path: P, buffer: &PixelBuffer<Rgb>, format: Option<Enco
 
 pub fn encode<W>(w: W, buffer: &PixelBuffer<Rgb>, format: EncodingFormat) -> Result<(), EncodingError> where W: Write {
     match format {
-        EncodingFormat::Jpeg { quality, progressive, sampling_factor, grayscale } =>
+        EncodingFormat::Jpeg { quality, progressive, sampling_factor, grayscale , optimize_huffman_tables} =>
             encode_jpeg(w,
                         buffer,
                         quality,
                         progressive,
                         sampling_factor,
-                        grayscale),
+                        grayscale,
+                        optimize_huffman_tables),
         EncodingFormat::Png { color_type, compression, filter } => encode_png(w, buffer, color_type, compression, filter),
         EncodingFormat::Gif => encode_gif(w, buffer),
         EncodingFormat::Bmp { color_type } => encode_bmp(w, buffer, color_type),

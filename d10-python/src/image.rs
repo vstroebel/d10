@@ -551,7 +551,11 @@ pub struct EncodingFormat {
 #[pymethods]
 impl EncodingFormat {
     #[staticmethod]
-    fn jpeg(quality: Option<u8>, progressive: Option<bool>, sampling_factor: Option<String>, grayscale: Option<bool>) -> PyResult<EncodingFormat> {
+    fn jpeg(quality: Option<u8>,
+            progressive: Option<bool>,
+            sampling_factor: Option<String>,
+            grayscale: Option<bool>,
+            optimize_huffman_tables: Option<bool>) -> PyResult<EncodingFormat> {
         let sampling_factor = match sampling_factor {
             Some(v) => Some(v.parse().py_err()?),
             None => None,
@@ -563,6 +567,7 @@ impl EncodingFormat {
                 progressive: progressive.unwrap_or(false),
                 sampling_factor,
                 grayscale: grayscale.unwrap_or(false),
+                optimize_huffman_tables: optimize_huffman_tables.unwrap_or(true),
             }
         })
     }
