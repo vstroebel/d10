@@ -24,7 +24,7 @@ pub fn crop<C>(buffer: &PixelBuffer<C>, offset_x: u32, offset_y: u32, width: u32
 
             let row = &buffer.data()[offset..offset + width as usize];
 
-            data.extend_from_slice(&row);
+            data.extend_from_slice(row);
         }
 
         PixelBuffer::new_from_raw(width, height, data)

@@ -42,7 +42,7 @@ fn rotate_pixel_nearest(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Option<Rgb
 
 fn rotate_pixel_bilinear(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Option<Rgb> {
     if buffer.is_in_image(x.round() as i32, y.round() as i32) {
-        Some(get_pixel_bilinear(&buffer, x, y))
+        Some(get_pixel_bilinear(buffer, x, y))
     } else {
         None
     }
@@ -50,7 +50,7 @@ fn rotate_pixel_bilinear(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Option<Rg
 
 fn rotate_pixel_bicubic(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Option<Rgb> {
     if buffer.is_in_image(x.round() as i32, y.round() as i32) {
-        Some(get_pixel_bicubic(&buffer, x, y))
+        Some(get_pixel_bicubic(buffer, x, y))
     } else {
         None
     }
@@ -58,7 +58,7 @@ fn rotate_pixel_bicubic(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Option<Rgb
 
 fn rotate_pixel_lanczos3(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Option<Rgb> {
     if buffer.is_in_image(x.round() as i32, y.round() as i32) {
-        Some(get_pixel_lanczos3(&buffer, x, y))
+        Some(get_pixel_lanczos3(buffer, x, y))
     } else {
         None
     }

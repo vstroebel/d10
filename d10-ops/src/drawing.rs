@@ -92,13 +92,13 @@ pub fn drawing(buffer: &PixelBuffer<Rgb>, radius: u32, mode: DrawingMode) -> Pix
 
     match mode {
         DrawingMode::Gray => drawing,
-        DrawingMode::Colored => merge_color(drawing, &orig),
-        DrawingMode::ReducedColors => merge_color_reduced(drawing, &orig),
+        DrawingMode::Colored => merge_color(drawing, orig),
+        DrawingMode::ReducedColors => merge_color_reduced(drawing, orig),
     }
 }
 
 fn merge_color(drawing: PixelBuffer<Rgb>, orig: &PixelBuffer<Rgb>) -> PixelBuffer<Rgb> {
-    compose([&drawing, &orig], Rgb::NONE, |_, _, [d, o]| {
+    compose([&drawing, orig], Rgb::NONE, |_, _, [d, o]| {
         let d = d.to_hsl();
         let o = o.to_hsl();
 
@@ -122,13 +122,13 @@ fn merge_color_reduced(drawing: PixelBuffer<Rgb>, orig: &PixelBuffer<Rgb>) -> Pi
             .to_rgb()
     });
 
-    let out1 = compose([&out1, &gaussian_blur(&orig, 3, None)], Rgb::NONE, |_, _, [c1, c2]| {
+    let out1 = compose([&out1, &gaussian_blur(orig, 3, None)], Rgb::NONE, |_, _, [c1, c2]| {
         c1.to_hsv()
             .with_hue(c2.to_hsv().hue())
             .to_rgb()
     });
 
-    let out1 = compose([&out1, &gaussian_blur(&orig, 4, None)], Rgb::NONE, |_, _, [c1, c2]| {
+    let out1 = compose([&out1, &gaussian_blur(orig, 4, None)], Rgb::NONE, |_, _, [c1, c2]| {
         let c = c1.to_hsv();
 
         c.with_value(c.value() * c2.to_hsv().value())

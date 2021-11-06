@@ -20,7 +20,7 @@ fn get_color_from_palette(palette: &PixelBuffer<Lab<D65, O2>>, c: &Rgb) -> Rgb {
     let test_c = c.to_lab();
 
     for pal_c in palette.data() {
-        let diff = get_delta_e(&test_c, &pal_c);
+        let diff = get_delta_e(&test_c, pal_c);
 
         if diff < min_diff {
             result = Some(pal_c);
