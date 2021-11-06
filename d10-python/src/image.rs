@@ -1,33 +1,33 @@
-use pyo3::prelude::*;
-use pyo3::types::{PyFunction, PyList};
-use pyo3::PyMappingProtocol;
 use pyo3::exceptions::PyOSError;
-
-use crate::IntoPyErr;
-use crate::color::{Rgb, D10LabD65O2, D10LchD65O2};
-
-use d10::{Image as D10Image,
-          Rgb as D10Rgb,
-          EncodingFormat as D10EncodingFormat,
-          PngColorType, PngFilterType,
-          PngCompression,
-          BmpColorType,
-          IcoColorType,
-          FilterMode};
+use pyo3::prelude::*;
+use pyo3::PyMappingProtocol;
+use pyo3::types::{PyFunction, PyList};
 
 #[cfg(feature = "numpy")]
 use {
-    numpy_helper::*,
-    numpy::{PyArray, DataType},
     d10::{Color,
-          Srgb as D10Srgb,
           Hsl as D10Hsl,
           Hsv as D10Hsv,
-          Yuv as D10Yuv,
-          Xyz as D10Xyz},
+          Srgb as D10Srgb,
+          Xyz as D10Xyz,
+          Yuv as D10Yuv},
+    numpy::{DataType, PyArray},
+    numpy_helper::*,
 };
+use d10::{BmpColorType,
+          EncodingFormat as D10EncodingFormat,
+          FilterMode,
+          IcoColorType, Image as D10Image,
+          PngColorType,
+          PngCompression,
+          PngFilterType,
+          Rgb as D10Rgb};
 use d10::illuminant::D65;
 use d10::observer::O2;
+use d10::ops::BlendOp;
+
+use crate::color::{D10LabD65O2, D10LchD65O2, Rgb};
+use crate::IntoPyErr;
 
 #[pyclass]
 pub struct Image {
@@ -295,6 +295,12 @@ impl Image {
         });
 
         res.map(|i| i.into())
+    }
+
+    pub fn blend(&mut self, image: &Image, blend_op: Option<&str>, intensity: Option<f32>) -> PyResult<Image> {
+        let blend_op: BlendOp = blend_op.unwrap_or("normal").parse().py_err()?;
+        let intensity = intensity.unwrap_or(1.0);
+        Ok(self.inner.blend(&image.inner, blend_op, intensity).into())
     }
 
     #[cfg(feature = "numpy")]
@@ -635,9 +641,9 @@ impl EncodingFormat {
 
 #[cfg(feature = "numpy")]
 mod numpy_helper {
+    use numpy::{DataType, IxDyn, PyArrayDyn};
     use pyo3::{PyAny, PyResult};
     use pyo3::exceptions::PyOSError;
-    use numpy::{PyArrayDyn, IxDyn, DataType};
 
     pub fn extract_data_type(data_type: Option<&PyAny>) -> PyResult<DataType> {
         let data_type = match data_type {

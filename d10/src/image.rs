@@ -1,9 +1,11 @@
-use crate::{ops, Rgb, PixelBuffer};
-use std::path::Path;
-use d10_ops::{FilterMode, DrawingMode};
-use d10_codecs::{EncodingFormat, DecodingError, EncodingError};
-use std::io::Write;
 use std::convert::TryInto;
+use std::io::Write;
+use std::path::Path;
+
+use d10_codecs::{DecodingError, EncodingError, EncodingFormat};
+use d10_ops::{blend_image, BlendOp, DrawingMode, FilterMode};
+
+use crate::{ops, PixelBuffer, Rgb};
 
 #[derive(Clone)]
 pub struct Image {
@@ -314,6 +316,10 @@ impl Image {
         Self::new_from_buffer_with_meta(images[0], result)
     }
 
+    pub fn blend(&self, other: &Image, blend_op: BlendOp, intensity: f32) -> Image {
+        Self::new_from_buffer_with_meta(self, blend_image(&self.buffer, other.buffer(), blend_op, intensity))
+    }
+
     pub fn drawing(&self, radius: u32, mode: DrawingMode) -> Image {
         Self::new_from_buffer_with_meta(self, ops::drawing(&self.buffer, radius, mode))
     }
@@ -337,21 +343,24 @@ impl Image {
 
 #[cfg(test)]
 mod tests {
+    use d10_ops::{DrawingMode, FilterMode};
+
+    use crate::ops::BlendOp;
+    use crate::{Rgb, Color};
+
     use super::Image;
-    use crate::Rgb;
-    use d10_ops::{FilterMode, DrawingMode};
 
     fn test_image_3_2() -> Image {
         Image::new_from_raw(3, 2, vec![
             Rgb::WHITE, Rgb::BLACK, Rgb::YELLOW,
-            Rgb::RED, Rgb::GREEN, Rgb::BLUE
+            Rgb::RED, Rgb::GREEN, Rgb::BLUE,
         ])
     }
 
     fn test_image_4_2() -> Image {
         Image::new_from_raw(4, 2, vec![
             Rgb::WHITE, Rgb::BLACK, Rgb::YELLOW, Rgb::MAGENTA,
-            Rgb::RED, Rgb::GREEN, Rgb::BLUE, Rgb::CYAN
+            Rgb::RED, Rgb::GREEN, Rgb::BLUE, Rgb::CYAN,
         ])
     }
 
@@ -608,6 +617,7 @@ mod tests {
     #[cfg(test)]
     mod tests {
         use d10_core::color::Rgb;
+
         use super::*;
 
         #[test]
@@ -646,6 +656,21 @@ mod tests {
             assert_eq!(result.get_pixel(0, 4), &Rgb::BLUE);
             assert_eq!(result.get_pixel(1, 1), &Rgb::RED);
             assert_eq!(result.get_pixel(3, 4), &Rgb::default());
+        }
+    }
+
+    #[test]
+    fn test_blend() {
+        let b1 = Image::new_with_color(4, 4, Rgb::GREEN);
+        let b2 = Image::new_with_color(4, 4, Rgb::BLUE);
+
+        let result = b1.blend(&b2, BlendOp::Normal, 0.3);
+
+        assert_eq!(result.width(), 4);
+        assert_eq!(result.height(), 4);
+
+        for (&c1, (&c2, &out)) in b1.data().iter().zip(b2.data().iter().zip(result.data().iter())) {
+            assert_eq!(c1.alpha_blend(c2.with_alpha(0.3)), out);
         }
     }
 

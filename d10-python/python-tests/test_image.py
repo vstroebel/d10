@@ -320,6 +320,20 @@ class TestImage(unittest.TestCase):
         self.assertEqual(result.get_pixel(1, 1), red)
         self.assertEqual(result.get_pixel(3, 4), none)
 
+    def test_blend(self):
+        green = Rgb(0, 1, 0)
+        blue = Rgb(0, 0, 1)
+
+        b1 = Image(4, 4, green)
+        b2 = Image(4, 4, blue)
+
+        result = b1.blend(b2, 'normal', 0.3)
+
+        self.assertEqual(result.width, 4)
+        self.assertEqual(result.height, 4)
+
+        self.assertEqual(result.get_pixel(0, 0), green.alpha_blend(blue.with_alpha(0.3)))
+
     def test_drawing(self):
         img = Image(3, 4)
 
