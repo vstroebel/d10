@@ -84,11 +84,10 @@ pub(crate) fn encode_webp<W>(mut w: W,
 
         let encoded = std::slice::from_raw_parts(out_buf, len as usize);
 
-        w.write_all(encoded).unwrap();
-
+        let res = w.write_all(encoded);
         WebPFree(out_buf as *mut c_void);
 
-        Ok(())
+        res.map_err(|err| err.into())
     }
 }
 
