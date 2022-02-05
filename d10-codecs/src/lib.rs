@@ -1,29 +1,30 @@
+use std::fs::File;
+use std::io::{BufRead, BufReader, BufWriter, Cursor, Read, Seek, SeekFrom, Write};
+use std::path::Path;
+
+use d10_core::color::Rgb;
+use d10_core::pixelbuffer::PixelBuffer;
+
+use crate::bmp::{decode_bmp, encode_bmp};
+pub use crate::bmp::BmpColorType;
+pub use crate::errors::*;
+use crate::gif::{decode_gif, encode_gif};
+use crate::ico::{decode_ico, encode_ico};
+pub use crate::ico::IcoColorType;
+use crate::jpeg::{decode_jpeg, encode_jpeg};
+pub use crate::jpeg::JpegSamplingFactor;
+pub use crate::png::{PngColorType, PngCompression, PngFilterType};
+use crate::png::{decode_png, encode_png};
+use crate::webp::{decode_webp, encode_webp};
+
 mod utils;
 mod jpeg;
 mod png;
 mod gif;
 mod bmp;
 mod ico;
+mod webp;
 mod errors;
-
-use d10_core::pixelbuffer::PixelBuffer;
-use d10_core::color::Rgb;
-
-use std::path::Path;
-use std::io::{Cursor, Read, Seek, Write, SeekFrom, BufReader, BufRead, BufWriter};
-use std::fs::File;
-
-pub use crate::jpeg::JpegSamplingFactor;
-pub use crate::png::{PngColorType, PngCompression, PngFilterType};
-pub use crate::bmp::BmpColorType;
-pub use crate::ico::IcoColorType;
-pub use crate::errors::*;
-
-use crate::jpeg::{decode_jpeg, encode_jpeg};
-use crate::png::{decode_png, encode_png};
-use crate::gif::{decode_gif, encode_gif};
-use crate::bmp::{decode_bmp, encode_bmp};
-use crate::ico::{decode_ico, encode_ico};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Format {
@@ -32,6 +33,7 @@ pub enum Format {
     Gif,
     Bmp,
     Ico,
+    WebP,
 }
 
 impl Format {
@@ -47,12 +49,13 @@ impl Format {
             "gif" => Some(Self::Gif),
             "bmp" => Some(Self::Bmp),
             "ico" => Some(Self::Ico),
+            "webp" => Some(Self::WebP),
             _ => None,
         }
     }
 
     pub fn from_reader<T>(reader: &mut T) -> Result<Format, DecodingError> where T: Read + Seek {
-        let mut buf = [0u8; 8];
+        let mut buf = [0u8; 12];
 
         let len = reader.read(&mut buf)?;
 
@@ -65,6 +68,8 @@ impl Format {
             [0x47, 0x49, 0x46, 0x38, 0x39, 0x61, ..] => Ok(Format::Gif),
             [0x42, 0x4D, ..] => Ok(Format::Bmp),
             [0x00, 0x00, 0x01, 0x00, ..] => Ok(Format::Ico),
+            [b'R', b'I', b'F', b'F', _, _, _, _, b'W', b'E', b'B', b'P'] => Ok(Format::WebP),
+
             _ => Err(DecodingError::UnknownFormat),
         }
     }
@@ -91,6 +96,9 @@ pub enum EncodingFormat {
     Ico {
         color_type: IcoColorType
     },
+    WebP {
+        quality: u8,
+    },
 }
 
 impl EncodingFormat {
@@ -101,6 +109,7 @@ impl EncodingFormat {
             EncodingFormat::Gif => Format::Gif,
             EncodingFormat::Bmp { .. } => Format::Bmp,
             EncodingFormat::Ico { .. } => Format::Ico,
+            EncodingFormat::WebP { .. } => Format::WebP,
         }
     }
 
@@ -148,6 +157,14 @@ impl EncodingFormat {
         }
     }
 
+    pub fn webp_default() -> Self {
+        Self::WebP { quality: 90 }
+    }
+
+    pub fn webp_with_quality(quality: u8) -> Self {
+        Self::WebP { quality }
+    }
+
     pub fn from_path(path: &Path) -> Result<EncodingFormat, EncodingError> {
         match Format::from_path(path) {
             Some(Format::Jpeg) => Ok(EncodingFormat::jpeg_default()),
@@ -155,6 +172,7 @@ impl EncodingFormat {
             Some(Format::Gif) => Ok(EncodingFormat::gif_default()),
             Some(Format::Bmp) => Ok(EncodingFormat::bmp_default()),
             Some(Format::Ico) => Ok(EncodingFormat::ico_default()),
+            Some(Format::WebP) => Ok(EncodingFormat::webp_default()),
             None => Err(EncodingError::BadFileExtension(path.to_string_lossy().to_string()))
         }
     }
@@ -165,9 +183,12 @@ pub struct DecodedImage {
 }
 
 pub fn decode_file<P>(path: P) -> Result<DecodedImage, DecodingError> where P: AsRef<Path> {
+    let path = path.as_ref();
     let file = File::open(path)?;
     let mut reader = BufReader::new(file);
     if let Ok(format) = Format::from_reader(&mut reader) {
+        decode(reader, format)
+    } else if let Some(format) = Format::from_path(path) {
         decode(reader, format)
     } else {
         Err(DecodingError::UnknownFormat)
@@ -188,6 +209,7 @@ fn decode<T>(reader: T, format: Format) -> Result<DecodedImage, DecodingError> w
         Format::Gif => decode_gif(reader),
         Format::Bmp => decode_bmp(reader),
         Format::Ico => decode_ico(reader),
+        Format::WebP => decode_webp(reader),
     }
 }
 
@@ -204,7 +226,7 @@ pub fn encode_to_file<P>(path: P, buffer: &PixelBuffer<Rgb>, format: Option<Enco
 
 pub fn encode<W>(w: W, buffer: &PixelBuffer<Rgb>, format: EncodingFormat) -> Result<(), EncodingError> where W: Write {
     match format {
-        EncodingFormat::Jpeg { quality, progressive, sampling_factor, grayscale , optimize_huffman_tables} =>
+        EncodingFormat::Jpeg { quality, progressive, sampling_factor, grayscale, optimize_huffman_tables } =>
             encode_jpeg(w,
                         buffer,
                         quality,
@@ -216,6 +238,7 @@ pub fn encode<W>(w: W, buffer: &PixelBuffer<Rgb>, format: EncodingFormat) -> Res
         EncodingFormat::Gif => encode_gif(w, buffer),
         EncodingFormat::Bmp { color_type } => encode_bmp(w, buffer, color_type),
         EncodingFormat::Ico { color_type } => encode_ico(w, buffer, color_type),
+        EncodingFormat::WebP { quality } => encode_webp(w, buffer, quality),
     }
 }
 

@@ -637,6 +637,15 @@ impl EncodingFormat {
             }
         })
     }
+
+    #[staticmethod]
+    fn webp(quality: Option<u8>) -> PyResult<EncodingFormat> {
+        Ok(EncodingFormat {
+            inner: D10EncodingFormat::WebP {
+                quality: quality.unwrap_or(85),
+            }
+        })
+    }
 }
 
 #[cfg(feature = "numpy")]
