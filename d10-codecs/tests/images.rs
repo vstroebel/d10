@@ -1,5 +1,3 @@
-use std::fs::File;
-use std::io::Write;
 use d10_codecs::{decode_buffer, decode_file, encode, EncodingFormat};
 
 // Because reference images are u8 based and there might be rounding
@@ -28,9 +26,6 @@ fn test_encode(path: &str) {
 
     let mut buffer = vec![];
     encode(&mut buffer, &orig, EncodingFormat::webp_with_quality(95)).unwrap();
-
-
-    File::create("test.webp").unwrap().write_all(&buffer).unwrap();
 
     let result = decode_buffer(&buffer).unwrap().buffer;
     let expected = decode_file(&format!("{}.png", path)).unwrap().buffer;
