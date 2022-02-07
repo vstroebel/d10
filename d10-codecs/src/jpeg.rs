@@ -15,14 +15,29 @@ use crate::{DecodedImage, EncodingError, DecodingError};
 #[allow(non_camel_case_types)]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum JpegSamplingFactor {
-    F_1_1 = 1 << 4 | 1,
-    F_2_1 = 2 << 4 | 1,
-    F_1_2 = 1 << 4 | 2,
-    F_2_2 = 2 << 4 | 2,
-    F_4_1 = 4 << 4 | 1,
-    F_4_2 = 4 << 4 | 2,
-    F_1_4 = 1 << 4 | 4,
-    F_2_4 = 2 << 4 | 4,
+    /// 1x1
+    F_1_1,
+
+    /// 2x1
+    F_2_1,
+
+    /// 1x2
+    F_1_2,
+
+    /// 2x2
+    F_2_2,
+
+    /// 4x1 (not supported by all decoders)
+    F_4_1,
+
+    /// 4x2 (not supported by all decoders)
+    F_4_2,
+
+    /// 1x4 (not supported by all decoders)
+    F_1_4,
+
+    /// 2x4 (not supported by all decoders)
+    F_2_4,
 
     /// Alias for F_1_1
     R_4_4_4,
