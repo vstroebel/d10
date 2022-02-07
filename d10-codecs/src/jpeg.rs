@@ -8,7 +8,7 @@ use std::str::FromStr;
 use jpeg_encoder::{Encoder, SamplingFactor, ColorType, EncodingError as JpegEncodingError};
 use jpeg_decoder::{Decoder, PixelFormat, Error as DecoderError};
 
-use crate::utils::{to_rgb8_vec, to_l8_vec, from_u8, cmyk_to_rgb};
+use crate::utils::{to_rgb8_vec, to_l8_vec, from_u8, from_u16_be, cmyk_to_rgb, };
 use crate::{DecodedImage, EncodingError, DecodingError};
 
 
@@ -174,6 +174,12 @@ pub(crate) fn decode_jpeg<T>(reader: T) -> Result<DecodedImage, DecodingError> w
                           from_u8(*v),
                           from_u8(*v))
                     .to_rgb()
+            }).collect()
+        }
+        PixelFormat::L16 => {
+            data.chunks(2).map(|chunks| {
+                let v = from_u16_be([chunks[0], chunks[1]]);
+                Srgb::new(v, v, v).to_rgb()
             }).collect()
         }
         PixelFormat::RGB24 => {
