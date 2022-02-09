@@ -1,15 +1,15 @@
-use d10_core::pixelbuffer::PixelBuffer;
-use d10_core::color::Rgb;
-use d10_core::errors::ParseEnumError;
-
-use std::io::{Write, Seek, BufRead, Read};
+use std::io::{BufRead, Read, Seek, Write};
 use std::str::FromStr;
 
-use crate::utils::*;
-use crate::{DecodedImage, EncodingError, DecodingError};
+use image::{ColorType, DynamicImage, ImageEncoder, ImageError};
+use image::codecs::ico::{IcoDecoder, IcoEncoder};
 
-use image::codecs::ico::{IcoEncoder, IcoDecoder};
-use image::{ColorType, ImageError, DynamicImage};
+use d10_core::color::Rgb;
+use d10_core::errors::ParseEnumError;
+use d10_core::pixelbuffer::PixelBuffer;
+
+use crate::{DecodedImage, DecodingError, EncodingError};
+use crate::utils::*;
 
 #[derive(Copy, Clone, Debug)]
 pub enum IcoColorType {
@@ -46,7 +46,7 @@ pub(crate) fn encode_ico<W>(w: W,
     };
 
     if let Err(err) = IcoEncoder::new(w)
-        .encode(&out, buffer.width(), buffer.height(), color_type) {
+        .write_image(&out, buffer.width(), buffer.height(), color_type) {
         Err(match err {
             ImageError::IoError(err) => EncodingError::IoError(err),
             err => EncodingError::Encoding(err.to_string())

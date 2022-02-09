@@ -1,4 +1,4 @@
-use image::{DynamicImage, GenericImageView};
+use image::DynamicImage;
 
 use d10_core::color::{Color, Rgb, Srgb};
 use d10_core::pixelbuffer::{is_valid_buffer_size, PixelBuffer};
@@ -168,18 +168,6 @@ pub fn read_into_buffer(img: DynamicImage) -> Result<PixelBuffer<Rgb>, DecodingE
                 f32::from(pixel[2]) / 255.0,
                 f32::from(pixel[3]) / 255.0]
         }.to_rgb()).collect(),
-        ImageBgr8(img) => img.pixels().map(|pixel| Srgb {
-            data: [f32::from(pixel[2]) / 255.0,
-                f32::from(pixel[1]) / 255.0,
-                f32::from(pixel[0]) / 255.0,
-                1.0]
-        }.to_rgb()).collect(),
-        ImageBgra8(img) => img.pixels().map(|pixel| Srgb {
-            data: [f32::from(pixel[2]) / 255.0,
-                f32::from(pixel[1]) / 255.0,
-                f32::from(pixel[0]) / 255.0,
-                f32::from(pixel[2]) / 255.0]
-        }.to_rgb()).collect(),
         ImageRgb16(img) => img.pixels().map(|pixel| Srgb {
             data: [f32::from(pixel[0]) / 65535.0,
                 f32::from(pixel[1]) / 65535.0,
@@ -216,6 +204,13 @@ pub fn read_into_buffer(img: DynamicImage) -> Result<PixelBuffer<Rgb>, DecodingE
                 f32::from(pixel[0]) / 65535.0,
                 f32::from(pixel[1]) / 65535.0]
         }.to_rgb()).collect(),
+        ImageRgb32F(img) => img.pixels().map(|pixel| Srgb {
+            data: [pixel[0], pixel[1], pixel[2], 1.0]
+        }.to_rgb()).collect(),
+        ImageRgba32F(img) => img.pixels().map(|pixel| Srgb {
+            data: [pixel[0], pixel[1], pixel[2], pixel[3]]
+        }.to_rgb()).collect(),
+        img => return Err(DecodingError::Decoding(format!("Unsupported image format: {:?}", img.color()))),
     };
 
     Ok(PixelBuffer::new_from_raw(width, height, data))
