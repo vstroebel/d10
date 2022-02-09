@@ -14,14 +14,7 @@ use {
     numpy::{DataType, PyArray},
     numpy_helper::*,
 };
-use d10::{BmpColorType,
-          EncodingFormat as D10EncodingFormat,
-          FilterMode,
-          IcoColorType, Image as D10Image,
-          PngColorType,
-          PngCompression,
-          PngFilterType,
-          Rgb as D10Rgb};
+use d10::{BmpColorType, EncodingFormat as D10EncodingFormat, FilterMode, IcoColorType, Image as D10Image, PngColorType, PngCompression, PngFilterType, Rgb as D10Rgb, WebPPreset};
 use d10::illuminant::D65;
 use d10::observer::O2;
 use d10::ops::BlendOp;
@@ -639,10 +632,16 @@ impl EncodingFormat {
     }
 
     #[staticmethod]
-    fn webp(quality: Option<u8>) -> PyResult<EncodingFormat> {
+    fn webp(quality: Option<u8>, preset: Option<String>) -> PyResult<EncodingFormat> {
+        let preset =   match preset {
+            Some(v) => v.parse().py_err()?,
+            None => WebPPreset::Default,
+        };
+
         Ok(EncodingFormat {
             inner: D10EncodingFormat::WebP {
                 quality: quality.unwrap_or(85),
+                preset
             }
         })
     }

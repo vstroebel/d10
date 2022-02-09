@@ -16,6 +16,7 @@ pub use crate::jpeg::JpegSamplingFactor;
 pub use crate::png::{PngColorType, PngCompression, PngFilterType};
 use crate::png::{decode_png, encode_png};
 use crate::webp::{decode_webp, encode_webp};
+pub use crate::webp::WebPPreset;
 
 mod utils;
 mod jpeg;
@@ -98,6 +99,7 @@ pub enum EncodingFormat {
     },
     WebP {
         quality: u8,
+        preset: WebPPreset,
     },
 }
 
@@ -158,11 +160,15 @@ impl EncodingFormat {
     }
 
     pub fn webp_default() -> Self {
-        Self::WebP { quality: 90 }
+        Self::WebP { quality: 90, preset: WebPPreset::Default }
     }
 
     pub fn webp_with_quality(quality: u8) -> Self {
-        Self::WebP { quality }
+        Self::WebP { quality, preset: WebPPreset::Default }
+    }
+
+    pub fn webp_with_preset(quality: u8, preset: WebPPreset) -> Self {
+        Self::WebP { quality, preset }
     }
 
     pub fn from_path(path: &Path) -> Result<EncodingFormat, EncodingError> {
@@ -238,7 +244,7 @@ pub fn encode<W>(w: W, buffer: &PixelBuffer<Rgb>, format: EncodingFormat) -> Res
         EncodingFormat::Gif => encode_gif(w, buffer),
         EncodingFormat::Bmp { color_type } => encode_bmp(w, buffer, color_type),
         EncodingFormat::Ico { color_type } => encode_ico(w, buffer, color_type),
-        EncodingFormat::WebP { quality } => encode_webp(w, buffer, quality),
+        EncodingFormat::WebP { quality, preset } => encode_webp(w, buffer, quality, preset),
     }
 }
 

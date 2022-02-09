@@ -1,6 +1,7 @@
-use d10_core::pixelbuffer::{PixelBuffer, is_valid_buffer_size};
-use d10_core::color::{Color, Rgb, Srgb};
 use image::{DynamicImage, GenericImageView};
+
+use d10_core::color::{Color, Rgb, Srgb};
+use d10_core::pixelbuffer::{is_valid_buffer_size, PixelBuffer};
 
 use crate::DecodingError;
 
@@ -61,6 +62,22 @@ pub(crate) fn to_rgba8_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
         out.push(as_u8(color.green()));
         out.push(as_u8(color.blue()));
         out.push(as_u8(color.alpha()));
+    }
+
+    out
+}
+
+pub(crate) fn to_argb8_vec32(buffer: &PixelBuffer<Rgb>) -> Vec<u32> {
+    let mut out: Vec<u32> = Vec::with_capacity(buffer.width() as usize * buffer.height() as usize);
+
+    for color in buffer.data().iter() {
+        let color = color.to_srgb();
+
+        let v = (as_u8(color.alpha()) as u32) << 24
+            | (as_u8(color.red()) as u32) << 16
+            | (as_u8(color.green()) as u32) << 8
+            | as_u8(color.blue()) as u32;
+        out.push(v);
     }
 
     out

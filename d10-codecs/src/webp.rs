@@ -1,13 +1,46 @@
 use std::ffi::c_void;
 use std::io::{BufRead, Read, Seek, Write};
+use std::mem;
+use std::str::FromStr;
 
-use libwebp_sys::{WebPDecodeRGBA, WebPEncodeRGBA, WebPFree, WebPGetInfo};
+use libwebp_sys::{WebPConfig, WebPConfigLosslessPreset, WebPDecodeRGBA, WebPEncode, WebPFree, WebPGetInfo, WebPPicture, WebPPictureFree};
+use libwebp_sys::WebPPreset::{WEBP_PRESET_DEFAULT, WEBP_PRESET_DRAWING, WEBP_PRESET_ICON, WEBP_PRESET_PHOTO, WEBP_PRESET_PICTURE, WEBP_PRESET_TEXT};
 
 use d10_core::color::{Color, Rgb, Srgb};
+use d10_core::errors::ParseEnumError;
 use d10_core::pixelbuffer::PixelBuffer;
 
 use crate::{DecodedImage, DecodingError, EncodingError};
-use crate::utils::{from_u8, to_rgba8_vec};
+use crate::utils::{from_u8, to_argb8_vec32};
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum WebPPreset {
+    Default,
+    Picture,
+    Photo,
+    Drawing,
+    Icon,
+    Text,
+    Lossless,
+}
+
+impl FromStr for WebPPreset {
+    type Err = ParseEnumError;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        use WebPPreset::*;
+        match value {
+            "default" => Ok(Default),
+            "picture" => Ok(Picture),
+            "photo" => Ok(Photo),
+            "drawing" => Ok(Drawing),
+            "icon" => Ok(Icon),
+            "text" => Ok(Text),
+            "lossless" => Ok(Lossless),
+            _ => Err(ParseEnumError::new(value, "WebPPreset"))
+        }
+    }
+}
 
 pub(crate) fn decode_webp<T>(mut reader: T) -> Result<DecodedImage, DecodingError> where T: Read + Seek + BufRead {
     let mut width = 0;
@@ -57,37 +90,85 @@ pub(crate) fn decode_webp<T>(mut reader: T) -> Result<DecodedImage, DecodingErro
     }
 }
 
+#[repr(C)]
+struct Writer<'a> {
+    w: &'a mut dyn Write,
+    err: Option<std::io::Error>,
+}
+
+unsafe extern "C" fn writer_function(
+    data: *const u8,
+    data_size: usize,
+    picture: *const WebPPicture,
+) -> ::std::os::raw::c_int {
+    let write: *mut Writer = mem::transmute((*picture).custom_ptr);
+
+    match (*write).w.write_all(std::slice::from_raw_parts(data, data_size)) {
+        Ok(_) => 1,
+        Err(err) => {
+            (*write).err = Some(err);
+            0
+        }
+    }
+}
+
 pub(crate) fn encode_webp<W>(mut w: W,
                              buffer: &PixelBuffer<Rgb>,
-                             quality: u8) -> Result<(), EncodingError>
+                             quality: u8,
+                             preset: WebPPreset) -> Result<(), EncodingError>
     where W: Write {
     unsafe {
         let quality = quality.clamp(0, 100) as f32;
         let width = buffer.width() as i32;
         let height = buffer.height() as i32;
 
-        let mut out_buf = std::ptr::null_mut();
-        let stride = width * 4;
+        let config = match preset {
+            WebPPreset::Default => WebPConfig::new_with_preset(WEBP_PRESET_DEFAULT, quality),
+            WebPPreset::Picture => WebPConfig::new_with_preset(WEBP_PRESET_PICTURE, quality),
+            WebPPreset::Photo => WebPConfig::new_with_preset(WEBP_PRESET_PHOTO, quality),
+            WebPPreset::Drawing => WebPConfig::new_with_preset(WEBP_PRESET_DRAWING, quality),
+            WebPPreset::Icon => WebPConfig::new_with_preset(WEBP_PRESET_ICON, quality),
+            WebPPreset::Text => WebPConfig::new_with_preset(WEBP_PRESET_TEXT, quality),
+            WebPPreset::Lossless => {
+                let mut config = WebPConfig::new();
+                if let Ok(config) = &mut config {
+                    WebPConfigLosslessPreset(config, 100);
+                }
+                config
+            }
+        }.map_err(|_| EncodingError::Encoding("Unable to init webp encoder config".to_owned()))?;
 
-        let raw_data = to_rgba8_vec(buffer);
+        let mut picture = WebPPicture::new()
+            .map_err(|_| EncodingError::Encoding("Unable to init webp picture config".to_owned()))?;
 
-        let len = WebPEncodeRGBA(raw_data.as_ptr(), width, height, stride, quality, &mut out_buf);
+        let mut write = Writer {
+            w: &mut w,
+            err: None,
+        };
 
-        if out_buf.is_null() {
-            return Err(EncodingError::Encoding("Error encoding data".to_string()));
+        let raw_data = to_argb8_vec32(buffer);
+
+        picture.use_argb = 1;
+        picture.width = width;
+        picture.height = height;
+        picture.argb = raw_data.as_ptr() as *mut u32;
+        picture.argb_stride = width;
+        picture.writer = Some(writer_function);
+        picture.custom_ptr = &mut write as *mut _ as *mut c_void;
+
+        let res = WebPEncode(&config, &mut picture);
+        WebPPictureFree(&mut picture);
+
+        match write.err {
+            None => {
+                if res == 0 {
+                    Err(EncodingError::Encoding("Error encoding webp file".to_owned()))
+                } else {
+                    Ok(())
+                }
+            }
+            Some(err) => Err(err.into()),
         }
-
-        if len == 0 {
-            WebPFree(out_buf as *mut c_void);
-            return Err(EncodingError::Encoding("Zero length encoding data".to_string()));
-        }
-
-        let encoded = std::slice::from_raw_parts(out_buf, len as usize);
-
-        let res = w.write_all(encoded);
-        WebPFree(out_buf as *mut c_void);
-
-        res.map_err(|err| err.into())
     }
 }
 
