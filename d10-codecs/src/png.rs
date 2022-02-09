@@ -1,15 +1,15 @@
-use d10_core::pixelbuffer::{PixelBuffer, is_valid_buffer_size};
-use d10_core::color::{Rgb, Srgb, Color};
-use d10_core::errors::ParseEnumError;
-
-use std::io::{Write, Seek, BufRead, Read};
+use std::io::{BufRead, Read, Seek, Write};
 use std::str::FromStr;
 
-use crate::utils::*;
-use crate::{DecodedImage, EncodingError, DecodingError};
-
 use png::{Compression, FilterType};
-use png::{ColorType, BitDepth, DecodingError as PngDecodingError, Encoder, EncodingError  as PngEncodingError, Decoder};
+use png::{BitDepth, ColorType, Decoder, DecodingError as PngDecodingError, Encoder, EncodingError  as PngEncodingError};
+
+use d10_core::color::{Color, Rgb, Srgb};
+use d10_core::errors::ParseEnumError;
+use d10_core::pixelbuffer::{is_valid_buffer_size, PixelBuffer};
+
+use crate::{DecodedImage, DecodingError, EncodingError};
+use crate::utils::*;
 
 #[derive(Copy, Clone, Debug)]
 pub enum PngColorType {
@@ -136,17 +136,17 @@ pub(crate) fn encode_png<W>(w: W,
         PngColorType::La8 => (to_la8_vec(buffer), ColorType::GrayscaleAlpha, BitDepth::Eight),
         PngColorType::L16 => (to_l16_be_vec(buffer), ColorType::Grayscale, BitDepth::Sixteen),
         PngColorType::La16 => (to_la16_be_vec(buffer), ColorType::GrayscaleAlpha, BitDepth::Sixteen),
-        PngColorType::Rgb8 => (to_rgb8_vec(buffer), ColorType::RGB, BitDepth::Eight),
-        PngColorType::Rgba8 => (to_rgba8_vec(buffer), ColorType::RGBA, BitDepth::Eight),
-        PngColorType::Rgb16 => (to_rgb16_be_vec(buffer), ColorType::RGB, BitDepth::Sixteen),
-        PngColorType::Rgba16 => (to_rgba16_be_vec(buffer), ColorType::RGBA, BitDepth::Sixteen),
+        PngColorType::Rgb8 => (to_rgb8_vec(buffer), ColorType::Rgb, BitDepth::Eight),
+        PngColorType::Rgba8 => (to_rgba8_vec(buffer), ColorType::Rgba, BitDepth::Eight),
+        PngColorType::Rgb16 => (to_rgb16_be_vec(buffer), ColorType::Rgb, BitDepth::Sixteen),
+        PngColorType::Rgba16 => (to_rgba16_be_vec(buffer), ColorType::Rgba, BitDepth::Sixteen),
     };
 
     let mut encoder = Encoder::new(w, buffer.width(), buffer.height());
 
     encoder.set_color(color_type);
     encoder.set_depth(bit_depth);
-    encoder.set_compression(compression);
+    encoder.set_compression(compression.into());
     encoder.set_filter(filter.into());
 
     let mut writer = encoder.write_header().map_err(encode_error)?;
@@ -166,7 +166,7 @@ pub(crate) fn decode_png<T>(reader: T) -> Result<DecodedImage, DecodingError> wh
     let mut decoder = Decoder::new(reader);
     decoder.set_transformations(png::Transformations::EXPAND);
 
-    let (_, mut reader) = decoder
+    let mut reader = decoder
         .read_info()
         .map_err(decode_error)?;
 
@@ -184,7 +184,7 @@ pub(crate) fn decode_png<T>(reader: T) -> Result<DecodedImage, DecodingError> wh
 
 
     let raw: Vec<Rgb> = match (color_type, bits) {
-        (ColorType::RGBA, BitDepth::Eight) => {
+        (ColorType::Rgba, BitDepth::Eight) => {
             let mut buffer = vec![0u8; num_pixel * 4];
             reader.next_frame(&mut buffer).map_err(decode_error)?;
 
@@ -196,7 +196,7 @@ pub(crate) fn decode_png<T>(reader: T) -> Result<DecodedImage, DecodingError> wh
                     .to_rgb()
             }).collect()
         }
-        (ColorType::RGB, BitDepth::Eight) => {
+        (ColorType::Rgb, BitDepth::Eight) => {
             let mut buffer = vec![0u8; num_pixel * 3];
             reader.next_frame(&mut buffer).map_err(decode_error)?;
 
@@ -230,7 +230,7 @@ pub(crate) fn decode_png<T>(reader: T) -> Result<DecodedImage, DecodingError> wh
                     .to_rgb()
             }).collect()
         }
-        (ColorType::RGBA, BitDepth::Sixteen) => {
+        (ColorType::Rgba, BitDepth::Sixteen) => {
             let mut buffer = vec![0u8; num_pixel * 8];
             reader.next_frame(&mut buffer).map_err(decode_error)?;
 
@@ -242,7 +242,7 @@ pub(crate) fn decode_png<T>(reader: T) -> Result<DecodedImage, DecodingError> wh
                     .to_rgb()
             }).collect()
         }
-        (ColorType::RGB, BitDepth::Sixteen) => {
+        (ColorType::Rgb, BitDepth::Sixteen) => {
             let mut buffer = vec![0u8; num_pixel * 6];
             reader.next_frame(&mut buffer).map_err(decode_error)?;
 
