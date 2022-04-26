@@ -128,7 +128,7 @@ impl Rgb {
     }
 
     pub fn with_gamma(&self, gamma: f32) -> Rgb {
-        self.map_channels(|v| v.powf(1.0 / gamma))
+        self.map_channels(|v| clamp(v).powf(1.0 / gamma))
     }
 
     pub fn with_level(&self, black_point: f32, white_point: f32, gamma: f32) -> Rgb {
