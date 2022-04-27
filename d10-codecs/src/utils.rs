@@ -145,6 +145,10 @@ pub fn from_u16_be(v: [u8; 2]) -> f32 {
     f32::from(u16::from_be_bytes(v)) / 65535.0
 }
 
+pub fn from_u16_ne(v: [u8; 2]) -> f32 {
+    f32::from(u16::from_ne_bytes(v)) / 65535.0
+}
+
 pub fn read_into_buffer(img: DynamicImage) -> Result<PixelBuffer<Rgb>, DecodingError> {
     let width = img.width();
     let height = img.height();
