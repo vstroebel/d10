@@ -1,8 +1,9 @@
+use super::{Color, Rgb, EPSILON, format_color, Xyz};
+
 use std::marker::PhantomData;
+use std::fmt::{Display, Debug};
 use crate::color::illuminant::D65;
 use crate::color::observer::O2;
-use crate::color::{Color, Rgb, EPSILON, format_color, Xyz};
-use std::fmt::{Display, Debug};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Lab<I: Illuminant = D65, O: Observer = O2> {

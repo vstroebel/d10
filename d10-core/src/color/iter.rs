@@ -1,8 +1,7 @@
-use crate::color::{Color, Rgb, Srgb, Hsl, Hsv, Yuv, Xyz, Lab, Lch};
+use crate::color::{Color, Rgb, Srgb, Hsl, Hsv, Yuv, Xyz, Lab, Lch, lab::{Illuminant, Observer}};
 
 use std::iter::Cloned;
 use std::marker::PhantomData;
-use crate::color::lab::{Illuminant, Observer};
 
 pub struct ToRgbIter<I, C: Color> {
     iter: I,

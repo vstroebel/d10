@@ -1,10 +1,9 @@
-use super::{Color, Rgb, EPSILON};
+use super::{Color, format_color, Rgb, EPSILON};
 use std::fmt::Display;
-use crate::color::format_color;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Hsv {
-    pub data: [f32; 4]
+    pub data: [f32; 4],
 }
 
 impl Hsv {

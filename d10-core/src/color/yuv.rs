@@ -1,6 +1,5 @@
-use super::{Color, Rgb, Srgb, EPSILON};
+use super::{Color, format_color, apply_matrix, Rgb, Srgb, EPSILON};
 use std::fmt::Display;
-use crate::color::{format_color, apply_matrix};
 
 pub(crate) const RGB_TO_YUV: [[f32; 3]; 3] = [
     [0.299, 0.587, 0.114],
@@ -16,7 +15,7 @@ pub(crate) const YUV_TO_RGB: [[f32; 3]; 3] = [
 
 #[derive(Debug, Copy, Clone)]
 pub struct Yuv {
-    pub data: [f32; 4]
+    pub data: [f32; 4],
 }
 
 impl Yuv {

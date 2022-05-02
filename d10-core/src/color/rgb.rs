@@ -1,8 +1,7 @@
 use crate::errors::ParseEnumError;
-use super::{Color, clamp, EPSILON, Hsl};
+use super::{Color, clamp, format_color, EPSILON, Hsl};
 
 use std::fmt::Display;
-use crate::color::format_color;
 use std::str::FromStr;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
