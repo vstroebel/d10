@@ -120,10 +120,8 @@ private::Sealed +
         let value = max;
 
         let delta = max - min;
-        if delta < EPSILON {
-            saturation = 0.0;
-            hue = 0.0;
-        } else if max > 0.0 {
+
+        if delta >= EPSILON || max >= EPSILON {
             saturation = delta / max;
 
             if red >= max {
@@ -140,12 +138,9 @@ private::Sealed +
                 hue += 360.0;
             }
         } else {
-            // if max is 0, then r = g = b = 0
-            // s = 0, h is undefined
             saturation = 0.0;
             hue = 0.0;
         }
-
 
         Hsv {
             data: [hue / 360.0, saturation, value, rgb.alpha()]
