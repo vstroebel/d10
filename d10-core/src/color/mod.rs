@@ -26,7 +26,7 @@ use crate::color::lab::{get_refs};
 pub(crate) const EPSILON: f32 = 1.0 / 32768.0;
 
 pub(crate) fn clamp(value: f32) -> f32 {
-    value.min(1.0).max(0.0)
+    value.clamp(0.0, 1.0)
 }
 
 /// A trait that must be implemented by all color types
