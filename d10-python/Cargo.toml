@@ -20,7 +20,7 @@ default = ["numpy-arrays"]
 numpy-arrays = ["numpy"]
 
 [dependencies]
-pyo3 = { version = "0.13", features = ["extension-module"] }
+pyo3 = { version = "0.16", features = ["extension-module"] }
 d10 = { path = '../d10' }
-numpy = { version = "0.13", optional = true }
+numpy = { version = "0.16", optional = true }
 

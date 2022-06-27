@@ -1,7 +1,6 @@
 #![allow(clippy::upper_case_acronyms)]
 
 use pyo3::prelude::*;
-use pyo3::PyObjectProtocol;
 use pyo3::types::PyFunction;
 use pyo3::basic::CompareOp;
 
@@ -35,6 +34,7 @@ macro_rules! color_type {
     $with_value_1:ident,
     $with_value_2:ident,
     $with_value_3:ident
+    $($function:item)*
     ) => {
         #[pyclass]
         #[derive(Clone)]
@@ -181,6 +181,23 @@ macro_rules! color_type {
             fn type_name(&self) -> &str {
                 self.inner.type_name()
             }
+
+            fn __str__(&self) -> PyResult<String> {
+                Ok(self.inner.to_string())
+            }
+
+            fn __repr__(&self) -> PyResult<String> {
+                Ok(self.inner.to_string())
+            }
+
+            fn __richcmp__(&self, other: PyRef<Self>, op: CompareOp) -> PyResult<PyObject> {
+                match op {
+                    CompareOp::Eq => Ok(self.inner.eq(&other.inner).into_py(other.py())),
+                    _ => Ok(other.py().NotImplemented()),
+                }
+            }
+
+            $($function)*
         }
 
         impl From<$d10_type_name> for $type_name {
@@ -198,66 +215,10 @@ macro_rules! color_type {
                 }
             }
         }
-
-        #[pyproto]
-        impl PyObjectProtocol for $type_name  {
-            fn __str__(&self) -> PyResult<String> {
-                Ok(self.inner.to_string())
-            }
-
-            fn __repr__(&self) -> PyResult<String> {
-                Ok(self.inner.to_string())
-            }
-
-            fn __richcmp__(&self, other: PyRef<Self>, op: CompareOp) -> PyResult<PyObject> {
-                match op {
-                    CompareOp::Eq => Ok(self.inner.eq(&other.inner).into_py(other.py())),
-                    _ => Ok(other.py().NotImplemented()),
-                }
-            }
-        }
-
     };
 }
 
-color_type!(Rgb, D10Rgb, red, green, blue, get_red, get_green, get_blue, set_red, set_green, set_blue, with_red, with_green, with_blue);
-color_type!(Srgb, D10Srgb, red, green, blue, get_red, get_green, get_blue, set_red, set_green, set_blue, with_red, with_green, with_blue);
-color_type!(Hsl, D10Hsl, hue, saturation, lightness, get_hue, get_saturation, get_lightness, set_hue, set_saturation, set_lightness, with_hue, with_saturation, with_lightness);
-color_type!(Hsv, D10Hsv, hue, saturation, value, get_hue, get_saturation, get_value, set_hue, set_saturation, set_value, with_hue, with_saturation, with_value);
-color_type!(Yuv, D10Yuv, y, u, v, get_y, get_u, get_v, set_y, set_u, set_v, with_y, with_u, with_v);
-color_type!(Xyz, D10Xyz, x, y, z, get_x, get_y, get_z, set_x, set_y, set_z, with_x, with_y, with_z);
-
-pub type D10LabD65O2 = D10Lab<illuminant::D65, observer::O2>;
-pub type D10LabD65O10 = D10Lab<illuminant::D65, observer::O10>;
-pub type D10LabD50O2 = D10Lab<illuminant::D50, observer::O2>;
-pub type D10LabD50O10 = D10Lab<illuminant::D50, observer::O10>;
-pub type D10LabEO2 = D10Lab<illuminant::E, observer::O2>;
-pub type D10LabEO10 = D10Lab<illuminant::E, observer::O10>;
-
-color_type!(LabD65O2, D10LabD65O2, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
-color_type!(LabD65O10, D10LabD65O10, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
-color_type!(LabD50O2, D10LabD50O2, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
-color_type!(LabD50O10, D10LabD50O10, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
-color_type!(LabEO2, D10LabEO2, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
-color_type!(LabEO10, D10LabEO10, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
-
-pub type D10LchD65O2 = D10Lch<illuminant::D65, observer::O2>;
-pub type D10LchD65O10 = D10Lch<illuminant::D65, observer::O10>;
-pub type D10LchD50O2 = D10Lch<illuminant::D50, observer::O2>;
-pub type D10LchD50O10 = D10Lch<illuminant::D50, observer::O10>;
-pub type D10LchEO2 = D10Lch<illuminant::E, observer::O2>;
-pub type D10LchEO10 = D10Lch<illuminant::E, observer::O10>;
-
-color_type!(LchD65O2, D10LchD65O2, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
-color_type!(LchD65O10, D10LchD65O10, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
-color_type!(LchD50O2, D10LchD50O2, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
-color_type!(LchD50O10, D10LchD50O10, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
-color_type!(LchEO2, D10LchEO2, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
-color_type!(LchEO10, D10LchEO10, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
-
-
-#[pymethods]
-impl Rgb {
+color_type!(Rgb, D10Rgb, red, green, blue, get_red, get_green, get_blue, set_red, set_green, set_blue, with_red, with_green, with_blue
     fn is_grayscale(&self) -> bool {
         self.inner.is_grayscale()
     }
@@ -336,5 +297,37 @@ impl Rgb {
 
     fn modulate(&self, hue: f32, saturation: f32, lightness: f32) -> Rgb {
         self.inner.modulate(hue, saturation, lightness).into()
-    }
-}
+    });
+color_type!(Srgb, D10Srgb, red, green, blue, get_red, get_green, get_blue, set_red, set_green, set_blue, with_red, with_green, with_blue);
+color_type!(Hsl, D10Hsl, hue, saturation, lightness, get_hue, get_saturation, get_lightness, set_hue, set_saturation, set_lightness, with_hue, with_saturation, with_lightness);
+color_type!(Hsv, D10Hsv, hue, saturation, value, get_hue, get_saturation, get_value, set_hue, set_saturation, set_value, with_hue, with_saturation, with_value);
+color_type!(Yuv, D10Yuv, y, u, v, get_y, get_u, get_v, set_y, set_u, set_v, with_y, with_u, with_v);
+color_type!(Xyz, D10Xyz, x, y, z, get_x, get_y, get_z, set_x, set_y, set_z, with_x, with_y, with_z);
+
+pub type D10LabD65O2 = D10Lab<illuminant::D65, observer::O2>;
+pub type D10LabD65O10 = D10Lab<illuminant::D65, observer::O10>;
+pub type D10LabD50O2 = D10Lab<illuminant::D50, observer::O2>;
+pub type D10LabD50O10 = D10Lab<illuminant::D50, observer::O10>;
+pub type D10LabEO2 = D10Lab<illuminant::E, observer::O2>;
+pub type D10LabEO10 = D10Lab<illuminant::E, observer::O10>;
+
+color_type!(LabD65O2, D10LabD65O2, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
+color_type!(LabD65O10, D10LabD65O10, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
+color_type!(LabD50O2, D10LabD50O2, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
+color_type!(LabD50O10, D10LabD50O10, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
+color_type!(LabEO2, D10LabEO2, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
+color_type!(LabEO10, D10LabEO10, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
+
+pub type D10LchD65O2 = D10Lch<illuminant::D65, observer::O2>;
+pub type D10LchD65O10 = D10Lch<illuminant::D65, observer::O10>;
+pub type D10LchD50O2 = D10Lch<illuminant::D50, observer::O2>;
+pub type D10LchD50O10 = D10Lch<illuminant::D50, observer::O10>;
+pub type D10LchEO2 = D10Lch<illuminant::E, observer::O2>;
+pub type D10LchEO10 = D10Lch<illuminant::E, observer::O10>;
+
+color_type!(LchD65O2, D10LchD65O2, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
+color_type!(LchD65O10, D10LchD65O10, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
+color_type!(LchD50O2, D10LchD50O2, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
+color_type!(LchD50O10, D10LchD50O10, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
+color_type!(LchEO2, D10LchEO2, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
+color_type!(LchEO10, D10LchEO10, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);

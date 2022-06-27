@@ -1,3 +1,6 @@
+// PyO3 macro generates this for Option types in methods...
+#![allow(clippy::needless_option_as_deref)]
+
 mod color;
 mod image;
 
@@ -44,7 +47,8 @@ fn d10(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<image::Image>()?;
     m.add_class::<image::EncodingFormat>()?;
 
-    #[pyfn(m, "Lab")]
+    #[pyfn(m)]
+    #[pyo3(name = "Lab")]
     fn lab(py: Python, l: f32, a: f32, b: f32, alpha: Option<f32>, illuminant: Option<&str>, observer: Option<&str>) -> PyResult<Py<PyAny>> {
         use pyo3::conversion::IntoPy;
         use crate::color::{LabD65O10, LabD65O2, LabD50O10, LabEO2, LabEO10, LabD50O2};
@@ -63,7 +67,8 @@ fn d10(_py: Python, m: &PyModule) -> PyResult<()> {
         }
     }
 
-    #[pyfn(m, "Lch")]
+    #[pyfn(m)]
+    #[pyo3(name = "Lch")]
     fn lch(py: Python, l: f32, c: f32, h: f32, alpha: Option<f32>, illuminant: Option<&str>, observer: Option<&str>) -> PyResult<Py<PyAny>> {
         use pyo3::conversion::IntoPy;
         use crate::color::{LchD65O10, LchD65O2, LchD50O10, LchEO2, LchEO10, LchD50O2};

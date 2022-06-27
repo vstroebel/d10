@@ -1,6 +1,5 @@
 use pyo3::exceptions::PyOSError;
 use pyo3::prelude::*;
-use pyo3::PyMappingProtocol;
 use pyo3::types::{PyFunction, PyList};
 
 #[cfg(feature = "numpy")]
@@ -11,7 +10,7 @@ use {
           Srgb as D10Srgb,
           Xyz as D10Xyz,
           Yuv as D10Yuv},
-    numpy::{DataType, PyArray},
+    numpy::PyArray,
     numpy_helper::*,
 };
 use d10::{BmpColorType, EncodingFormat as D10EncodingFormat, FilterMode, IcoColorType, Image as D10Image, PngColorType, PngCompression, PngFilterType, Rgb as D10Rgb, WebPPreset};
@@ -296,6 +295,26 @@ impl Image {
         Ok(self.inner.blend(&image.inner, blend_op, intensity).into())
     }
 
+    fn __len__(&self) -> PyResult<usize> {
+        Ok(self.inner.data().len())
+    }
+
+    fn __getitem__(&self, key: (i32, i32)) -> PyResult<Rgb> {
+        let x = key.0;
+        let y = key.1;
+
+        self.get_pixel(x, y).ok_or_else(|| {
+            PyOSError::new_err(format!("Array not within range: {}x{}", y, x))
+        })
+    }
+
+    fn __setitem__(&mut self, key: (u32, u32), value: Rgb) {
+        let x = key.0;
+        let y = key.1;
+
+        self.put_pixel(x, y, &value);
+    }
+
     #[cfg(feature = "numpy")]
     fn to_np_array(&self, py: Python, colorspace: Option<&str>, data_type: Option<&PyAny>) -> PyResult<Py<PyAny>> {
         let data_type = numpy_helper::extract_data_type(data_type)?;
@@ -400,7 +419,6 @@ impl Image {
                 let arr = PyArray::from_iter(py, data.iter().map(|v| *v >= 0.5));
                 arr.reshape([self.inner.height() as usize, self.inner.width() as usize, depth])?.into()
             }
-            _ => return Err(PyOSError::new_err(format!("Unsupported data type: {:?}", data_type))),
         })
     }
 
@@ -518,30 +536,6 @@ impl From<D10Image> for Image {
     }
 }
 
-#[pyproto]
-impl PyMappingProtocol for Image {
-    fn __len__(&self) -> PyResult<usize> {
-        Ok(self.inner.data().len())
-    }
-
-    fn __getitem__(&self, key: (i32, i32)) -> PyResult<Rgb> {
-        let x = key.0;
-        let y = key.1;
-
-        self.get_pixel(x, y).ok_or_else(|| {
-            PyOSError::new_err(format!("Array not within range: {}x{}", y, x))
-        })
-    }
-
-    fn __setitem__(&mut self, key: (u32, u32), value: Rgb) {
-        let x = key.0;
-        let y = key.1;
-
-        self.put_pixel(x, y, &value);
-    }
-}
-
-
 #[pyclass]
 pub struct EncodingFormat {
     pub inner: D10EncodingFormat,
@@ -633,7 +627,7 @@ impl EncodingFormat {
 
     #[staticmethod]
     fn webp(quality: Option<u8>, preset: Option<String>) -> PyResult<EncodingFormat> {
-        let preset =   match preset {
+        let preset = match preset {
             Some(v) => v.parse().py_err()?,
             None => WebPPreset::Default,
         };
@@ -641,7 +635,7 @@ impl EncodingFormat {
         Ok(EncodingFormat {
             inner: D10EncodingFormat::WebP {
                 quality: quality.unwrap_or(85),
-                preset
+                preset,
             }
         })
     }
@@ -649,9 +643,18 @@ impl EncodingFormat {
 
 #[cfg(feature = "numpy")]
 mod numpy_helper {
-    use numpy::{DataType, IxDyn, PyArrayDyn};
+    use numpy::{IxDyn, PyArrayDyn};
     use pyo3::{PyAny, PyResult};
     use pyo3::exceptions::PyOSError;
+
+    pub enum DataType {
+        Float32,
+        Float64,
+        Uint8,
+        Uint16,
+        Uint32,
+        Bool,
+    }
 
     pub fn extract_data_type(data_type: Option<&PyAny>) -> PyResult<DataType> {
         let data_type = match data_type {
@@ -694,36 +697,33 @@ mod numpy_helper {
 
         let py_array: &PyArrayDyn<f32> = array.cast_as()?;
 
-        let data_type = py_array.dtype().get_datatype().ok_or_else(|| PyOSError::new_err("Bad data type for array".to_owned()))?;
+        let data_type = extract_data_type(Some(py_array.dtype().typeobj()))?;
 
         let ndims = py_array.ndim();
         let dims = py_array.dims();
 
-        use numpy::DataType::*;
-
         let iter: Box<dyn Iterator<Item=f32> + 'a> = match data_type {
-            Float32 => Box::new(py_array.readonly().iter()?.copied()),
-            Float64 => {
+            DataType::Float32 => Box::new(py_array.readonly().iter()?.copied()),
+            DataType::Float64 => {
                 let py_array: &PyArrayDyn<f64> = array.cast_as()?;
                 Box::new(py_array.readonly().iter()?.map(|v| (*v) as f32))
             }
-            Bool => {
+            DataType::Bool => {
                 let py_array: &PyArrayDyn<bool> = array.cast_as()?;
                 Box::new(py_array.readonly().iter()?.map(|v| if *v { 0.0f32 } else { 1.0f32 }))
             }
-            Uint8 => {
+            DataType::Uint8 => {
                 let py_array: &PyArrayDyn<u8> = array.cast_as()?;
                 Box::new(py_array.readonly().iter()?.map(|v| (*v as f32) / 255.0))
             }
-            Uint16 => {
+            DataType::Uint16 => {
                 let py_array: &PyArrayDyn<u16> = array.cast_as()?;
                 Box::new(py_array.readonly().iter()?.map(|v| (*v as f32) / 65535.0))
             }
-            Uint32 => {
+            DataType::Uint32 => {
                 let py_array: &PyArrayDyn<u32> = array.cast_as()?;
                 Box::new(py_array.readonly().iter()?.map(|v| (*v as f32) / 4294967295.0))
             }
-            _ => return Err(PyOSError::new_err(format!("Unsupported data type for numpy array: {:?}", data_type)))
         };
 
         Ok((ndims, dims, iter))
