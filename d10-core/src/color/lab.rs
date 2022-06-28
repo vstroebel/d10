@@ -1,9 +1,9 @@
-use super::{Color, Rgb, EPSILON, format_color, Xyz};
+use super::{format_color, Color, Rgb, Xyz, EPSILON};
 
-use std::marker::PhantomData;
-use std::fmt::{Display, Debug};
 use crate::color::illuminant::D65;
 use crate::color::observer::O2;
+use std::fmt::{Debug, Display};
+use std::marker::PhantomData;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Lab<I: Illuminant = D65, O: Observer = O2> {
@@ -29,27 +29,44 @@ pub mod illuminant {
     use super::Illuminant;
 
     #[macro_export]
-    macro_rules! illuminant { ($name:ident, $refs:expr) => {
-        #[derive(Debug, Copy, Clone)]
-        pub struct $name {}
+    macro_rules! illuminant {
+        ($name:ident, $refs:expr) => {
+            #[derive(Debug, Copy, Clone)]
+            pub struct $name {}
 
-        impl Illuminant for $name {
-            fn get_refs() -> &'static [[f32; 3]; 2] {
-                &$refs
+            impl Illuminant for $name {
+                fn get_refs() -> &'static [[f32; 3]; 2] {
+                    &$refs
+                }
+
+                fn type_name_lab() -> &'static [&'static str] {
+                    &[
+                        concat!("lab<", stringify!($name), ",O2>"),
+                        concat!("lab<", stringify!($name), ",O10>"),
+                    ]
+                }
+
+                fn type_name_lch() -> &'static [&'static str] {
+                    &[
+                        concat!("lch<", stringify!($name), ",O2>"),
+                        concat!("lch<", stringify!($name), ",O10>"),
+                    ]
+                }
             }
+        };
+    }
 
-            fn type_name_lab() -> &'static [&'static str] {
-                &[concat!("lab<",stringify!($name),",O2>"), concat!("lab<",stringify!($name),",O10>")]
-            }
-
-            fn type_name_lch() -> &'static [&'static str] {
-                &[concat!("lch<",stringify!($name),",O2>"), concat!("lch<",stringify!($name),",O10>")]
-            }
-        }
-    }}
-
-    illuminant!(D50, [[0.964_212, 1.0, 0.825_188_3], [0.967_206_3, 1.0, 0.814_280_15]]);
-    illuminant!(D65, [[0.950_47, 1.0, 1.088_83], [0.948_096_7, 1.0, 1.073_051_3]]);
+    illuminant!(
+        D50,
+        [
+            [0.964_212, 1.0, 0.825_188_3],
+            [0.967_206_3, 1.0, 0.814_280_15]
+        ]
+    );
+    illuminant!(
+        D65,
+        [[0.950_47, 1.0, 1.088_83], [0.948_096_7, 1.0, 1.073_051_3]]
+    );
     illuminant!(E, [[1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]);
 }
 
@@ -205,12 +222,16 @@ impl<I: Illuminant, O: Observer> Color for Lab<I, O> {
         Self::new_with_alpha(self.data[0], self.data[1], self.data[2], alpha)
     }
 
-    fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(&self, mut func: F) -> Result<Self, E> {
+    fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(
+        &self,
+        mut func: F,
+    ) -> Result<Self, E> {
         Ok(Self::new_with_alpha(
             func(self.data[0])?,
             func(self.data[1])?,
             func(self.data[2])?,
-            self.data[3]))
+            self.data[3],
+        ))
     }
 
     fn type_name(&self) -> &'static str {
@@ -329,12 +350,16 @@ impl<I: Illuminant, O: Observer> Color for Lch<I, O> {
         Self::new_with_alpha(self.data[0], self.data[1], self.data[2], alpha)
     }
 
-    fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(&self, mut func: F) -> Result<Self, E> {
+    fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(
+        &self,
+        mut func: F,
+    ) -> Result<Self, E> {
         Ok(Self::new_with_alpha(
             func(self.data[0])?,
             func(self.data[1])?,
             func(self.data[2])?,
-            self.data[3]))
+            self.data[3],
+        ))
     }
 
     fn type_name(&self) -> &'static str {
@@ -359,37 +384,56 @@ impl<I: Illuminant, O: Observer> Display for Lch<I, O> {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use crate::color::{Srgb, Color, Lab};
-    use crate::color::illuminant::{D65, D50, E};
-    use crate::color::observer::{O2, O10};
+    use crate::color::illuminant::{D50, D65, E};
     use crate::color::lab::DefaultLab;
+    use crate::color::observer::{O10, O2};
+    use crate::color::{Color, Lab, Srgb};
 
     const SRGB_LAB_65_2: [((f32, f32, f32), (f32, f32, f32)); 6] = [
         ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)),
         ((1.0, 1.0, 1.0), (1.0, -0.000_019, 0.000_036)),
         ((0.5, 0.5, 0.5), (0.533_889_6, 0.0, 0.0)),
-        ((1.0, 0.0, 0.0), (0.532_405_879_4, 0.625_721_16, 0.525_021_49)),
-        ((0.0, 1.0, 0.0), (0.877_350_994_9, -0.673_304_92, 0.649_841_43)),
-        ((0.0, 0.0, 1.0), (0.322_956_725_7, 0.618_637_43, -0.842_635_16)),
+        (
+            (1.0, 0.0, 0.0),
+            (0.532_405_879_4, 0.625_721_16, 0.525_021_49),
+        ),
+        (
+            (0.0, 1.0, 0.0),
+            (0.877_350_994_9, -0.673_304_92, 0.649_841_43),
+        ),
+        (
+            (0.0, 0.0, 1.0),
+            (0.322_956_725_7, 0.618_637_43, -0.842_635_16),
+        ),
     ];
 
     #[test]
     fn test_srgb_to_lab_65_2() {
         for (from, to) in &SRGB_LAB_65_2 {
             let srgb = Srgb::new(from.0, from.1, from.2);
-            assert_eq!(srgb.to_lab(), Lab::<D65, O2>::new(to.0, to.1, to.2),
-                       "Error in conversion from {:?} to {:?} with xyz {}", from, to, srgb.to_xyz());
+            assert_eq!(
+                srgb.to_lab(),
+                Lab::<D65, O2>::new(to.0, to.1, to.2),
+                "Error in conversion from {:?} to {:?} with xyz {}",
+                from,
+                to,
+                srgb.to_xyz()
+            );
         }
     }
 
     #[test]
     fn test_lab_65_2_to_rgb() {
         for (to, from) in &SRGB_LAB_65_2 {
-            assert_eq!(Lab::<D65, O2>::new(from.0, from.1, from.2).to_srgb(), Srgb::new(to.0, to.1, to.2),
-                       "Error in conversion from {:?} to {:?}", from, to);
+            assert_eq!(
+                Lab::<D65, O2>::new(from.0, from.1, from.2).to_srgb(),
+                Srgb::new(to.0, to.1, to.2),
+                "Error in conversion from {:?} to {:?}",
+                from,
+                to
+            );
         }
     }
 
@@ -398,7 +442,10 @@ mod tests {
         ((1.0, 1.0, 1.0), (1.0, 0.003_237_53, -0.007_584_81)),
         ((0.5, 0.5, 0.5), (0.533_889_6, 0.001_936_63, -0.004_537_08)),
         ((1.0, 0.0, 0.0), (0.532_405_88, 0.628_186_78, 0.523_033_18)),
-        ((0.0, 1.0, 0.0), (0.877_350_986_0, -0.670_953_88, 0.646_195_61)),
+        (
+            (0.0, 1.0, 0.0),
+            (0.877_350_986_0, -0.670_953_88, 0.646_195_61),
+        ),
         ((0.0, 0.0, 1.0), (0.322_956_73, 0.620_509_11, -0.849_918_33)),
     ];
 
@@ -406,32 +453,73 @@ mod tests {
     fn test_srgb_to_lab_65_10() {
         for (from, to) in &SRGB_LAB_65_10 {
             let srgb = Srgb::new(from.0, from.1, from.2);
-            assert_eq!(srgb.to_lab(), Lab::<D65, O10>::new(to.0, to.1, to.2),
-                       "Error in conversion from {:?} to {:?} with xyz {}", from, to, srgb.to_xyz());
+            assert_eq!(
+                srgb.to_lab(),
+                Lab::<D65, O10>::new(to.0, to.1, to.2),
+                "Error in conversion from {:?} to {:?} with xyz {}",
+                from,
+                to,
+                srgb.to_xyz()
+            );
         }
     }
 
     #[test]
     fn test_lab_65_10_to_rgb() {
         for (to, from) in &SRGB_LAB_65_10 {
-            assert_eq!(Lab::<D65, O10>::new(from.0, from.1, from.2).to_srgb(), Srgb::new(to.0, to.1, to.2),
-                       "Error in conversion from {:?} to {:?}", from, to);
+            assert_eq!(
+                Lab::<D65, O10>::new(from.0, from.1, from.2).to_srgb(),
+                Srgb::new(to.0, to.1, to.2),
+                "Error in conversion from {:?} to {:?}",
+                from,
+                to
+            );
         }
     }
 
     #[test]
     fn to_string() {
-        assert_eq!(DefaultLab::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(), "lab<D65,O2>(0.0, 0.0, 0.0)");
-        assert_eq!(DefaultLab::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(), "lab<D65,O2>(1.0, 1.0, 1.0)");
-        assert_eq!(DefaultLab::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "lab<D65,O2>a(0.0, 0.0, 0.0, 0.0)");
-        assert_eq!(DefaultLab::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "lab<D65,O2>a(0.3, 0.6, 0.9, 0.5)");
-        assert_eq!(DefaultLab::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "lab<D65,O2>a(0.33, 0.666, 0.999, 0.5555)");
+        assert_eq!(
+            DefaultLab::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(),
+            "lab<D65,O2>(0.0, 0.0, 0.0)"
+        );
+        assert_eq!(
+            DefaultLab::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(),
+            "lab<D65,O2>(1.0, 1.0, 1.0)"
+        );
+        assert_eq!(
+            DefaultLab::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(),
+            "lab<D65,O2>a(0.0, 0.0, 0.0, 0.0)"
+        );
+        assert_eq!(
+            DefaultLab::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(),
+            "lab<D65,O2>a(0.3, 0.6, 0.9, 0.5)"
+        );
+        assert_eq!(
+            DefaultLab::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(),
+            "lab<D65,O2>a(0.33, 0.666, 0.999, 0.5555)"
+        );
 
-        assert_eq!(Lab::<D65, O10>::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "lab<D65,O10>a(0.3, 0.6, 0.9, 0.5)");
-        assert_eq!(Lab::<D50, O2>::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "lab<D50,O2>a(0.3, 0.6, 0.9, 0.5)");
-        assert_eq!(Lab::<D50, O10>::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "lab<D50,O10>a(0.3, 0.6, 0.9, 0.5)");
-        assert_eq!(Lab::<E, O2>::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "lab<E,O2>a(0.3, 0.6, 0.9, 0.5)");
-        assert_eq!(Lab::<E, O10>::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "lab<E,O10>a(0.3, 0.6, 0.9, 0.5)");
+        assert_eq!(
+            Lab::<D65, O10>::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(),
+            "lab<D65,O10>a(0.3, 0.6, 0.9, 0.5)"
+        );
+        assert_eq!(
+            Lab::<D50, O2>::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(),
+            "lab<D50,O2>a(0.3, 0.6, 0.9, 0.5)"
+        );
+        assert_eq!(
+            Lab::<D50, O10>::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(),
+            "lab<D50,O10>a(0.3, 0.6, 0.9, 0.5)"
+        );
+        assert_eq!(
+            Lab::<E, O2>::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(),
+            "lab<E,O2>a(0.3, 0.6, 0.9, 0.5)"
+        );
+        assert_eq!(
+            Lab::<E, O10>::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(),
+            "lab<E,O10>a(0.3, 0.6, 0.9, 0.5)"
+        );
     }
 
     #[test]

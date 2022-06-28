@@ -1,23 +1,23 @@
-mod rgb;
-mod srgb;
 mod hsl;
 mod hsv;
-mod yuv;
-mod xyz;
 mod iter;
 mod lab;
+mod rgb;
+mod srgb;
+mod xyz;
+mod yuv;
 
-pub use rgb::{Rgb, Intensity};
-pub use srgb::{Srgb, gamma_to_linear, linear_to_gamma};
-pub use hsv::Hsv;
 pub use hsl::Hsl;
-pub use yuv::Yuv;
-pub use xyz::Xyz;
-pub use lab::{Lab, Lch, DefaultLab, Illuminant, Observer, illuminant, observer};
+pub use hsv::Hsv;
 pub use iter::{ColorIter, ColorIterRef};
+pub use lab::{illuminant, observer, DefaultLab, Illuminant, Lab, Lch, Observer};
+pub use rgb::{Intensity, Rgb};
+pub use srgb::{gamma_to_linear, linear_to_gamma, Srgb};
+pub use xyz::Xyz;
+pub use yuv::Yuv;
 
+use crate::color::lab::get_refs;
 use std::fmt::{Debug, Display};
-use crate::color::lab::{get_refs};
 
 /// Minimal error to detect identical colors channel values
 ///
@@ -34,15 +34,7 @@ pub(crate) fn clamp(value: f32) -> f32 {
 /// As of now this type is sealed to prevent incompatibilities with future changes.
 /// This restriction might be removed when the crate is heading towards 1.0.
 pub trait Color:
-Copy +
-Clone +
-Default +
-PartialEq +
-Send +
-Sync +
-Debug +
-Display +
-private::Sealed +
+    Copy + Clone + Default + PartialEq + Send + Sync + Debug + Display + private::Sealed
 {
     fn to_rgb(&self) -> Rgb;
 
@@ -87,7 +79,11 @@ private::Sealed +
             saturation = 0.0;
         } else {
             let d = max - min;
-            saturation = if lightness > 0.5 { d / (2.0 - max - min) } else { d / (max + min) };
+            saturation = if lightness > 0.5 {
+                d / (2.0 - max - min)
+            } else {
+                d / (max + min)
+            };
 
             if (max - red).abs() < EPSILON {
                 hue = (green - blue) / d + (if green < blue { 6.0 } else { 0.0 });
@@ -101,7 +97,7 @@ private::Sealed +
         }
 
         Hsl {
-            data: [hue, saturation, lightness, rgb.alpha()]
+            data: [hue, saturation, lightness, rgb.alpha()],
         }
     }
 
@@ -143,19 +139,19 @@ private::Sealed +
         }
 
         Hsv {
-            data: [hue / 360.0, saturation, value, rgb.alpha()]
+            data: [hue / 360.0, saturation, value, rgb.alpha()],
         }
     }
 
     fn to_yuv(&self) -> Yuv {
         Yuv {
-            data: apply_matrix(&self.to_srgb().data, &yuv::RGB_TO_YUV)
+            data: apply_matrix(&self.to_srgb().data, &yuv::RGB_TO_YUV),
         }
     }
 
     fn to_xyz(&self) -> Xyz {
         Xyz {
-            data: apply_matrix(&self.to_rgb().data, &xyz::RGB_TO_XYZ)
+            data: apply_matrix(&self.to_rgb().data, &xyz::RGB_TO_XYZ),
         }
     }
 
@@ -205,11 +201,15 @@ private::Sealed +
 
     /// Map all color channels and return a new color with the same alpha value
     fn map_color_channels<F: FnMut(f32) -> f32>(&self, mut func: F) -> Self {
-        self.try_map_color_channels::<(), _>(|f| Ok(func(f))).unwrap()
+        self.try_map_color_channels::<(), _>(|f| Ok(func(f)))
+            .unwrap()
     }
 
     /// Map all color channels and return a new color with the same alpha value
-    fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(&self, func: F) -> Result<Self, E>;
+    fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(
+        &self,
+        func: F,
+    ) -> Result<Self, E>;
 
     /// Return a lowercase name of this colors type (i.e. "rgb" for RGB)
     fn type_name(&self) -> &'static str;
@@ -218,7 +218,10 @@ private::Sealed +
 // A generic implementation to format a color as a CSS alike string used to implement the Display trait
 //
 // TODO: Improve performance by directly writing parts to the formatter
-pub(crate) fn format_color<C: Color>(color: &C, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+pub(crate) fn format_color<C: Color>(
+    color: &C,
+    f: &mut std::fmt::Formatter<'_>,
+) -> std::fmt::Result {
     let with_alpha = color.has_transparency();
 
     let mut result = String::with_capacity(28);
@@ -271,7 +274,7 @@ pub(crate) fn apply_matrix(color: &[f32; 4], matrix: &[[f32; 3]; 3]) -> [f32; 4]
         color[0] * matrix[0][0] + color[1] * matrix[0][1] + color[2] * matrix[0][2],
         color[0] * matrix[1][0] + color[1] * matrix[1][1] + color[2] * matrix[1][2],
         color[0] * matrix[2][0] + color[1] * matrix[2][1] + color[2] * matrix[2][2],
-        color[3]
+        color[3],
     ]
 }
 
@@ -290,10 +293,10 @@ mod conversion_tests {
      * Tests that are checking if conversion from rgb to other colorspaces and back is working.
      */
 
-    use crate::color::{Rgb, Color, ColorIterRef, ColorIter};
-    use rand::{thread_rng, Rng};
     use crate::color::illuminant::D65;
     use crate::color::observer::O2;
+    use crate::color::{Color, ColorIter, ColorIterRef, Rgb};
+    use rand::{thread_rng, Rng};
 
     const RGB: [(f32, f32, f32); 15] = [
         (0.0, 0.0, 0.0),
@@ -314,7 +317,10 @@ mod conversion_tests {
     ];
 
     fn get_rgb() -> Vec<Rgb> {
-        let mut rgb: Vec<Rgb> = RGB.iter().map(|rgb| Rgb::new(rgb.0, rgb.1, rgb.2)).collect();
+        let mut rgb: Vec<Rgb> = RGB
+            .iter()
+            .map(|rgb| Rgb::new(rgb.0, rgb.1, rgb.2))
+            .collect();
 
         let mut rng = thread_rng();
 
@@ -392,7 +398,6 @@ mod conversion_tests {
         let res: Vec<_> = rgb.iter().into_hsl().into_rgb().collect();
         assert_eq!(rgb, res);
     }
-
 
     #[test]
     fn test_rgb_yuv_iter() {

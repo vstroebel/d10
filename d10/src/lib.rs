@@ -1,5 +1,5 @@
-use d10_core as core;
 use d10_codecs as codecs;
+use d10_core as core;
 pub use d10_ops as ops;
 
 pub use crate::core::color::*;
@@ -10,6 +10,9 @@ pub use crate::core::pixelbuffer::*;
 
 mod image;
 
+pub use codecs::{
+    BmpColorType, EncodingFormat, IcoColorType, JpegSamplingFactor, PngColorType, PngCompression,
+    PngFilterType, WebPPreset,
+};
 pub use image::Image;
-pub use codecs::{EncodingFormat, JpegSamplingFactor, PngColorType, PngCompression, PngFilterType, BmpColorType, IcoColorType, WebPPreset};
 pub use ops::FilterMode;

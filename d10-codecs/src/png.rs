@@ -1,15 +1,18 @@
 use std::io::{BufRead, Read, Seek, Write};
 use std::str::FromStr;
 
+use png::{
+    BitDepth, ColorType, Decoder, DecodingError as PngDecodingError, Encoder,
+    EncodingError as PngEncodingError,
+};
 use png::{Compression, FilterType};
-use png::{BitDepth, ColorType, Decoder, DecodingError as PngDecodingError, Encoder, EncodingError  as PngEncodingError};
 
 use d10_core::color::{Color, Rgb, Srgb};
 use d10_core::errors::ParseEnumError;
 use d10_core::pixelbuffer::{is_valid_buffer_size, PixelBuffer};
 
-use crate::{DecodedImage, DecodingError, EncodingError};
 use crate::utils::*;
+use crate::{DecodedImage, DecodingError, EncodingError};
 
 #[derive(Copy, Clone, Debug)]
 pub enum PngColorType {
@@ -37,7 +40,7 @@ impl FromStr for PngColorType {
             "rgba8" => Ok(Rgba8),
             "rgb16" => Ok(Rgb16),
             "rgba16" => Ok(Rgba16),
-            _ => Err(ParseEnumError::new(value, "PngColorType"))
+            _ => Err(ParseEnumError::new(value, "PngColorType")),
         }
     }
 }
@@ -74,7 +77,7 @@ impl FromStr for PngFilterType {
             "up" => Ok(Up),
             "avg" => Ok(Avg),
             "paeth" => Ok(Paeth),
-            _ => Err(ParseEnumError::new(value, "PngFilterType"))
+            _ => Err(ParseEnumError::new(value, "PngFilterType")),
         }
     }
 }
@@ -88,7 +91,6 @@ pub enum PngCompression {
     Rle,
 }
 
-
 impl From<PngCompression> for Compression {
     fn from(compression: PngCompression) -> Compression {
         match compression {
@@ -101,7 +103,6 @@ impl From<PngCompression> for Compression {
     }
 }
 
-
 impl FromStr for PngCompression {
     type Err = ParseEnumError;
 
@@ -113,7 +114,7 @@ impl FromStr for PngCompression {
             "best" => Ok(Best),
             "huffman" => Ok(Huffman),
             "rle" => Ok(Rle),
-            _ => Err(ParseEnumError::new(value, "PngCompression"))
+            _ => Err(ParseEnumError::new(value, "PngCompression")),
         }
     }
 }
@@ -125,17 +126,33 @@ fn encode_error(err: PngEncodingError) -> EncodingError {
     }
 }
 
-pub(crate) fn encode_png<W>(w: W,
-                            buffer: &PixelBuffer<Rgb>,
-                            color_type: PngColorType,
-                            compression: PngCompression,
-                            filter: PngFilterType) -> Result<(), EncodingError>
-    where W: Write {
+pub(crate) fn encode_png<W>(
+    w: W,
+    buffer: &PixelBuffer<Rgb>,
+    color_type: PngColorType,
+    compression: PngCompression,
+    filter: PngFilterType,
+) -> Result<(), EncodingError>
+where
+    W: Write,
+{
     let (out, color_type, bit_depth) = match color_type {
         PngColorType::L8 => (to_l8_vec(buffer), ColorType::Grayscale, BitDepth::Eight),
-        PngColorType::La8 => (to_la8_vec(buffer), ColorType::GrayscaleAlpha, BitDepth::Eight),
-        PngColorType::L16 => (to_l16_be_vec(buffer), ColorType::Grayscale, BitDepth::Sixteen),
-        PngColorType::La16 => (to_la16_be_vec(buffer), ColorType::GrayscaleAlpha, BitDepth::Sixteen),
+        PngColorType::La8 => (
+            to_la8_vec(buffer),
+            ColorType::GrayscaleAlpha,
+            BitDepth::Eight,
+        ),
+        PngColorType::L16 => (
+            to_l16_be_vec(buffer),
+            ColorType::Grayscale,
+            BitDepth::Sixteen,
+        ),
+        PngColorType::La16 => (
+            to_la16_be_vec(buffer),
+            ColorType::GrayscaleAlpha,
+            BitDepth::Sixteen,
+        ),
         PngColorType::Rgb8 => (to_rgb8_vec(buffer), ColorType::Rgb, BitDepth::Eight),
         PngColorType::Rgba8 => (to_rgba8_vec(buffer), ColorType::Rgba, BitDepth::Eight),
         PngColorType::Rgb16 => (to_rgb16_be_vec(buffer), ColorType::Rgb, BitDepth::Sixteen),
@@ -162,13 +179,14 @@ fn decode_error(err: PngDecodingError) -> DecodingError {
     }
 }
 
-pub(crate) fn decode_png<T>(reader: T) -> Result<DecodedImage, DecodingError> where T: Read + Seek + BufRead {
+pub(crate) fn decode_png<T>(reader: T) -> Result<DecodedImage, DecodingError>
+where
+    T: Read + Seek + BufRead,
+{
     let mut decoder = Decoder::new(reader);
     decoder.set_transformations(png::Transformations::EXPAND);
 
-    let mut reader = decoder
-        .read_info()
-        .map_err(decode_error)?;
+    let mut reader = decoder.read_info().map_err(decode_error)?;
 
     let (color_type, bits) = reader.output_color_type();
     let info = reader.info();
@@ -182,104 +200,136 @@ pub(crate) fn decode_png<T>(reader: T) -> Result<DecodedImage, DecodingError> wh
 
     let num_pixel = (width * height) as usize;
 
-
     let raw: Vec<Rgb> = match (color_type, bits) {
         (ColorType::Rgba, BitDepth::Eight) => {
             let mut buffer = vec![0u8; num_pixel * 4];
             reader.next_frame(&mut buffer).map_err(decode_error)?;
 
-            buffer.chunks(4).map(|chunks| {
-                Srgb::new_with_alpha(from_u8(chunks[0]),
-                                     from_u8(chunks[1]),
-                                     from_u8(chunks[2]),
-                                     from_u8(chunks[3]))
+            buffer
+                .chunks(4)
+                .map(|chunks| {
+                    Srgb::new_with_alpha(
+                        from_u8(chunks[0]),
+                        from_u8(chunks[1]),
+                        from_u8(chunks[2]),
+                        from_u8(chunks[3]),
+                    )
                     .to_rgb()
-            }).collect()
+                })
+                .collect()
         }
         (ColorType::Rgb, BitDepth::Eight) => {
             let mut buffer = vec![0u8; num_pixel * 3];
             reader.next_frame(&mut buffer).map_err(decode_error)?;
 
-            buffer.chunks(3).map(|chunks| {
-                Srgb::new(from_u8(chunks[0]),
-                          from_u8(chunks[1]),
-                          from_u8(chunks[2]))
-                    .to_rgb()
-            }).collect()
+            buffer
+                .chunks(3)
+                .map(|chunks| {
+                    Srgb::new(from_u8(chunks[0]), from_u8(chunks[1]), from_u8(chunks[2])).to_rgb()
+                })
+                .collect()
         }
         (ColorType::Grayscale, BitDepth::Eight) => {
             let mut buffer = vec![0u8; num_pixel];
             reader.next_frame(&mut buffer).map_err(decode_error)?;
 
-            buffer.iter().map(|v| {
-                Srgb::new(from_u8(*v),
-                          from_u8(*v),
-                          from_u8(*v))
-                    .to_rgb()
-            }).collect()
+            buffer
+                .iter()
+                .map(|v| Srgb::new(from_u8(*v), from_u8(*v), from_u8(*v)).to_rgb())
+                .collect()
         }
         (ColorType::GrayscaleAlpha, BitDepth::Eight) => {
             let mut buffer = vec![0u8; num_pixel * 2];
             reader.next_frame(&mut buffer).map_err(decode_error)?;
 
-            buffer.chunks(2).map(|chunks| {
-                Srgb::new_with_alpha(from_u8(chunks[0]),
-                                     from_u8(chunks[0]),
-                                     from_u8(chunks[0]),
-                                     from_u8(chunks[1]))
+            buffer
+                .chunks(2)
+                .map(|chunks| {
+                    Srgb::new_with_alpha(
+                        from_u8(chunks[0]),
+                        from_u8(chunks[0]),
+                        from_u8(chunks[0]),
+                        from_u8(chunks[1]),
+                    )
                     .to_rgb()
-            }).collect()
+                })
+                .collect()
         }
         (ColorType::Rgba, BitDepth::Sixteen) => {
             let mut buffer = vec![0u8; num_pixel * 8];
             reader.next_frame(&mut buffer).map_err(decode_error)?;
 
-            buffer.chunks(8).map(|chunks| {
-                Srgb::new_with_alpha(from_u16_be([chunks[0], chunks[1]]),
-                                     from_u16_be([chunks[2], chunks[3]]),
-                                     from_u16_be([chunks[4], chunks[5]]),
-                                     from_u16_be([chunks[6], chunks[7]]))
+            buffer
+                .chunks(8)
+                .map(|chunks| {
+                    Srgb::new_with_alpha(
+                        from_u16_be([chunks[0], chunks[1]]),
+                        from_u16_be([chunks[2], chunks[3]]),
+                        from_u16_be([chunks[4], chunks[5]]),
+                        from_u16_be([chunks[6], chunks[7]]),
+                    )
                     .to_rgb()
-            }).collect()
+                })
+                .collect()
         }
         (ColorType::Rgb, BitDepth::Sixteen) => {
             let mut buffer = vec![0u8; num_pixel * 6];
             reader.next_frame(&mut buffer).map_err(decode_error)?;
 
-            buffer.chunks(6).map(|chunks| {
-                Srgb::new(from_u16_be([chunks[0], chunks[1]]),
-                          from_u16_be([chunks[2], chunks[3]]),
-                          from_u16_be([chunks[4], chunks[5]]))
+            buffer
+                .chunks(6)
+                .map(|chunks| {
+                    Srgb::new(
+                        from_u16_be([chunks[0], chunks[1]]),
+                        from_u16_be([chunks[2], chunks[3]]),
+                        from_u16_be([chunks[4], chunks[5]]),
+                    )
                     .to_rgb()
-            }).collect()
+                })
+                .collect()
         }
         (ColorType::Grayscale, BitDepth::Sixteen) => {
             let mut buffer = vec![0u8; num_pixel * 2];
             reader.next_frame(&mut buffer).map_err(decode_error)?;
 
-            buffer.chunks(2).map(|chunks| {
-                Srgb::new(from_u16_be([chunks[0], chunks[1]]),
-                          from_u16_be([chunks[0], chunks[1]]),
-                          from_u16_be([chunks[0], chunks[1]]))
+            buffer
+                .chunks(2)
+                .map(|chunks| {
+                    Srgb::new(
+                        from_u16_be([chunks[0], chunks[1]]),
+                        from_u16_be([chunks[0], chunks[1]]),
+                        from_u16_be([chunks[0], chunks[1]]),
+                    )
                     .to_rgb()
-            }).collect()
+                })
+                .collect()
         }
         (ColorType::GrayscaleAlpha, BitDepth::Sixteen) => {
             let mut buffer = vec![0u8; num_pixel * 4];
             reader.next_frame(&mut buffer).map_err(decode_error)?;
 
-            buffer.chunks(4).map(|chunks| {
-                Srgb::new_with_alpha(from_u16_be([chunks[0], chunks[1]]),
-                                     from_u16_be([chunks[0], chunks[1]]),
-                                     from_u16_be([chunks[0], chunks[1]]),
-                                     from_u16_be([chunks[2], chunks[3]]))
+            buffer
+                .chunks(4)
+                .map(|chunks| {
+                    Srgb::new_with_alpha(
+                        from_u16_be([chunks[0], chunks[1]]),
+                        from_u16_be([chunks[0], chunks[1]]),
+                        from_u16_be([chunks[0], chunks[1]]),
+                        from_u16_be([chunks[2], chunks[3]]),
+                    )
                     .to_rgb()
-            }).collect()
+                })
+                .collect()
         }
-        _ => return Err(DecodingError::Decoding(format!("Unsupported png: {:?}:{:?}", color_type, bits)))
+        _ => {
+            return Err(DecodingError::Decoding(format!(
+                "Unsupported png: {:?}:{:?}",
+                color_type, bits
+            )))
+        }
     };
 
     Ok(DecodedImage {
-        buffer: PixelBuffer::new_from_raw(width, height, raw)
+        buffer: PixelBuffer::new_from_raw(width, height, raw),
     })
 }

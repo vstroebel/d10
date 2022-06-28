@@ -1,13 +1,18 @@
 use crate::FilterMode;
-use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::Rgb;
+use d10_core::pixelbuffer::PixelBuffer;
 use std::f32::consts::PI;
 
 use crate::filters::{get_pixel_bicubic, get_pixel_bilinear, get_pixel_lanczos3};
 
-fn rotate_with_fn<F>(buffer: &PixelBuffer<Rgb>, radians: f32, bg_color: Rgb, func: F) -> PixelBuffer<Rgb>
-    where
-        F: Fn(&PixelBuffer<Rgb>, f32, f32) -> Option<Rgb>
+fn rotate_with_fn<F>(
+    buffer: &PixelBuffer<Rgb>,
+    radians: f32,
+    bg_color: Rgb,
+    func: F,
+) -> PixelBuffer<Rgb>
+where
+    F: Fn(&PixelBuffer<Rgb>, f32, f32) -> Option<Rgb>,
 {
     let radians = radians / -180.0 * PI;
 
@@ -64,7 +69,12 @@ fn rotate_pixel_lanczos3(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Option<Rg
     }
 }
 
-pub fn rotate(buffer: &PixelBuffer<Rgb>, radians: f32, bg_color: Rgb, filter: FilterMode) -> PixelBuffer<Rgb> {
+pub fn rotate(
+    buffer: &PixelBuffer<Rgb>,
+    radians: f32,
+    bg_color: Rgb,
+    filter: FilterMode,
+) -> PixelBuffer<Rgb> {
     if (radians - 360.0).abs() < f32::EPSILON {
         return buffer.clone();
     }

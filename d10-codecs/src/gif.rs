@@ -1,12 +1,15 @@
-use d10_core::color::{Srgb, Color, Rgb};
-use d10_core::pixelbuffer::{PixelBuffer, is_valid_buffer_size};
+use d10_core::color::{Color, Rgb, Srgb};
+use d10_core::pixelbuffer::{is_valid_buffer_size, PixelBuffer};
 
-use std::io::{Read, Seek, BufRead, Write};
+use std::io::{BufRead, Read, Seek, Write};
 
-use crate::{DecodedImage, EncodingError, DecodingError};
 use crate::utils::{from_u8, to_rgba8_vec};
+use crate::{DecodedImage, DecodingError, EncodingError};
 
-use gif::{DecodeOptions, Frame, Encoder, DecodingError as GIFDecodingError, EncodingError as GIFEncodingError};
+use gif::{
+    DecodeOptions, DecodingError as GIFDecodingError, Encoder, EncodingError as GIFEncodingError,
+    Frame,
+};
 
 fn encode_error(err: GIFEncodingError) -> EncodingError {
     match err {
@@ -16,7 +19,8 @@ fn encode_error(err: GIFEncodingError) -> EncodingError {
 }
 
 pub(crate) fn encode_gif<W>(w: W, buffer: &PixelBuffer<Rgb>) -> Result<(), EncodingError>
-    where W: Write
+where
+    W: Write,
 {
     let width = buffer.width();
     let height = buffer.height();
@@ -51,7 +55,9 @@ fn decode_error(err: GIFDecodingError) -> DecodingError {
 }
 
 pub(crate) fn decode_gif<T>(reader: T) -> Result<DecodedImage, DecodingError>
-    where T: Read + Seek + BufRead {
+where
+    T: Read + Seek + BufRead,
+{
     let mut decoder = DecodeOptions::new();
 
     decoder.set_color_output(gif::ColorOutput::RGBA);
@@ -59,14 +65,19 @@ pub(crate) fn decode_gif<T>(reader: T) -> Result<DecodedImage, DecodingError>
     let mut decoder = decoder.read_info(reader).map_err(decode_error)?;
 
     if let Some(frame) = decoder.read_next_frame().map_err(decode_error)? {
-        let data = frame.buffer.chunks(4).map(|chunks| {
-            Srgb::new_with_alpha(
-                from_u8(chunks[0]),
-                from_u8(chunks[1]),
-                from_u8(chunks[2]),
-                from_u8(chunks[3]),
-            ).to_rgb()
-        }).collect();
+        let data = frame
+            .buffer
+            .chunks(4)
+            .map(|chunks| {
+                Srgb::new_with_alpha(
+                    from_u8(chunks[0]),
+                    from_u8(chunks[1]),
+                    from_u8(chunks[2]),
+                    from_u8(chunks[3]),
+                )
+                .to_rgb()
+            })
+            .collect();
 
         let width = frame.width as u32;
         let height = frame.height as u32;
@@ -77,9 +88,7 @@ pub(crate) fn decode_gif<T>(reader: T) -> Result<DecodedImage, DecodingError>
 
         let buffer = PixelBuffer::new_from_raw(width, height, data);
 
-        Ok(DecodedImage {
-            buffer
-        })
+        Ok(DecodedImage { buffer })
     } else {
         Err(DecodingError::Decoding("No frame found".to_owned()))
     }

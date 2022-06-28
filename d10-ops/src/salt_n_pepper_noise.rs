@@ -1,9 +1,10 @@
-use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::Rgb;
+use d10_core::pixelbuffer::PixelBuffer;
 use rand::Rng;
 
 fn salt_n_pepper<R>(c: &Rgb, threshold: f32, rng: &mut R) -> Rgb
-    where R: Rng
+where
+    R: Rng,
 {
     let value = rng.gen_range(0.0..=1.0);
 

@@ -5,8 +5,8 @@ use d10_core::errors::ParseEnumError;
 use d10_core::pixelbuffer::PixelBuffer;
 
 fn blend_color<F>(c1: Rgb, c2: Rgb, intensity: f32, func: F) -> Rgb
-    where
-        F: Fn(f32, f32) -> f32
+where
+    F: Fn(f32, f32) -> f32,
 {
     let intensity = intensity * c2.alpha();
 
@@ -15,15 +15,23 @@ fn blend_color<F>(c1: Rgb, c2: Rgb, intensity: f32, func: F) -> Rgb
         v1 * (1.0 - intensity) + v2 * intensity
     };
 
-    Rgb::new_with_alpha(blend_values(c1.data[0], c2.data[0]),
-                        blend_values(c1.data[1], c2.data[1]),
-                        blend_values(c1.data[2], c2.data[2]),
-                        c2.alpha())
+    Rgb::new_with_alpha(
+        blend_values(c1.data[0], c2.data[0]),
+        blend_values(c1.data[1], c2.data[1]),
+        blend_values(c1.data[2], c2.data[2]),
+        c2.alpha(),
+    )
 }
 
-fn blend_image_with_func<F>(img1: &PixelBuffer<Rgb>, img2: &PixelBuffer<Rgb>, intensity: f32, func: F) -> PixelBuffer<Rgb>
-    where
-        F: Fn(Rgb, Rgb, f32) -> Rgb {
+fn blend_image_with_func<F>(
+    img1: &PixelBuffer<Rgb>,
+    img2: &PixelBuffer<Rgb>,
+    intensity: f32,
+    func: F,
+) -> PixelBuffer<Rgb>
+where
+    F: Fn(Rgb, Rgb, f32) -> Rgb,
+{
     let width = img1.width().max(img2.width());
     let height = img1.height().max(img2.height());
 
@@ -60,13 +68,17 @@ impl FromStr for BlendOp {
             "subtract" => Ok(Subtract),
             "darken" => Ok(Darken),
             "lighten" => Ok(Lighten),
-            _ => Err(ParseEnumError::new(value, "BlendOp"))
+            _ => Err(ParseEnumError::new(value, "BlendOp")),
         }
     }
 }
 
-
-pub fn blend_image(img1: &PixelBuffer<Rgb>, img2: &PixelBuffer<Rgb>, blend_op: BlendOp, intensity: f32) -> PixelBuffer<Rgb> {
+pub fn blend_image(
+    img1: &PixelBuffer<Rgb>,
+    img2: &PixelBuffer<Rgb>,
+    blend_op: BlendOp,
+    intensity: f32,
+) -> PixelBuffer<Rgb> {
     match blend_op {
         BlendOp::Normal => blend_image_with_func(img1, img2, intensity, blend_normal),
         BlendOp::Addition => blend_image_with_func(img1, img2, intensity, blend_addition),

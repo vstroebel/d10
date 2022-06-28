@@ -1,5 +1,5 @@
+use d10_core::color::{Color, Intensity, Rgb};
 use d10_core::pixelbuffer::PixelBuffer;
-use d10_core::color::{Color, Rgb, Intensity};
 
 pub fn despeckle(img: &PixelBuffer<Rgb>, threshold: f32, amount: u8) -> PixelBuffer<Rgb> {
     img.map_colors_enumerated(|x, y, c| {

@@ -29,10 +29,11 @@ impl KernelDyn {
         self.height as i32 / 2
     }
 
-    pub fn enumerate(&self) -> impl Iterator<Item=(u32, u32, f32)> + '_ {
+    pub fn enumerate(&self) -> impl Iterator<Item = (u32, u32, f32)> + '_ {
         let width = self.width;
 
-        self.data.iter()
+        self.data
+            .iter()
             .enumerate()
             .map(move |(i, v)| (i as u32 % width, i as u32 / width, *v))
     }
@@ -71,11 +72,7 @@ impl KernelDyn {
 
     pub fn new_sobel_x() -> KernelDyn {
         KernelDyn {
-            data: vec![
-                -1.0, 0.0, 1.0,
-                -2.0, 0.0, 2.0,
-                -1.0, 0.0, 1.0
-            ],
+            data: vec![-1.0, 0.0, 1.0, -2.0, 0.0, 2.0, -1.0, 0.0, 1.0],
             width: 3,
             height: 3,
         }
@@ -83,11 +80,7 @@ impl KernelDyn {
 
     pub fn new_sobel_y() -> KernelDyn {
         KernelDyn {
-            data: vec![
-                1.0, 2.0, 1.0,
-                0.0, 0.0, 0.0,
-                -1.0, -2.0, -1.0
-            ],
+            data: vec![1.0, 2.0, 1.0, 0.0, 0.0, 0.0, -1.0, -2.0, -1.0],
             width: 3,
             height: 3,
         }

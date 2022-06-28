@@ -1,8 +1,13 @@
-use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::Rgb;
 use d10_core::kernel_dyn::KernelDyn;
+use d10_core::pixelbuffer::PixelBuffer;
 
-pub fn unsharp(buffer: &PixelBuffer<Rgb>, radius: u32, factor: f32, sigma: Option<f32>) -> PixelBuffer<Rgb> {
+pub fn unsharp(
+    buffer: &PixelBuffer<Rgb>,
+    radius: u32,
+    factor: f32,
+    sigma: Option<f32>,
+) -> PixelBuffer<Rgb> {
     let kernel_size = radius * 2 + 1;
 
     let sigma = sigma.unwrap_or_else(|| crate::gaussian_blur::get_default_sigma(kernel_size));

@@ -27,7 +27,8 @@ pub(crate) fn to_l8_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
 }
 
 pub(crate) fn to_la8_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
-    let mut out: Vec<u8> = Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 2);
+    let mut out: Vec<u8> =
+        Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 2);
 
     for color in buffer.data().iter() {
         let color = color.to_gray().to_srgb();
@@ -39,7 +40,8 @@ pub(crate) fn to_la8_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
 }
 
 pub(crate) fn to_rgb8_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
-    let mut out: Vec<u8> = Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 3);
+    let mut out: Vec<u8> =
+        Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 3);
 
     for color in buffer.data().iter() {
         let color = color.to_srgb();
@@ -53,7 +55,8 @@ pub(crate) fn to_rgb8_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
 }
 
 pub(crate) fn to_rgba8_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
-    let mut out: Vec<u8> = Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 4);
+    let mut out: Vec<u8> =
+        Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 4);
 
     for color in buffer.data().iter() {
         let color = color.to_srgb();
@@ -84,7 +87,8 @@ pub(crate) fn to_argb8_vec32(buffer: &PixelBuffer<Rgb>) -> Vec<u32> {
 }
 
 pub(crate) fn to_l16_be_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
-    let mut out: Vec<u8> = Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 2);
+    let mut out: Vec<u8> =
+        Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 2);
 
     for color in buffer.data().iter() {
         let color = color.to_gray().to_srgb();
@@ -95,8 +99,8 @@ pub(crate) fn to_l16_be_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
 }
 
 pub(crate) fn to_la16_be_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
-    let mut out: Vec<u8> = Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 4);
-
+    let mut out: Vec<u8> =
+        Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 4);
 
     for color in buffer.data().iter() {
         let color = color.to_gray().to_srgb();
@@ -109,7 +113,8 @@ pub(crate) fn to_la16_be_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
 }
 
 pub(crate) fn to_rgb16_be_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
-    let mut out: Vec<u8> = Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 6);
+    let mut out: Vec<u8> =
+        Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 6);
 
     for color in buffer.data().iter() {
         let color = color.to_srgb();
@@ -123,7 +128,8 @@ pub(crate) fn to_rgb16_be_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
 }
 
 pub(crate) fn to_rgba16_be_vec(buffer: &PixelBuffer<Rgb>) -> Vec<u8> {
-    let mut out: Vec<u8> = Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 8);
+    let mut out: Vec<u8> =
+        Vec::with_capacity(buffer.width() as usize * buffer.height() as usize * 8);
 
     for color in buffer.data().iter() {
         let color = color.to_srgb();
@@ -160,61 +166,142 @@ pub fn read_into_buffer(img: DynamicImage) -> Result<PixelBuffer<Rgb>, DecodingE
     use image::DynamicImage::*;
 
     let data = match img {
-        ImageRgb8(img) => img.pixels().map(|pixel| Srgb {
-            data: [f32::from(pixel[0]) / 255.0,
-                f32::from(pixel[1]) / 255.0,
-                f32::from(pixel[2]) / 255.0,
-                1.0]
-        }.to_rgb()).collect(),
-        ImageRgba8(img) => img.pixels().map(|pixel| Srgb {
-            data: [f32::from(pixel[0]) / 255.0,
-                f32::from(pixel[1]) / 255.0,
-                f32::from(pixel[2]) / 255.0,
-                f32::from(pixel[3]) / 255.0]
-        }.to_rgb()).collect(),
-        ImageRgb16(img) => img.pixels().map(|pixel| Srgb {
-            data: [f32::from(pixel[0]) / 65535.0,
-                f32::from(pixel[1]) / 65535.0,
-                f32::from(pixel[2]) / 65535.0,
-                0.0]
-        }.to_rgb()).collect(),
-        ImageRgba16(img) => img.pixels().map(|pixel| Srgb {
-            data: [f32::from(pixel[0]) / 65535.0,
-                f32::from(pixel[1]) / 65535.0,
-                f32::from(pixel[2]) / 65535.0,
-                f32::from(pixel[3]) / 65535.0]
-        }.to_rgb()).collect(),
-        ImageLuma8(img) => img.pixels().map(|pixel| Srgb {
-            data: [f32::from(pixel[0]) / 255.0,
-                f32::from(pixel[0]) / 255.0,
-                f32::from(pixel[0]) / 255.0,
-                1.0]
-        }.to_rgb()).collect(),
-        ImageLumaA8(img) => img.pixels().map(|pixel| Srgb {
-            data: [f32::from(pixel[0]) / 255.0,
-                f32::from(pixel[0]) / 255.0,
-                f32::from(pixel[0]) / 255.0,
-                f32::from(pixel[1]) / 255.0, ]
-        }.to_rgb()).collect(),
-        ImageLuma16(img) => img.pixels().map(|pixel| Srgb {
-            data: [f32::from(pixel[0]) / 65535.0,
-                f32::from(pixel[0]) / 65535.0,
-                f32::from(pixel[0]) / 65535.0,
-                1.0]
-        }.to_rgb()).collect(),
-        ImageLumaA16(img) => img.pixels().map(|pixel| Srgb {
-            data: [f32::from(pixel[0]) / 65535.0,
-                f32::from(pixel[0]) / 65535.0,
-                f32::from(pixel[0]) / 65535.0,
-                f32::from(pixel[1]) / 65535.0]
-        }.to_rgb()).collect(),
-        ImageRgb32F(img) => img.pixels().map(|pixel| Srgb {
-            data: [pixel[0], pixel[1], pixel[2], 1.0]
-        }.to_rgb()).collect(),
-        ImageRgba32F(img) => img.pixels().map(|pixel| Srgb {
-            data: [pixel[0], pixel[1], pixel[2], pixel[3]]
-        }.to_rgb()).collect(),
-        img => return Err(DecodingError::Decoding(format!("Unsupported image format: {:?}", img.color()))),
+        ImageRgb8(img) => img
+            .pixels()
+            .map(|pixel| {
+                Srgb {
+                    data: [
+                        f32::from(pixel[0]) / 255.0,
+                        f32::from(pixel[1]) / 255.0,
+                        f32::from(pixel[2]) / 255.0,
+                        1.0,
+                    ],
+                }
+                .to_rgb()
+            })
+            .collect(),
+        ImageRgba8(img) => img
+            .pixels()
+            .map(|pixel| {
+                Srgb {
+                    data: [
+                        f32::from(pixel[0]) / 255.0,
+                        f32::from(pixel[1]) / 255.0,
+                        f32::from(pixel[2]) / 255.0,
+                        f32::from(pixel[3]) / 255.0,
+                    ],
+                }
+                .to_rgb()
+            })
+            .collect(),
+        ImageRgb16(img) => img
+            .pixels()
+            .map(|pixel| {
+                Srgb {
+                    data: [
+                        f32::from(pixel[0]) / 65535.0,
+                        f32::from(pixel[1]) / 65535.0,
+                        f32::from(pixel[2]) / 65535.0,
+                        0.0,
+                    ],
+                }
+                .to_rgb()
+            })
+            .collect(),
+        ImageRgba16(img) => img
+            .pixels()
+            .map(|pixel| {
+                Srgb {
+                    data: [
+                        f32::from(pixel[0]) / 65535.0,
+                        f32::from(pixel[1]) / 65535.0,
+                        f32::from(pixel[2]) / 65535.0,
+                        f32::from(pixel[3]) / 65535.0,
+                    ],
+                }
+                .to_rgb()
+            })
+            .collect(),
+        ImageLuma8(img) => img
+            .pixels()
+            .map(|pixel| {
+                Srgb {
+                    data: [
+                        f32::from(pixel[0]) / 255.0,
+                        f32::from(pixel[0]) / 255.0,
+                        f32::from(pixel[0]) / 255.0,
+                        1.0,
+                    ],
+                }
+                .to_rgb()
+            })
+            .collect(),
+        ImageLumaA8(img) => img
+            .pixels()
+            .map(|pixel| {
+                Srgb {
+                    data: [
+                        f32::from(pixel[0]) / 255.0,
+                        f32::from(pixel[0]) / 255.0,
+                        f32::from(pixel[0]) / 255.0,
+                        f32::from(pixel[1]) / 255.0,
+                    ],
+                }
+                .to_rgb()
+            })
+            .collect(),
+        ImageLuma16(img) => img
+            .pixels()
+            .map(|pixel| {
+                Srgb {
+                    data: [
+                        f32::from(pixel[0]) / 65535.0,
+                        f32::from(pixel[0]) / 65535.0,
+                        f32::from(pixel[0]) / 65535.0,
+                        1.0,
+                    ],
+                }
+                .to_rgb()
+            })
+            .collect(),
+        ImageLumaA16(img) => img
+            .pixels()
+            .map(|pixel| {
+                Srgb {
+                    data: [
+                        f32::from(pixel[0]) / 65535.0,
+                        f32::from(pixel[0]) / 65535.0,
+                        f32::from(pixel[0]) / 65535.0,
+                        f32::from(pixel[1]) / 65535.0,
+                    ],
+                }
+                .to_rgb()
+            })
+            .collect(),
+        ImageRgb32F(img) => img
+            .pixels()
+            .map(|pixel| {
+                Srgb {
+                    data: [pixel[0], pixel[1], pixel[2], 1.0],
+                }
+                .to_rgb()
+            })
+            .collect(),
+        ImageRgba32F(img) => img
+            .pixels()
+            .map(|pixel| {
+                Srgb {
+                    data: [pixel[0], pixel[1], pixel[2], pixel[3]],
+                }
+                .to_rgb()
+            })
+            .collect(),
+        img => {
+            return Err(DecodingError::Decoding(format!(
+                "Unsupported image format: {:?}",
+                img.color()
+            )))
+        }
     };
 
     Ok(PixelBuffer::new_from_raw(width, height, data))

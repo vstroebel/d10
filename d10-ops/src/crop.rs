@@ -1,8 +1,15 @@
-use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::Color;
+use d10_core::pixelbuffer::PixelBuffer;
 
-pub fn crop<C>(buffer: &PixelBuffer<C>, offset_x: u32, offset_y: u32, width: u32, height: u32) -> PixelBuffer<C>
-    where C: Color
+pub fn crop<C>(
+    buffer: &PixelBuffer<C>,
+    offset_x: u32,
+    offset_y: u32,
+    width: u32,
+    height: u32,
+) -> PixelBuffer<C>
+where
+    C: Color,
 {
     if buffer.is_empty() {
         buffer.clone()
@@ -35,8 +42,8 @@ pub fn crop<C>(buffer: &PixelBuffer<C>, offset_x: u32, offset_y: u32, width: u32
 mod test {
     use super::*;
 
-    use d10_core::pixelbuffer::PixelBuffer;
     use d10_core::color::Rgb;
+    use d10_core::pixelbuffer::PixelBuffer;
 
     #[test]
     fn test_crop() {

@@ -1,5 +1,5 @@
+use super::{clamp, format_color, Color, Hsl, EPSILON};
 use crate::errors::ParseEnumError;
-use super::{Color, clamp, format_color, EPSILON, Hsl};
 
 use std::fmt::Display;
 use std::str::FromStr;
@@ -32,7 +32,7 @@ impl FromStr for Intensity {
             "red" => Ok(Red),
             "green" => Ok(Green),
             "blue" => Ok(Blue),
-            _ => Err(ParseEnumError::new(s, "Intensity"))
+            _ => Err(ParseEnumError::new(s, "Intensity")),
         }
     }
 }
@@ -44,11 +44,15 @@ pub struct Rgb {
 
 impl Rgb {
     pub fn new(red: f32, green: f32, blue: f32) -> Rgb {
-        Rgb { data: [clamp(red), clamp(green), clamp(blue), 1.0] }
+        Rgb {
+            data: [clamp(red), clamp(green), clamp(blue), 1.0],
+        }
     }
 
     pub fn new_with_alpha(red: f32, green: f32, blue: f32, alpha: f32) -> Rgb {
-        Rgb { data: [clamp(red), clamp(green), clamp(blue), clamp(alpha)] }
+        Rgb {
+            data: [clamp(red), clamp(green), clamp(blue), clamp(alpha)],
+        }
     }
 
     pub fn red(&self) -> f32 {
@@ -60,7 +64,9 @@ impl Rgb {
     }
 
     pub fn with_red(&self, red: f32) -> Rgb {
-        Rgb { data: [red, self.data[1], self.data[2], self.data[3]] }
+        Rgb {
+            data: [red, self.data[1], self.data[2], self.data[3]],
+        }
     }
 
     pub fn green(&self) -> f32 {
@@ -72,7 +78,9 @@ impl Rgb {
     }
 
     pub fn with_green(&self, green: f32) -> Rgb {
-        Rgb { data: [self.data[0], green, self.data[2], self.data[3]] }
+        Rgb {
+            data: [self.data[0], green, self.data[2], self.data[3]],
+        }
     }
 
     pub fn blue(&self) -> f32 {
@@ -84,7 +92,9 @@ impl Rgb {
     }
 
     pub fn with_blue(&self, blue: f32) -> Rgb {
-        Rgb { data: [self.data[0], self.data[1], blue, self.data[3]] }
+        Rgb {
+            data: [self.data[0], self.data[1], blue, self.data[3]],
+        }
     }
 
     pub fn is_grayscale(&self) -> bool {
@@ -98,8 +108,12 @@ impl Rgb {
     pub fn to_gray_with_intensity(self, intensity: Intensity) -> Rgb {
         use Intensity::*;
         let v = match intensity {
-            Rec601Luma => self.data[0] * 0.298_839 + self.data[1] * 0.586_811 + self.data[2] * 0.114_350,
-            Rec709Luma => self.data[0] * 0.212_656 + self.data[1] * 0.715_158 + self.data[2] * 0.072_186,
+            Rec601Luma => {
+                self.data[0] * 0.298_839 + self.data[1] * 0.586_811 + self.data[2] * 0.114_350
+            }
+            Rec709Luma => {
+                self.data[0] * 0.212_656 + self.data[1] * 0.715_158 + self.data[2] * 0.072_186
+            }
             Average => (self.data[0] + self.data[1] + self.data[2]) / 3.0,
             Brightness => self.max(),
             Lightness => (self.min() + self.max()) / 2.0,
@@ -110,7 +124,7 @@ impl Rgb {
         };
 
         Rgb {
-            data: [v, v, v, self.alpha()]
+            data: [v, v, v, self.alpha()],
         }
     }
 
@@ -153,8 +167,14 @@ impl Rgb {
     pub fn with_saturation(&self, factor: f32) -> Rgb {
         let hsl = self.to_hsl();
         Hsl {
-            data: [hsl.hue(), clamp(hsl.saturation() * factor), hsl.lightness(), self.alpha()]
-        }.to_rgb()
+            data: [
+                hsl.hue(),
+                clamp(hsl.saturation() * factor),
+                hsl.lightness(),
+                self.alpha(),
+            ],
+        }
+        .to_rgb()
     }
 
     pub fn stretch_saturation(&self, factor: f32) -> Rgb {
@@ -163,17 +183,23 @@ impl Rgb {
         let s = hsl.saturation() - 0.5;
         let s = (s * factor) + 0.5;
 
-
         Hsl {
-            data: [hsl.hue(), clamp(s), hsl.lightness(), self.alpha()]
-        }.to_rgb()
+            data: [hsl.hue(), clamp(s), hsl.lightness(), self.alpha()],
+        }
+        .to_rgb()
     }
 
     pub fn with_lightness(&self, factor: f32) -> Rgb {
         let hsl = self.to_hsl();
         Hsl {
-            data: [hsl.hue(), hsl.saturation(), clamp(hsl.lightness() * factor), self.alpha()]
-        }.to_rgb()
+            data: [
+                hsl.hue(),
+                hsl.saturation(),
+                clamp(hsl.lightness() * factor),
+                self.alpha(),
+            ],
+        }
+        .to_rgb()
     }
 
     pub fn with_hue_rotate(&self, radians: f32) -> Rgb {
@@ -187,20 +213,17 @@ impl Rgb {
         }
 
         Hsl {
-            data: [hue, hsl.saturation(), hsl.lightness(), self.alpha()]
-        }.to_rgb()
+            data: [hue, hsl.saturation(), hsl.lightness(), self.alpha()],
+        }
+        .to_rgb()
     }
 
     pub fn with_contrast(&self, factor: f32) -> Rgb {
-        self.map_channels(|v| {
-            (v - 0.5) * factor + 0.5
-        })
+        self.map_channels(|v| (v - 0.5) * factor + 0.5)
     }
 
     pub fn with_brightness_contrast(&self, brightness: f32, contrast: f32) -> Rgb {
-        self.map_channels(|v| {
-            (v + brightness - 0.5) * contrast + 0.5
-        })
+        self.map_channels(|v| (v + brightness - 0.5) * contrast + 0.5)
     }
 
     pub fn alpha_blend(&self, color: Rgb) -> Rgb {
@@ -213,7 +236,6 @@ impl Rgb {
     }
 
     pub fn with_vibrance(&self, factor: f32) -> Rgb {
-
         //TODO: Find a good algorithm for this
 
         /*
@@ -254,8 +276,8 @@ impl Rgb {
                 func(self.data[0]),
                 func(self.data[1]),
                 func(self.data[2]),
-                self.alpha()
-            ]
+                self.alpha(),
+            ],
         }
     }
 
@@ -265,8 +287,8 @@ impl Rgb {
                 clamp(func(self.data[0])),
                 clamp(func(self.data[1])),
                 clamp(func(self.data[2])),
-                self.alpha()
-            ]
+                self.alpha(),
+            ],
         }
     }
 
@@ -287,16 +309,33 @@ impl Rgb {
             .to_rgb()
     }
 
-
-    pub const NONE: Rgb = Rgb { data: [0.0, 0.0, 0.0, 0.0] };
-    pub const WHITE: Rgb = Rgb { data: [1.0, 1.0, 1.0, 1.0] };
-    pub const BLACK: Rgb = Rgb { data: [0.0, 0.0, 0.0, 1.0] };
-    pub const RED: Rgb = Rgb { data: [1.0, 0.0, 0.0, 1.0] };
-    pub const GREEN: Rgb = Rgb { data: [0.0, 1.0, 0.0, 1.0] };
-    pub const BLUE: Rgb = Rgb { data: [0.0, 0.0, 1.0, 1.0] };
-    pub const CYAN: Rgb = Rgb { data: [0.0, 1.0, 1.0, 1.0] };
-    pub const MAGENTA: Rgb = Rgb { data: [1.0, 0.0, 1.0, 1.0] };
-    pub const YELLOW: Rgb = Rgb { data: [1.0, 1.0, 0.0, 1.0] };
+    pub const NONE: Rgb = Rgb {
+        data: [0.0, 0.0, 0.0, 0.0],
+    };
+    pub const WHITE: Rgb = Rgb {
+        data: [1.0, 1.0, 1.0, 1.0],
+    };
+    pub const BLACK: Rgb = Rgb {
+        data: [0.0, 0.0, 0.0, 1.0],
+    };
+    pub const RED: Rgb = Rgb {
+        data: [1.0, 0.0, 0.0, 1.0],
+    };
+    pub const GREEN: Rgb = Rgb {
+        data: [0.0, 1.0, 0.0, 1.0],
+    };
+    pub const BLUE: Rgb = Rgb {
+        data: [0.0, 0.0, 1.0, 1.0],
+    };
+    pub const CYAN: Rgb = Rgb {
+        data: [0.0, 1.0, 1.0, 1.0],
+    };
+    pub const MAGENTA: Rgb = Rgb {
+        data: [1.0, 0.0, 1.0, 1.0],
+    };
+    pub const YELLOW: Rgb = Rgb {
+        data: [1.0, 1.0, 0.0, 1.0],
+    };
 }
 
 impl Default for Rgb {
@@ -319,19 +358,25 @@ impl Color for Rgb {
     }
 
     fn with_alpha(&self, alpha: f32) -> Rgb {
-        Rgb { data: [self.data[0], self.data[1], self.data[2], alpha] }
+        Rgb {
+            data: [self.data[0], self.data[1], self.data[2], alpha],
+        }
     }
 
     fn data(&self) -> &[f32] {
         &self.data
     }
 
-    fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(&self, mut func: F) -> Result<Self, E> {
+    fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(
+        &self,
+        mut func: F,
+    ) -> Result<Self, E> {
         Ok(Self::new_with_alpha(
             func(self.data[0])?,
             func(self.data[1])?,
             func(self.data[2])?,
-            self.data[3]))
+            self.data[3],
+        ))
     }
 
     fn type_name(&self) -> &'static str {
@@ -370,62 +415,107 @@ mod tests {
 
     #[test]
     fn test_with_gamma() {
-        assert_eq!(Rgb::new(0.5, 0.0, 0.0).with_gamma(1.5),
-                   Rgb::new(0.629_960_54, 0.0, 0.0));
-        assert_eq!(Rgb::new(0.5, 0.0, 0.0).with_gamma(0.5),
-                   Rgb::new(0.25, 0.0, 0.0));
-        assert_eq!(Rgb::new(1.0, 0.5, 0.0).with_gamma(1.5),
-                   Rgb::new(1.0, 0.629_953_44, 0.0));
-        assert_eq!(Rgb::new(1.0, 0.5, 0.0).with_gamma(0.5),
-                   Rgb::new(1.0, 0.25, 0.0));
-        assert_eq!(Rgb::new(1.0, 0.5, 0.0).with_gamma(1.5),
-                   Rgb::new(1.0, 0.629_960_54, 0.0));
-        assert_eq!(Rgb::new(1.0, 0.5, 0.0).with_gamma(1.0),
-                   Rgb::new(1.0, 0.5, 0.0));
+        assert_eq!(
+            Rgb::new(0.5, 0.0, 0.0).with_gamma(1.5),
+            Rgb::new(0.629_960_54, 0.0, 0.0)
+        );
+        assert_eq!(
+            Rgb::new(0.5, 0.0, 0.0).with_gamma(0.5),
+            Rgb::new(0.25, 0.0, 0.0)
+        );
+        assert_eq!(
+            Rgb::new(1.0, 0.5, 0.0).with_gamma(1.5),
+            Rgb::new(1.0, 0.629_953_44, 0.0)
+        );
+        assert_eq!(
+            Rgb::new(1.0, 0.5, 0.0).with_gamma(0.5),
+            Rgb::new(1.0, 0.25, 0.0)
+        );
+        assert_eq!(
+            Rgb::new(1.0, 0.5, 0.0).with_gamma(1.5),
+            Rgb::new(1.0, 0.629_960_54, 0.0)
+        );
+        assert_eq!(
+            Rgb::new(1.0, 0.5, 0.0).with_gamma(1.0),
+            Rgb::new(1.0, 0.5, 0.0)
+        );
     }
 
     #[test]
     fn test_with_level() {
-        assert_eq!(Rgb::new(0.5, 0.0, 0.0).with_level(0.0, 1.0, 1.5),
-                   Rgb::new(0.629_960_54, 0.0, 0.0));
-        assert_eq!(Rgb::new(0.5, 0.0, 0.0).with_level(0.0, 1.0, 0.5),
-                   Rgb::new(0.25, 0.0, 0.0));
-        assert_eq!(Rgb::new(1.0, 0.5, 0.0).with_level(0.0, 1.0, 1.5),
-                   Rgb::new(1.0, 0.629_953_44, 0.0));
-        assert_eq!(Rgb::new(1.0, 0.5, 0.0).with_level(0.0, 1.0, 0.5),
-                   Rgb::new(1.0, 0.25, 0.0));
-        assert_eq!(Rgb::new(1.0, 0.5, 0.0).with_level(0.0, 1.0, 1.5),
-                   Rgb::new(1.0, 0.629_960_54, 0.0));
-        assert_eq!(Rgb::new(1.0, 0.5, 0.0).with_level(0.0, 1.0, 1.0),
-                   Rgb::new(1.0, 0.5, 0.0));
+        assert_eq!(
+            Rgb::new(0.5, 0.0, 0.0).with_level(0.0, 1.0, 1.5),
+            Rgb::new(0.629_960_54, 0.0, 0.0)
+        );
+        assert_eq!(
+            Rgb::new(0.5, 0.0, 0.0).with_level(0.0, 1.0, 0.5),
+            Rgb::new(0.25, 0.0, 0.0)
+        );
+        assert_eq!(
+            Rgb::new(1.0, 0.5, 0.0).with_level(0.0, 1.0, 1.5),
+            Rgb::new(1.0, 0.629_953_44, 0.0)
+        );
+        assert_eq!(
+            Rgb::new(1.0, 0.5, 0.0).with_level(0.0, 1.0, 0.5),
+            Rgb::new(1.0, 0.25, 0.0)
+        );
+        assert_eq!(
+            Rgb::new(1.0, 0.5, 0.0).with_level(0.0, 1.0, 1.5),
+            Rgb::new(1.0, 0.629_960_54, 0.0)
+        );
+        assert_eq!(
+            Rgb::new(1.0, 0.5, 0.0).with_level(0.0, 1.0, 1.0),
+            Rgb::new(1.0, 0.5, 0.0)
+        );
 
+        assert_eq!(
+            Rgb::new(1.0, 0.5, 0.0).with_level(-0.5, 1.5, 1.0),
+            Rgb::new(0.749_996_2, 0.499_992_37, 0.250_003_8)
+        );
+        assert_eq!(
+            Rgb::new(1.0, 0.5, 0.0).with_level(-0.5, 1.1, 1.0),
+            Rgb::new(0.937_499_05, 0.624_994_3, 0.312_504_77)
+        );
+        assert_eq!(
+            Rgb::new(1.0, 0.5, 0.0).with_level(-0.1, 1.5, 1.0),
+            Rgb::new(0.687_495_23, 0.374_990_46, 0.062_500_95)
+        );
 
-        assert_eq!(Rgb::new(1.0, 0.5, 0.0).with_level(-0.5, 1.5, 1.0),
-                   Rgb::new(0.749_996_2, 0.499_992_37, 0.250_003_8));
-        assert_eq!(Rgb::new(1.0, 0.5, 0.0).with_level(-0.5, 1.1, 1.0),
-                   Rgb::new(0.937_499_05, 0.624_994_3, 0.312_504_77));
-        assert_eq!(Rgb::new(1.0, 0.5, 0.0).with_level(-0.1, 1.5, 1.0),
-                   Rgb::new(0.687_495_23, 0.374_990_46, 0.062_500_95));
+        assert_eq!(
+            Rgb::new(1.0, 0.5, 0.0).with_level(-0.5, 1.5, 1.2),
+            Rgb::new(0.786_831_44, 0.561_226_84, 0.314_976_72)
+        );
+        assert_eq!(
+            Rgb::new(1.0, 0.5, 0.0).with_level(-0.5, 1.1, 1.2),
+            Rgb::new(0.947_631_06, 0.675_928_9, 0.379_354_54)
+        );
+        assert_eq!(
+            Rgb::new(1.0, 0.5, 0.0).with_level(-0.1, 1.5, 1.2),
+            Rgb::new(0.731_807_4, 0.441_596_1, 0.099_214_16)
+        );
 
-        assert_eq!(Rgb::new(1.0, 0.5, 0.0).with_level(-0.5, 1.5, 1.2),
-                   Rgb::new(0.786_831_44, 0.561_226_84, 0.314_976_72));
-        assert_eq!(Rgb::new(1.0, 0.5, 0.0).with_level(-0.5, 1.1, 1.2),
-                   Rgb::new(0.947_631_06, 0.675_928_9, 0.379_354_54));
-        assert_eq!(Rgb::new(1.0, 0.5, 0.0).with_level(-0.1, 1.5, 1.2),
-                   Rgb::new(0.731_807_4, 0.441_596_1, 0.099_214_16));
+        assert_eq!(
+            Rgb::new(1.0, 0.5, 0.0).with_level(-0.5, 1.5, 0.8),
+            Rgb::new(0.697_947_7, 0.420_447_08, 0.176_775_77)
+        );
+        assert_eq!(
+            Rgb::new(1.0, 0.5, 0.0).with_level(-0.5, 1.1, 0.8),
+            Rgb::new(0.922_499_4, 0.555_703_04, 0.233_646_14)
+        );
+        assert_eq!(
+            Rgb::new(1.0, 0.5, 0.0).with_level(-0.1, 1.5, 0.8),
+            Rgb::new(0.626_016_6, 0.293_446_24, 0.031_250_477)
+        );
 
-        assert_eq!(Rgb::new(1.0, 0.5, 0.0).with_level(-0.5, 1.5, 0.8),
-                   Rgb::new(0.697_947_7, 0.420_447_08, 0.176_775_77));
-        assert_eq!(Rgb::new(1.0, 0.5, 0.0).with_level(-0.5, 1.1, 0.8),
-                   Rgb::new(0.922_499_4, 0.555_703_04, 0.233_646_14));
-        assert_eq!(Rgb::new(1.0, 0.5, 0.0).with_level(-0.1, 1.5, 0.8),
-                   Rgb::new(0.626_016_6, 0.293_446_24, 0.031_250_477));
+        assert_eq!(
+            Rgb::new(1.0, 1.0, 1.0).with_level(0.05, 1.05, 1.0),
+            Rgb::new(0.95, 0.95, 0.95)
+        );
 
-        assert_eq!(Rgb::new(1.0, 1.0, 1.0).with_level(0.05, 1.05, 1.0),
-                   Rgb::new(0.95, 0.95, 0.95));
-
-        assert_eq!(Rgb::new(0.1, 0.2, 0.3).with_level(0.05, 1.05, 1.0),
-                   Rgb::new(0.05, 0.15, 0.25));
+        assert_eq!(
+            Rgb::new(0.1, 0.2, 0.3).with_level(0.05, 1.05, 1.0),
+            Rgb::new(0.05, 0.15, 0.25)
+        );
     }
 
     #[test]
@@ -435,11 +525,26 @@ mod tests {
 
     #[test]
     fn to_string() {
-        assert_eq!(Rgb::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(), "rgb(0.0, 0.0, 0.0)");
-        assert_eq!(Rgb::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(), "rgb(1.0, 1.0, 1.0)");
-        assert_eq!(Rgb::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "rgba(0.0, 0.0, 0.0, 0.0)");
-        assert_eq!(Rgb::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "rgba(0.3, 0.6, 0.9, 0.5)");
-        assert_eq!(Rgb::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "rgba(0.33, 0.666, 0.999, 0.5555)");
+        assert_eq!(
+            Rgb::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(),
+            "rgb(0.0, 0.0, 0.0)"
+        );
+        assert_eq!(
+            Rgb::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(),
+            "rgb(1.0, 1.0, 1.0)"
+        );
+        assert_eq!(
+            Rgb::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(),
+            "rgba(0.0, 0.0, 0.0, 0.0)"
+        );
+        assert_eq!(
+            Rgb::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(),
+            "rgba(0.3, 0.6, 0.9, 0.5)"
+        );
+        assert_eq!(
+            Rgb::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(),
+            "rgba(0.33, 0.666, 0.999, 0.5555)"
+        );
     }
 
     #[test]

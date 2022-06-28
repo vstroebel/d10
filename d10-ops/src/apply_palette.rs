@@ -1,9 +1,12 @@
-use d10_core::color::{Color, Lab, Rgb};
-use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::illuminant::D65;
 use d10_core::color::observer::O2;
+use d10_core::color::{Color, Lab, Rgb};
+use d10_core::pixelbuffer::PixelBuffer;
 
-pub fn apply_palette<C: Color>(buffer: &PixelBuffer<Rgb>, palette: &PixelBuffer<C>) -> PixelBuffer<Rgb> {
+pub fn apply_palette<C: Color>(
+    buffer: &PixelBuffer<Rgb>,
+    palette: &PixelBuffer<C>,
+) -> PixelBuffer<Rgb> {
     let palette = palette.to_lab();
     buffer.map_colors(|c| get_color_from_palette(&palette, c))
 }

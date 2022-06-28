@@ -1,20 +1,12 @@
 #![allow(clippy::upper_case_acronyms)]
 
+use pyo3::basic::CompareOp;
 use pyo3::prelude::*;
 use pyo3::types::PyFunction;
-use pyo3::basic::CompareOp;
 
-use d10::{Color,
-          Rgb as D10Rgb,
-          Srgb as D10Srgb,
-          Hsl as D10Hsl,
-          Hsv as D10Hsv,
-          Yuv as D10Yuv,
-          Xyz as D10Xyz,
-          Lab as D10Lab,
-          Lch as D10Lch,
-          illuminant,
-          observer,
+use d10::{
+    illuminant, observer, Color, Hsl as D10Hsl, Hsv as D10Hsv, Lab as D10Lab, Lch as D10Lch,
+    Rgb as D10Rgb, Srgb as D10Srgb, Xyz as D10Xyz, Yuv as D10Yuv,
 };
 
 use crate::IntoPyErr;
@@ -219,88 +211,121 @@ macro_rules! color_type {
 }
 
 color_type!(Rgb, D10Rgb, red, green, blue, get_red, get_green, get_blue, set_red, set_green, set_blue, with_red, with_green, with_blue
-    fn is_grayscale(&self) -> bool {
-        self.inner.is_grayscale()
-    }
+fn is_grayscale(&self) -> bool {
+    self.inner.is_grayscale()
+}
 
-    fn to_gray(&self, intensity: Option<&str>) -> PyResult<Rgb> {
-        Ok(if let Some(intensity) = intensity {
-            self.inner.to_gray_with_intensity(intensity.parse().py_err()?)
-        } else {
-            self.inner.to_gray()
-        }.into())
-    }
+fn to_gray(&self, intensity: Option<&str>) -> PyResult<Rgb> {
+    Ok(if let Some(intensity) = intensity {
+        self.inner.to_gray_with_intensity(intensity.parse().py_err()?)
+    } else {
+        self.inner.to_gray()
+    }.into())
+}
 
-    fn invert(&self) -> Rgb {
-        self.inner.invert().into()
-    }
+fn invert(&self) -> Rgb {
+    self.inner.invert().into()
+}
 
-    fn difference(&self, color: &Rgb) -> Rgb {
-        self.inner.difference(&color.inner).into()
-    }
+fn difference(&self, color: &Rgb) -> Rgb {
+    self.inner.difference(&color.inner).into()
+}
 
-    fn with_gamma(&self, gamma: f32) -> Rgb {
-        self.inner.with_gamma(gamma).into()
-    }
+fn with_gamma(&self, gamma: f32) -> Rgb {
+    self.inner.with_gamma(gamma).into()
+}
 
-    fn with_level(&self, black_point: f32, white_point: f32, gamma: f32) -> Rgb {
-        self.inner.with_level(black_point, white_point, gamma).into()
-    }
+fn with_level(&self, black_point: f32, white_point: f32, gamma: f32) -> Rgb {
+    self.inner.with_level(black_point, white_point, gamma).into()
+}
 
-    fn with_brightness(&self, factor: f32) -> Rgb {
-        self.inner.with_brightness(factor).into()
-    }
+fn with_brightness(&self, factor: f32) -> Rgb {
+    self.inner.with_brightness(factor).into()
+}
 
-    fn with_saturation(&self, factor: f32) -> Rgb {
-        self.inner.with_saturation(factor).into()
-    }
+fn with_saturation(&self, factor: f32) -> Rgb {
+    self.inner.with_saturation(factor).into()
+}
 
-    fn stretch_saturation(&self, factor: f32) -> Rgb {
-        self.inner.stretch_saturation(factor).into()
-    }
+fn stretch_saturation(&self, factor: f32) -> Rgb {
+    self.inner.stretch_saturation(factor).into()
+}
 
-    fn with_lightness(&self, factor: f32) -> Rgb {
-        self.inner.with_lightness(factor).into()
-    }
+fn with_lightness(&self, factor: f32) -> Rgb {
+    self.inner.with_lightness(factor).into()
+}
 
-    fn with_hue_rotate(&self, radians: f32) -> Rgb {
-        self.inner.with_hue_rotate(radians).into()
-    }
+fn with_hue_rotate(&self, radians: f32) -> Rgb {
+    self.inner.with_hue_rotate(radians).into()
+}
 
-    fn with_contrast(&self, factor: f32) -> Rgb {
-        self.inner.with_contrast(factor).into()
-    }
+fn with_contrast(&self, factor: f32) -> Rgb {
+    self.inner.with_contrast(factor).into()
+}
 
-    fn with_brightness_contrast(&self, brightness: f32, contrast: f32) -> Rgb {
-        self.inner.with_brightness_contrast(brightness, contrast).into()
-    }
+fn with_brightness_contrast(&self, brightness: f32, contrast: f32) -> Rgb {
+    self.inner.with_brightness_contrast(brightness, contrast).into()
+}
 
-    fn alpha_blend(&self, color: &Rgb) -> Rgb {
-        self.inner.alpha_blend(color.inner).into()
-    }
+fn alpha_blend(&self, color: &Rgb) -> Rgb {
+    self.inner.alpha_blend(color.inner).into()
+}
 
-    fn with_vibrance(&self, factor: f32) -> Rgb {
-        self.inner.with_vibrance(factor).into()
-    }
+fn with_vibrance(&self, factor: f32) -> Rgb {
+    self.inner.with_vibrance(factor).into()
+}
 
-    fn with_sepia(&self) -> Rgb {
-        self.inner.with_sepia().into()
-    }
+fn with_sepia(&self) -> Rgb {
+    self.inner.with_sepia().into()
+}
 
-    fn max(&self) -> f32 {
-        self.inner.max()
-    }
+fn max(&self) -> f32 {
+    self.inner.max()
+}
 
-    fn min(&self) -> f32 {
-        self.inner.min()
-    }
+fn min(&self) -> f32 {
+    self.inner.min()
+}
 
-    fn modulate(&self, hue: f32, saturation: f32, lightness: f32) -> Rgb {
-        self.inner.modulate(hue, saturation, lightness).into()
-    });
-color_type!(Srgb, D10Srgb, red, green, blue, get_red, get_green, get_blue, set_red, set_green, set_blue, with_red, with_green, with_blue);
-color_type!(Hsl, D10Hsl, hue, saturation, lightness, get_hue, get_saturation, get_lightness, set_hue, set_saturation, set_lightness, with_hue, with_saturation, with_lightness);
-color_type!(Hsv, D10Hsv, hue, saturation, value, get_hue, get_saturation, get_value, set_hue, set_saturation, set_value, with_hue, with_saturation, with_value);
+fn modulate(&self, hue: f32, saturation: f32, lightness: f32) -> Rgb {
+    self.inner.modulate(hue, saturation, lightness).into()
+});
+color_type!(
+    Srgb, D10Srgb, red, green, blue, get_red, get_green, get_blue, set_red, set_green, set_blue,
+    with_red, with_green, with_blue
+);
+color_type!(
+    Hsl,
+    D10Hsl,
+    hue,
+    saturation,
+    lightness,
+    get_hue,
+    get_saturation,
+    get_lightness,
+    set_hue,
+    set_saturation,
+    set_lightness,
+    with_hue,
+    with_saturation,
+    with_lightness
+);
+color_type!(
+    Hsv,
+    D10Hsv,
+    hue,
+    saturation,
+    value,
+    get_hue,
+    get_saturation,
+    get_value,
+    set_hue,
+    set_saturation,
+    set_value,
+    with_hue,
+    with_saturation,
+    with_value
+);
 color_type!(Yuv, D10Yuv, y, u, v, get_y, get_u, get_v, set_y, set_u, set_v, with_y, with_u, with_v);
 color_type!(Xyz, D10Xyz, x, y, z, get_x, get_y, get_z, set_x, set_y, set_z, with_x, with_y, with_z);
 
@@ -311,12 +336,76 @@ pub type D10LabD50O10 = D10Lab<illuminant::D50, observer::O10>;
 pub type D10LabEO2 = D10Lab<illuminant::E, observer::O2>;
 pub type D10LabEO10 = D10Lab<illuminant::E, observer::O10>;
 
-color_type!(LabD65O2, D10LabD65O2, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
-color_type!(LabD65O10, D10LabD65O10, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
-color_type!(LabD50O2, D10LabD50O2, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
-color_type!(LabD50O10, D10LabD50O10, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
-color_type!(LabEO2, D10LabEO2, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
-color_type!(LabEO10, D10LabEO10, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b);
+color_type!(
+    LabD65O2,
+    D10LabD65O2,
+    l,
+    a,
+    b,
+    get_l,
+    get_a,
+    get_b,
+    set_l,
+    set_a,
+    set_b,
+    with_l,
+    with_a,
+    with_b
+);
+color_type!(
+    LabD65O10,
+    D10LabD65O10,
+    l,
+    a,
+    b,
+    get_l,
+    get_a,
+    get_b,
+    set_l,
+    set_a,
+    set_b,
+    with_l,
+    with_a,
+    with_b
+);
+color_type!(
+    LabD50O2,
+    D10LabD50O2,
+    l,
+    a,
+    b,
+    get_l,
+    get_a,
+    get_b,
+    set_l,
+    set_a,
+    set_b,
+    with_l,
+    with_a,
+    with_b
+);
+color_type!(
+    LabD50O10,
+    D10LabD50O10,
+    l,
+    a,
+    b,
+    get_l,
+    get_a,
+    get_b,
+    set_l,
+    set_a,
+    set_b,
+    with_l,
+    with_a,
+    with_b
+);
+color_type!(
+    LabEO2, D10LabEO2, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b
+);
+color_type!(
+    LabEO10, D10LabEO10, l, a, b, get_l, get_a, get_b, set_l, set_a, set_b, with_l, with_a, with_b
+);
 
 pub type D10LchD65O2 = D10Lch<illuminant::D65, observer::O2>;
 pub type D10LchD65O10 = D10Lch<illuminant::D65, observer::O10>;
@@ -325,9 +414,73 @@ pub type D10LchD50O10 = D10Lch<illuminant::D50, observer::O10>;
 pub type D10LchEO2 = D10Lch<illuminant::E, observer::O2>;
 pub type D10LchEO10 = D10Lch<illuminant::E, observer::O10>;
 
-color_type!(LchD65O2, D10LchD65O2, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
-color_type!(LchD65O10, D10LchD65O10, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
-color_type!(LchD50O2, D10LchD50O2, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
-color_type!(LchD50O10, D10LchD50O10, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
-color_type!(LchEO2, D10LchEO2, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
-color_type!(LchEO10, D10LchEO10, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h);
+color_type!(
+    LchD65O2,
+    D10LchD65O2,
+    l,
+    c,
+    h,
+    get_l,
+    get_c,
+    get_h,
+    set_l,
+    set_c,
+    set_h,
+    with_l,
+    with_c,
+    with_h
+);
+color_type!(
+    LchD65O10,
+    D10LchD65O10,
+    l,
+    c,
+    h,
+    get_l,
+    get_c,
+    get_h,
+    set_l,
+    set_c,
+    set_h,
+    with_l,
+    with_c,
+    with_h
+);
+color_type!(
+    LchD50O2,
+    D10LchD50O2,
+    l,
+    c,
+    h,
+    get_l,
+    get_c,
+    get_h,
+    set_l,
+    set_c,
+    set_h,
+    with_l,
+    with_c,
+    with_h
+);
+color_type!(
+    LchD50O10,
+    D10LchD50O10,
+    l,
+    c,
+    h,
+    get_l,
+    get_c,
+    get_h,
+    set_l,
+    set_c,
+    set_h,
+    with_l,
+    with_c,
+    with_h
+);
+color_type!(
+    LchEO2, D10LchEO2, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h
+);
+color_type!(
+    LchEO10, D10LchEO10, l, c, h, get_l, get_c, get_h, set_l, set_c, set_h, with_l, with_c, with_h
+);

@@ -1,16 +1,15 @@
-use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::{Color, Rgb, Srgb};
 use d10_core::errors::ParseEnumError;
+use d10_core::pixelbuffer::PixelBuffer;
 
-use std::io::{Write, Read, Seek, BufRead};
+use std::io::{BufRead, Read, Seek, Write};
 use std::str::FromStr;
 
-use jpeg_encoder::{Encoder, SamplingFactor, ColorType, EncodingError as JpegEncodingError};
-use jpeg_decoder::{Decoder, PixelFormat, Error as DecoderError};
+use jpeg_decoder::{Decoder, Error as DecoderError, PixelFormat};
+use jpeg_encoder::{ColorType, Encoder, EncodingError as JpegEncodingError, SamplingFactor};
 
-use crate::utils::{to_rgb8_vec, to_l8_vec, from_u8, cmyk_to_rgb, from_u16_ne};
-use crate::{DecodedImage, EncodingError, DecodingError};
-
+use crate::utils::{cmyk_to_rgb, from_u16_ne, from_u8, to_l8_vec, to_rgb8_vec};
+use crate::{DecodedImage, DecodingError, EncodingError};
 
 #[allow(non_camel_case_types)]
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
@@ -86,7 +85,7 @@ impl FromStr for JpegSamplingFactor {
             "4:2:1" => Ok(R_4_2_1),
             "4:1:1" => Ok(R_4_1_1),
             "4:1:0" => Ok(R_4_1_0),
-            _ => Err(ParseEnumError::new(value, "JpegSamplingFactor"))
+            _ => Err(ParseEnumError::new(value, "JpegSamplingFactor")),
         }
     }
 }
@@ -114,13 +113,18 @@ impl From<JpegSamplingFactor> for SamplingFactor {
     }
 }
 
-pub(crate) fn encode_jpeg<W>(w: W,
-                             buffer: &PixelBuffer<Rgb>,
-                             quality: u8,
-                             progressive: bool,
-                             sampling_factor: Option<JpegSamplingFactor>,
-                             grayscale: bool,
-                             optimize_huffman_tables: bool) -> Result<(), EncodingError> where W: Write {
+pub(crate) fn encode_jpeg<W>(
+    w: W,
+    buffer: &PixelBuffer<Rgb>,
+    quality: u8,
+    progressive: bool,
+    sampling_factor: Option<JpegSamplingFactor>,
+    grayscale: bool,
+    optimize_huffman_tables: bool,
+) -> Result<(), EncodingError>
+where
+    W: Write,
+{
     let width = buffer.width();
     let height = buffer.height();
 
@@ -155,21 +159,20 @@ pub(crate) fn encode_jpeg<W>(w: W,
         encoder.set_optimized_huffman_tables(true);
     }
 
-    if let Err(err) = encoder.encode(
-        &out,
-        width as u16,
-        height as u16,
-        color_type) {
+    if let Err(err) = encoder.encode(&out, width as u16, height as u16, color_type) {
         Err(match err {
             JpegEncodingError::IoError(err) => EncodingError::IoError(err),
-            err => EncodingError::Encoding(err.to_string())
+            err => EncodingError::Encoding(err.to_string()),
         })
     } else {
         Ok(())
     }
 }
 
-pub(crate) fn decode_jpeg<T>(reader: T) -> Result<DecodedImage, DecodingError> where T: Read + Seek + BufRead {
+pub(crate) fn decode_jpeg<T>(reader: T) -> Result<DecodedImage, DecodingError>
+where
+    T: Read + Seek + BufRead,
+{
     let mut decoder = Decoder::new(reader);
 
     let data = decoder.decode().map_err(|err| match err {
@@ -177,42 +180,38 @@ pub(crate) fn decode_jpeg<T>(reader: T) -> Result<DecodedImage, DecodingError> w
         err => DecodingError::Decoding(err.to_string()),
     })?;
 
-    let info = decoder.info().ok_or_else(|| DecodingError::Decoding("Missing jpeg info".to_owned()))?;
+    let info = decoder
+        .info()
+        .ok_or_else(|| DecodingError::Decoding("Missing jpeg info".to_owned()))?;
 
     let width = info.width as u32;
     let height = info.height as u32;
 
     let data = match info.pixel_format {
-        PixelFormat::L8 => {
-            data.iter().map(|v| {
-                Srgb::new(from_u8(*v),
-                          from_u8(*v),
-                          from_u8(*v))
-                    .to_rgb()
-            }).collect()
-        }
-        PixelFormat::L16 => {
-            data.chunks(2).map(|chunks| {
+        PixelFormat::L8 => data
+            .iter()
+            .map(|v| Srgb::new(from_u8(*v), from_u8(*v), from_u8(*v)).to_rgb())
+            .collect(),
+        PixelFormat::L16 => data
+            .chunks(2)
+            .map(|chunks| {
                 let v = from_u16_ne([chunks[0], chunks[1]]);
                 Srgb::new(v, v, v).to_rgb()
-            }).collect()
-        }
-        PixelFormat::RGB24 => {
-            data.chunks(3).map(|chunks| {
-                Srgb::new(from_u8(chunks[0]),
-                          from_u8(chunks[1]),
-                          from_u8(chunks[2]))
-                    .to_rgb()
-            }).collect()
-        }
-        PixelFormat::CMYK32 => {
-            data.chunks(4).map(|chunks| {
-                cmyk_to_rgb(chunks[0], chunks[1], chunks[2], chunks[3])
-            }).collect()
-        }
+            })
+            .collect(),
+        PixelFormat::RGB24 => data
+            .chunks(3)
+            .map(|chunks| {
+                Srgb::new(from_u8(chunks[0]), from_u8(chunks[1]), from_u8(chunks[2])).to_rgb()
+            })
+            .collect(),
+        PixelFormat::CMYK32 => data
+            .chunks(4)
+            .map(|chunks| cmyk_to_rgb(chunks[0], chunks[1], chunks[2], chunks[3]))
+            .collect(),
     };
 
     Ok(DecodedImage {
-        buffer: PixelBuffer::new_from_raw(width, height, data)
+        buffer: PixelBuffer::new_from_raw(width, height, data),
     })
 }

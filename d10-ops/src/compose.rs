@@ -1,10 +1,14 @@
-use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::Color;
+use d10_core::pixelbuffer::PixelBuffer;
 
-pub fn try_compose<E, C, F, const N: usize>(buffers: [&PixelBuffer<C>; N], default: C, mut func: F) -> Result<PixelBuffer<C>, E>
-    where
-        C: Color,
-        F: FnMut(u32, u32, [C; N]) -> Result<C, E>
+pub fn try_compose<E, C, F, const N: usize>(
+    buffers: [&PixelBuffer<C>; N],
+    default: C,
+    mut func: F,
+) -> Result<PixelBuffer<C>, E>
+where
+    C: Color,
+    F: FnMut(u32, u32, [C; N]) -> Result<C, E>,
 {
     assert!(N > 0);
 
@@ -15,24 +19,34 @@ pub fn try_compose<E, C, F, const N: usize>(buffers: [&PixelBuffer<C>; N], defau
 
     PixelBuffer::try_new_from_func(width, height, |x, y| {
         for (i, v) in pixels.iter_mut().enumerate() {
-            *v = *buffers[i].get_pixel_optional(x as i32, y as i32).unwrap_or(&default);
+            *v = *buffers[i]
+                .get_pixel_optional(x as i32, y as i32)
+                .unwrap_or(&default);
         }
         func(x, y, pixels)
     })
 }
 
-pub fn compose<C, F, const N: usize>(buffers: [&PixelBuffer<C>; N], default: C, mut func: F) -> PixelBuffer<C>
-    where
-        C: Color,
-        F: FnMut(u32, u32, [C; N]) -> C
+pub fn compose<C, F, const N: usize>(
+    buffers: [&PixelBuffer<C>; N],
+    default: C,
+    mut func: F,
+) -> PixelBuffer<C>
+where
+    C: Color,
+    F: FnMut(u32, u32, [C; N]) -> C,
 {
     try_compose::<(), C, _, N>(buffers, default, |x, y, colors| Ok(func(x, y, colors))).unwrap()
 }
 
-pub fn try_compose_slice<E, C, F>(buffers: &[&PixelBuffer<C>], default: C, mut func: F) -> Result<PixelBuffer<C>, E>
-    where
-        C: Color,
-        F: FnMut(u32, u32, &[C]) -> Result<C, E>
+pub fn try_compose_slice<E, C, F>(
+    buffers: &[&PixelBuffer<C>],
+    default: C,
+    mut func: F,
+) -> Result<PixelBuffer<C>, E>
+where
+    C: Color,
+    F: FnMut(u32, u32, &[C]) -> Result<C, E>,
 {
     assert!(!buffers.is_empty());
 
@@ -43,26 +57,27 @@ pub fn try_compose_slice<E, C, F>(buffers: &[&PixelBuffer<C>], default: C, mut f
 
     PixelBuffer::try_new_from_func(width, height, |x, y| {
         for (i, v) in pixels.iter_mut().enumerate() {
-            *v = *buffers[i].get_pixel_optional(x as i32, y as i32).unwrap_or(&default);
+            *v = *buffers[i]
+                .get_pixel_optional(x as i32, y as i32)
+                .unwrap_or(&default);
         }
         func(x, y, &pixels)
     })
 }
 
 pub fn compose_slice<C, F>(buffers: &[&PixelBuffer<C>], default: C, mut func: F) -> PixelBuffer<C>
-    where
-        C: Color,
-        F: FnMut(u32, u32, &[C]) -> C
+where
+    C: Color,
+    F: FnMut(u32, u32, &[C]) -> C,
 {
     try_compose_slice::<(), C, _>(buffers, default, |x, y, colors| Ok(func(x, y, colors))).unwrap()
 }
 
-
 #[cfg(test)]
 mod tests {
-    use d10_core::pixelbuffer::PixelBuffer;
-    use d10_core::color::Rgb;
     use super::*;
+    use d10_core::color::Rgb;
+    use d10_core::pixelbuffer::PixelBuffer;
 
     #[test]
     fn test_compose() {

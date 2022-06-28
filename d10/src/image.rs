@@ -42,7 +42,12 @@ impl Image {
         }
     }
 
-    pub fn new_from_raw_with_meta(orig_image: &Image, width: u32, height: u32, data: Vec<Rgb>) -> Image {
+    pub fn new_from_raw_with_meta(
+        orig_image: &Image,
+        width: u32,
+        height: u32,
+        data: Vec<Rgb>,
+    ) -> Image {
         Self::new_from_buffer_with_meta(orig_image, PixelBuffer::new_from_raw(width, height, data))
     }
 
@@ -53,7 +58,10 @@ impl Image {
         }
     }
 
-    pub fn open<P>(path: P) -> Result<Image, DecodingError> where P: AsRef<Path> {
+    pub fn open<P>(path: P) -> Result<Image, DecodingError>
+    where
+        P: AsRef<Path>,
+    {
         let buffer = crate::codecs::decode_file(path)?.buffer;
         Ok(Self::new_from_buffer(buffer))
     }
@@ -64,19 +72,22 @@ impl Image {
     }
 
     pub fn save<P>(&self, path: P) -> Result<(), EncodingError>
-        where P: AsRef<Path>
+    where
+        P: AsRef<Path>,
     {
         crate::codecs::encode_to_file(path, &self.buffer, None)
     }
 
     pub fn save_with_format<P>(&self, path: P, format: EncodingFormat) -> Result<(), EncodingError>
-        where P: AsRef<Path>
+    where
+        P: AsRef<Path>,
     {
         crate::codecs::encode_to_file(path, &self.buffer, Some(format))
     }
 
     pub fn save_to_writer<W>(&self, w: &mut W, format: EncodingFormat) -> Result<(), EncodingError>
-        where W: Write
+    where
+        W: Write,
     {
         crate::codecs::encode(w, &self.buffer, format)
     }
@@ -135,7 +146,10 @@ impl Image {
         self.buffer.mod_colors_enumerated(func)
     }
 
-    pub fn try_mod_colors_enumerated<E, F: Fn(u32, u32, &Rgb) -> Result<Rgb, E>>(&mut self, func: F) -> Result<(), E> {
+    pub fn try_mod_colors_enumerated<E, F: Fn(u32, u32, &Rgb) -> Result<Rgb, E>>(
+        &mut self,
+        func: F,
+    ) -> Result<(), E> {
         self.buffer.try_mod_colors_enumerated(func)
     }
 
@@ -144,15 +158,24 @@ impl Image {
     }
 
     pub fn try_map_colors<E, F: FnMut(&Rgb) -> Result<Rgb, E>>(&self, func: F) -> Result<Image, E> {
-        Ok(Self::new_from_buffer_with_meta(self, self.buffer.try_map_colors(func)?))
+        Ok(Self::new_from_buffer_with_meta(
+            self,
+            self.buffer.try_map_colors(func)?,
+        ))
     }
 
     pub fn map_colors_enumerated<F: Fn(u32, u32, &Rgb) -> Rgb>(&self, func: F) -> Image {
         Self::new_from_buffer_with_meta(self, self.buffer.map_colors_enumerated(func))
     }
 
-    pub fn try_map_colors_enumerated<E, F: Fn(u32, u32, &Rgb) -> Result<Rgb, E>>(&self, func: F) -> Result<Image, E> {
-        Ok(Self::new_from_buffer_with_meta(self, self.buffer.try_map_colors_enumerated(func)?))
+    pub fn try_map_colors_enumerated<E, F: Fn(u32, u32, &Rgb) -> Result<Rgb, E>>(
+        &self,
+        func: F,
+    ) -> Result<Image, E> {
+        Ok(Self::new_from_buffer_with_meta(
+            self,
+            self.buffer.try_map_colors_enumerated(func)?,
+        ))
     }
 
     pub fn get_pixel(&self, x: u32, y: u32) -> &Rgb {
@@ -178,7 +201,10 @@ impl Image {
 
     /// Return cropped image
     pub fn crop(&self, offset_x: u32, offset_y: u32, width: u32, height: u32) -> Image {
-        Self::new_from_buffer_with_meta(self, ops::crop(&self.buffer, offset_x, offset_y, width, height))
+        Self::new_from_buffer_with_meta(
+            self,
+            ops::crop(&self.buffer, offset_x, offset_y, width, height),
+        )
     }
 
     /// Flip image horizontally
@@ -208,7 +234,15 @@ impl Image {
 
     /// Rotate image clockwise with the given filter
     pub fn rotate(&self, radians: f32, filter: FilterMode) -> Self {
-        Self::new_from_buffer_with_meta(self, ops::rotate(&self.buffer, radians, self.bg_color.unwrap_or(Rgb::NONE), filter))
+        Self::new_from_buffer_with_meta(
+            self,
+            ops::rotate(
+                &self.buffer,
+                radians,
+                self.bg_color.unwrap_or(Rgb::NONE),
+                filter,
+            ),
+        )
     }
 
     /// Detect edges in the image with a sobel kernel
@@ -220,7 +254,10 @@ impl Image {
 
     /// Resize image
     pub fn resize(&self, new_width: u32, new_height: u32, filter: FilterMode) -> Image {
-        Self::new_from_buffer_with_meta(self, ops::resize(&self.buffer, new_width, new_height, filter))
+        Self::new_from_buffer_with_meta(
+            self,
+            ops::resize(&self.buffer, new_width, new_height, filter),
+        )
     }
 
     /// Resize image using the given percentage
@@ -237,7 +274,10 @@ impl Image {
     ///
     /// If `preserve_alpha` is not set, all alpha values will be set to 1.0
     pub fn with_jpeg_quality(&self, quality: u8, preserve_alpha: bool) -> Image {
-        Self::new_from_buffer_with_meta(self, ops::jpeg_quality(&self.buffer, quality, preserve_alpha))
+        Self::new_from_buffer_with_meta(
+            self,
+            ops::jpeg_quality(&self.buffer, quality, preserve_alpha),
+        )
     }
 
     /// Add random noise to the image
@@ -280,27 +320,41 @@ impl Image {
         Self::new_from_buffer_with_meta(self, ops::unsharp(&self.buffer, radius, factor, sigma))
     }
 
-    pub fn try_compose<E, F, const N: usize>(images: [&Image; N], default: Rgb, func: F) -> Result<Image, E>
-        where
-            F: FnMut(u32, u32, [Rgb; N]) -> Result<Rgb, E>
+    pub fn try_compose<E, F, const N: usize>(
+        images: [&Image; N],
+        default: Rgb,
+        func: F,
+    ) -> Result<Image, E>
+    where
+        F: FnMut(u32, u32, [Rgb; N]) -> Result<Rgb, E>,
     {
-        let buffers: [&PixelBuffer<Rgb>; N] = images.iter().map(|image| &image.buffer).collect::<Vec<_>>().try_into().unwrap();
+        let buffers: [&PixelBuffer<Rgb>; N] = images
+            .iter()
+            .map(|image| &image.buffer)
+            .collect::<Vec<_>>()
+            .try_into()
+            .unwrap();
         let result = ops::try_compose(buffers, default, func)?;
         Ok(Self::new_from_buffer_with_meta(images[0], result))
     }
 
     pub fn compose<F, const N: usize>(images: [&Image; N], default: Rgb, func: F) -> Image
-        where
-            F: FnMut(u32, u32, [Rgb; N]) -> Rgb
+    where
+        F: FnMut(u32, u32, [Rgb; N]) -> Rgb,
     {
-        let buffers: [&PixelBuffer<Rgb>; N] = images.iter().map(|image| &image.buffer).collect::<Vec<_>>().try_into().unwrap();
+        let buffers: [&PixelBuffer<Rgb>; N] = images
+            .iter()
+            .map(|image| &image.buffer)
+            .collect::<Vec<_>>()
+            .try_into()
+            .unwrap();
         let result = ops::compose(buffers, default, func);
         Self::new_from_buffer_with_meta(images[0], result)
     }
 
     pub fn try_compose_slice<E, F>(images: &[&Image], default: Rgb, func: F) -> Result<Image, E>
-        where
-            F: FnMut(u32, u32, &[Rgb]) -> Result<Rgb, E>
+    where
+        F: FnMut(u32, u32, &[Rgb]) -> Result<Rgb, E>,
     {
         let buffers: Vec<_> = images.iter().map(|image| &image.buffer).collect::<Vec<_>>();
         let result = ops::try_compose_slice(&buffers, default, func)?;
@@ -308,8 +362,8 @@ impl Image {
     }
 
     pub fn compose_slice<F>(images: &[&Image], default: Rgb, func: F) -> Image
-        where
-            F: FnMut(u32, u32, &[Rgb]) -> Rgb
+    where
+        F: FnMut(u32, u32, &[Rgb]) -> Rgb,
     {
         let buffers: Vec<_> = images.iter().map(|image| &image.buffer).collect::<Vec<_>>();
         let result = ops::compose_slice(&buffers, default, func);
@@ -317,7 +371,10 @@ impl Image {
     }
 
     pub fn blend(&self, other: &Image, blend_op: BlendOp, intensity: f32) -> Image {
-        Self::new_from_buffer_with_meta(self, blend_image(&self.buffer, other.buffer(), blend_op, intensity))
+        Self::new_from_buffer_with_meta(
+            self,
+            blend_image(&self.buffer, other.buffer(), blend_op, intensity),
+        )
     }
 
     pub fn drawing(&self, radius: u32, mode: DrawingMode) -> Image {
@@ -346,22 +403,40 @@ mod tests {
     use d10_ops::{DrawingMode, FilterMode};
 
     use crate::ops::BlendOp;
-    use crate::{Rgb, Color};
+    use crate::{Color, Rgb};
 
     use super::Image;
 
     fn test_image_3_2() -> Image {
-        Image::new_from_raw(3, 2, vec![
-            Rgb::WHITE, Rgb::BLACK, Rgb::YELLOW,
-            Rgb::RED, Rgb::GREEN, Rgb::BLUE,
-        ])
+        Image::new_from_raw(
+            3,
+            2,
+            vec![
+                Rgb::WHITE,
+                Rgb::BLACK,
+                Rgb::YELLOW,
+                Rgb::RED,
+                Rgb::GREEN,
+                Rgb::BLUE,
+            ],
+        )
     }
 
     fn test_image_4_2() -> Image {
-        Image::new_from_raw(4, 2, vec![
-            Rgb::WHITE, Rgb::BLACK, Rgb::YELLOW, Rgb::MAGENTA,
-            Rgb::RED, Rgb::GREEN, Rgb::BLUE, Rgb::CYAN,
-        ])
+        Image::new_from_raw(
+            4,
+            2,
+            vec![
+                Rgb::WHITE,
+                Rgb::BLACK,
+                Rgb::YELLOW,
+                Rgb::MAGENTA,
+                Rgb::RED,
+                Rgb::GREEN,
+                Rgb::BLUE,
+                Rgb::CYAN,
+            ],
+        )
     }
 
     #[test]
@@ -613,7 +688,6 @@ mod tests {
         assert_eq!(cropped.height(), 150);
     }
 
-
     #[cfg(test)]
     mod tests {
         use d10_core::color::Rgb;
@@ -669,7 +743,11 @@ mod tests {
         assert_eq!(result.width(), 4);
         assert_eq!(result.height(), 4);
 
-        for (&c1, (&c2, &out)) in b1.data().iter().zip(b2.data().iter().zip(result.data().iter())) {
+        for (&c1, (&c2, &out)) in b1
+            .data()
+            .iter()
+            .zip(b2.data().iter().zip(result.data().iter()))
+        {
             assert_eq!(c1.alpha_blend(c2.with_alpha(0.3)), out);
         }
     }

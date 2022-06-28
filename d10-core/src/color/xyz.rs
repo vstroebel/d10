@@ -1,31 +1,35 @@
-use crate::color::{Color, Rgb, apply_matrix, EPSILON, format_color};
+use crate::color::{apply_matrix, format_color, Color, Rgb, EPSILON};
 use std::fmt::Display;
 
 pub(crate) const RGB_TO_XYZ: [[f32; 3]; 3] = [
     [0.412_453, 0.357_580, 0.180_423],
     [0.212_671, 0.715_160, 0.072_169],
-    [0.019_334, 0.119_193, 0.950_227]
+    [0.019_334, 0.119_193, 0.950_227],
 ];
 
 pub(crate) const XYZ_TO_RGB: [[f32; 3]; 3] = [
     [3.240_479, -1.537_15, -0.498_535],
     [-0.969_256, 1.875_991, 0.041_556],
-    [0.055_648, -0.204_043, 1.057_311]
+    [0.055_648, -0.204_043, 1.057_311],
 ];
 
 /// CIE XYZ.Rec 709 with D65 white point
 #[derive(Debug, Copy, Clone)]
 pub struct Xyz {
-    pub data: [f32; 4]
+    pub data: [f32; 4],
 }
 
 impl Xyz {
     pub fn new(x: f32, y: f32, z: f32) -> Xyz {
-        Xyz { data: [x, y, z, 1.0] }
+        Xyz {
+            data: [x, y, z, 1.0],
+        }
     }
 
     pub fn new_with_alpha(x: f32, y: f32, z: f32, alpha: f32) -> Xyz {
-        Xyz { data: [x, y, z, alpha] }
+        Xyz {
+            data: [x, y, z, alpha],
+        }
     }
 
     pub fn x(&self) -> f32 {
@@ -37,7 +41,9 @@ impl Xyz {
     }
 
     pub fn with_x(&self, x: f32) -> Xyz {
-        Xyz { data: [x, self.data[1], self.data[2], self.data[3]] }
+        Xyz {
+            data: [x, self.data[1], self.data[2], self.data[3]],
+        }
     }
 
     pub fn y(&self) -> f32 {
@@ -49,11 +55,15 @@ impl Xyz {
     }
 
     pub fn with_y(&self, y: f32) -> Xyz {
-        Xyz { data: [self.data[0], y, self.data[2], self.data[3]] }
+        Xyz {
+            data: [self.data[0], y, self.data[2], self.data[3]],
+        }
     }
 
     pub fn with_z(&self, z: f32) -> Xyz {
-        Xyz { data: [self.data[0], self.data[1], z, self.data[3]] }
+        Xyz {
+            data: [self.data[0], self.data[1], z, self.data[3]],
+        }
     }
 
     pub fn set_z(&mut self, z: f32) {
@@ -68,7 +78,7 @@ impl Xyz {
 impl Default for Xyz {
     fn default() -> Xyz {
         Xyz {
-            data: [0.0, 0.0, 0.0, 0.0]
+            data: [0.0, 0.0, 0.0, 0.0],
         }
     }
 }
@@ -80,8 +90,9 @@ impl Color for Xyz {
 
     fn to_rgb(&self) -> Rgb {
         Rgb {
-            data: apply_matrix(&self.data, &XYZ_TO_RGB)
-        }.to_rgb()
+            data: apply_matrix(&self.data, &XYZ_TO_RGB),
+        }
+        .to_rgb()
     }
 
     fn data(&self) -> &[f32] {
@@ -97,15 +108,21 @@ impl Color for Xyz {
     }
 
     fn with_alpha(&self, alpha: f32) -> Xyz {
-        Xyz { data: [self.data[0], self.data[1], self.data[2], alpha] }
+        Xyz {
+            data: [self.data[0], self.data[1], self.data[2], alpha],
+        }
     }
 
-    fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(&self, mut func: F) -> Result<Self, E> {
+    fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(
+        &self,
+        mut func: F,
+    ) -> Result<Self, E> {
         Ok(Self::new_with_alpha(
             func(self.data[0])?,
             func(self.data[1])?,
             func(self.data[2])?,
-            self.data[3]))
+            self.data[3],
+        ))
     }
 
     fn type_name(&self) -> &'static str {
@@ -130,10 +147,9 @@ impl Display for Xyz {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use crate::color::{Xyz, Color, Srgb};
+    use crate::color::{Color, Srgb, Xyz};
 
     const SRGB_XYZ: [((f32, f32, f32), (f32, f32, f32)); 9] = [
         ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)),
@@ -150,16 +166,26 @@ mod tests {
     #[test]
     fn test_srgb_to_xyz() {
         for (from, to) in &SRGB_XYZ {
-            assert_eq!(Srgb::new(from.0, from.1, from.2).to_xyz(), Xyz::new(to.0, to.1, to.2),
-                       "Error in conversion from {:?} to {:?}", from, to);
+            assert_eq!(
+                Srgb::new(from.0, from.1, from.2).to_xyz(),
+                Xyz::new(to.0, to.1, to.2),
+                "Error in conversion from {:?} to {:?}",
+                from,
+                to
+            );
         }
     }
 
     #[test]
     fn test_yuv_to_rgb() {
         for (to, from) in &SRGB_XYZ {
-            assert_eq!(Xyz::new(from.0, from.1, from.2).to_srgb(), Srgb::new(to.0, to.1, to.2),
-                       "Error in conversion from {:?} to {:?}", from, to);
+            assert_eq!(
+                Xyz::new(from.0, from.1, from.2).to_srgb(),
+                Srgb::new(to.0, to.1, to.2),
+                "Error in conversion from {:?} to {:?}",
+                from,
+                to
+            );
         }
     }
 
@@ -170,11 +196,26 @@ mod tests {
 
     #[test]
     fn to_string() {
-        assert_eq!(Xyz::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(), "xyz(0.0, 0.0, 0.0)");
-        assert_eq!(Xyz::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(), "xyz(1.0, 1.0, 1.0)");
-        assert_eq!(Xyz::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "xyza(0.0, 0.0, 0.0, 0.0)");
-        assert_eq!(Xyz::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "xyza(0.3, 0.6, 0.9, 0.5)");
-        assert_eq!(Xyz::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "xyza(0.33, 0.666, 0.999, 0.5555)");
+        assert_eq!(
+            Xyz::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(),
+            "xyz(0.0, 0.0, 0.0)"
+        );
+        assert_eq!(
+            Xyz::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(),
+            "xyz(1.0, 1.0, 1.0)"
+        );
+        assert_eq!(
+            Xyz::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(),
+            "xyza(0.0, 0.0, 0.0, 0.0)"
+        );
+        assert_eq!(
+            Xyz::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(),
+            "xyza(0.3, 0.6, 0.9, 0.5)"
+        );
+        assert_eq!(
+            Xyz::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(),
+            "xyza(0.33, 0.666, 0.999, 0.5555)"
+        );
     }
 
     #[test]

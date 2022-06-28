@@ -1,18 +1,22 @@
-use crate::color::{Color, Rgb, clamp, EPSILON, format_color};
+use crate::color::{clamp, format_color, Color, Rgb, EPSILON};
 use std::fmt::Display;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Srgb {
-    pub data: [f32; 4]
+    pub data: [f32; 4],
 }
 
 impl Srgb {
     pub fn new(red: f32, green: f32, blue: f32) -> Srgb {
-        Srgb { data: [clamp(red), clamp(green), clamp(blue), 1.0] }
+        Srgb {
+            data: [clamp(red), clamp(green), clamp(blue), 1.0],
+        }
     }
 
     pub fn new_with_alpha(red: f32, green: f32, blue: f32, alpha: f32) -> Srgb {
-        Srgb { data: [clamp(red), clamp(green), clamp(blue), clamp(alpha)] }
+        Srgb {
+            data: [clamp(red), clamp(green), clamp(blue), clamp(alpha)],
+        }
     }
 
     pub fn red(&self) -> f32 {
@@ -24,7 +28,9 @@ impl Srgb {
     }
 
     pub fn with_red(&self, red: f32) -> Srgb {
-        Srgb { data: [red, self.data[1], self.data[2], self.data[3]] }
+        Srgb {
+            data: [red, self.data[1], self.data[2], self.data[3]],
+        }
     }
 
     pub fn green(&self) -> f32 {
@@ -36,7 +42,9 @@ impl Srgb {
     }
 
     pub fn with_green(&self, green: f32) -> Srgb {
-        Srgb { data: [self.data[0], green, self.data[2], self.data[3]] }
+        Srgb {
+            data: [self.data[0], green, self.data[2], self.data[3]],
+        }
     }
 
     pub fn blue(&self) -> f32 {
@@ -48,7 +56,9 @@ impl Srgb {
     }
 
     pub fn with_blue(&self, blue: f32) -> Srgb {
-        Srgb { data: [self.data[0], self.data[1], blue, self.data[3]] }
+        Srgb {
+            data: [self.data[0], self.data[1], blue, self.data[3]],
+        }
     }
 }
 
@@ -77,7 +87,9 @@ impl Color for Srgb {
     }
 
     fn with_alpha(&self, alpha: f32) -> Srgb {
-        Srgb { data: [self.data[0], self.data[1], self.data[2], alpha] }
+        Srgb {
+            data: [self.data[0], self.data[1], self.data[2], alpha],
+        }
     }
 
     fn data(&self) -> &[f32] {
@@ -88,12 +100,16 @@ impl Color for Srgb {
         *self
     }
 
-    fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(&self, mut func: F) -> Result<Self, E> {
+    fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(
+        &self,
+        mut func: F,
+    ) -> Result<Self, E> {
         Ok(Self::new_with_alpha(
             func(self.data[0])?,
             func(self.data[1])?,
             func(self.data[2])?,
-            self.data[3]))
+            self.data[3],
+        ))
     }
 
     fn type_name(&self) -> &'static str {
@@ -147,11 +163,26 @@ mod tests {
 
     #[test]
     fn to_string() {
-        assert_eq!(Srgb::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(), "srgb(0.0, 0.0, 0.0)");
-        assert_eq!(Srgb::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(), "srgb(1.0, 1.0, 1.0)");
-        assert_eq!(Srgb::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "srgba(0.0, 0.0, 0.0, 0.0)");
-        assert_eq!(Srgb::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "srgba(0.3, 0.6, 0.9, 0.5)");
-        assert_eq!(Srgb::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "srgba(0.33, 0.666, 0.999, 0.5555)");
+        assert_eq!(
+            Srgb::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(),
+            "srgb(0.0, 0.0, 0.0)"
+        );
+        assert_eq!(
+            Srgb::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(),
+            "srgb(1.0, 1.0, 1.0)"
+        );
+        assert_eq!(
+            Srgb::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(),
+            "srgba(0.0, 0.0, 0.0, 0.0)"
+        );
+        assert_eq!(
+            Srgb::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(),
+            "srgba(0.3, 0.6, 0.9, 0.5)"
+        );
+        assert_eq!(
+            Srgb::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(),
+            "srgba(0.33, 0.666, 0.999, 0.5555)"
+        );
     }
 
     #[test]

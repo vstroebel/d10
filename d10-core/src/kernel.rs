@@ -6,15 +6,14 @@ pub struct Kernel<const N: usize> {
 
 impl<const N: usize> Kernel<N> {
     pub const fn new(data: [[f32; N]; N]) -> Kernel<N> {
-        Kernel {
-            data,
-        }
+        Kernel { data }
     }
 
     // Silence clippy because this doesn't make code more readable in a multidimensional array
     #[allow(clippy::needless_range_loop)]
     pub fn apply_kernel<T, F, const S: usize>(&self, data: &[[T; N]; N], func: F) -> [f32; S]
-        where F: Fn(&T, usize) -> f32
+    where
+        F: Fn(&T, usize) -> f32,
     {
         let mut result = [0f32; S];
 

@@ -1,4 +1,4 @@
-use super::{Color, format_color, Rgb, EPSILON};
+use super::{format_color, Color, Rgb, EPSILON};
 use std::fmt::Display;
 
 #[derive(Debug, Copy, Clone)]
@@ -8,11 +8,15 @@ pub struct Hsv {
 
 impl Hsv {
     pub fn new(h: f32, s: f32, v: f32) -> Hsv {
-        Hsv { data: [h, s, v, 1.0] }
+        Hsv {
+            data: [h, s, v, 1.0],
+        }
     }
 
     pub fn new_with_alpha(h: f32, s: f32, v: f32, alpha: f32) -> Hsv {
-        Hsv { data: [h, s, v, alpha] }
+        Hsv {
+            data: [h, s, v, alpha],
+        }
     }
 
     pub fn hue(&self) -> f32 {
@@ -24,7 +28,9 @@ impl Hsv {
     }
 
     pub fn with_hue(&self, hue: f32) -> Hsv {
-        Hsv { data: [hue, self.data[1], self.data[2], self.data[3]] }
+        Hsv {
+            data: [hue, self.data[1], self.data[2], self.data[3]],
+        }
     }
 
     pub fn saturation(&self) -> f32 {
@@ -36,7 +42,9 @@ impl Hsv {
     }
 
     pub fn with_saturation(&self, saturation: f32) -> Hsv {
-        Hsv { data: [self.data[0], saturation, self.data[2], self.data[3]] }
+        Hsv {
+            data: [self.data[0], saturation, self.data[2], self.data[3]],
+        }
     }
 
     pub fn value(&self) -> f32 {
@@ -48,14 +56,16 @@ impl Hsv {
     }
 
     pub fn with_value(&self, value: f32) -> Hsv {
-        Hsv { data: [self.data[0], self.data[1], value, self.data[3]] }
+        Hsv {
+            data: [self.data[0], self.data[1], value, self.data[3]],
+        }
     }
 }
 
 impl Default for Hsv {
     fn default() -> Hsv {
         Hsv {
-            data: [0.0, 0.0, 0.0, 0.0]
+            data: [0.0, 0.0, 0.0, 0.0],
         }
     }
 }
@@ -70,15 +80,16 @@ impl Color for Hsv {
         let saturation = self.saturation();
         let value = self.value();
 
-
         if saturation <= 0.0 {
             return Rgb {
-                data: [value, value, value, self.alpha()]
+                data: [value, value, value, self.alpha()],
             };
         }
 
         let mut hh = hue;
-        if hh >= 360.0 { hh = 0.0 };
+        if hh >= 360.0 {
+            hh = 0.0
+        };
 
         hh /= 60.0;
 
@@ -95,11 +106,11 @@ impl Color for Hsv {
             2 => (p, value, t),
             3 => (p, q, value),
             4 => (t, p, value),
-            _ => (value, p, q)
+            _ => (value, p, q),
         };
 
         Rgb {
-            data: [red, green, blue, self.alpha()]
+            data: [red, green, blue, self.alpha()],
         }
     }
 
@@ -112,19 +123,25 @@ impl Color for Hsv {
     }
 
     fn with_alpha(&self, alpha: f32) -> Hsv {
-        Hsv { data: [self.data[0], self.data[1], self.data[2], alpha] }
+        Hsv {
+            data: [self.data[0], self.data[1], self.data[2], alpha],
+        }
     }
 
     fn data(&self) -> &[f32] {
         &self.data
     }
 
-    fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(&self, mut func: F) -> Result<Self, E> {
+    fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(
+        &self,
+        mut func: F,
+    ) -> Result<Self, E> {
         Ok(Self::new_with_alpha(
             func(self.data[0])?,
             func(self.data[1])?,
             func(self.data[2])?,
-            self.data[3]))
+            self.data[3],
+        ))
     }
 
     fn type_name(&self) -> &'static str {
@@ -151,7 +168,7 @@ impl Display for Hsv {
 
 #[cfg(test)]
 mod tests {
-    use crate::color::{Rgb, Hsv, Color};
+    use crate::color::{Color, Hsv, Rgb};
 
     const RGB_HSV: [((f32, f32, f32), (f32, f32, f32)); 15] = [
         ((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)),
@@ -168,21 +185,32 @@ mod tests {
         ((0.0, 0.0, 0.5), (0.6666667, 1.0, 0.5)),
         ((0.5, 0.0, 0.5), (0.8333333, 1.0, 0.5)),
         ((0.5, 0.5, 0.0), (0.16666667, 1.0, 0.5)),
-        ((0.0, 0.5, 0.5), (0.5, 1.0, 0.5))];
+        ((0.0, 0.5, 0.5), (0.5, 1.0, 0.5)),
+    ];
 
     #[test]
     fn test_rgb_to_hsv() {
         for (from, to) in &RGB_HSV {
-            assert_eq!(Rgb::new(from.0, from.1, from.2).to_hsv(), Hsv::new(to.0, to.1, to.2),
-                       "Error in conversion from {:?} to {:?}", from, to);
+            assert_eq!(
+                Rgb::new(from.0, from.1, from.2).to_hsv(),
+                Hsv::new(to.0, to.1, to.2),
+                "Error in conversion from {:?} to {:?}",
+                from,
+                to
+            );
         }
     }
 
     #[test]
     fn test_hsv_to_rgb() {
         for (to, from) in &RGB_HSV {
-            assert_eq!(Hsv::new(from.0, from.1, from.2).to_rgb(), Rgb::new(to.0, to.1, to.2),
-                       "Error in conversion from {:?} to {:?}", from, to);
+            assert_eq!(
+                Hsv::new(from.0, from.1, from.2).to_rgb(),
+                Rgb::new(to.0, to.1, to.2),
+                "Error in conversion from {:?} to {:?}",
+                from,
+                to
+            );
         }
     }
 
@@ -193,11 +221,26 @@ mod tests {
 
     #[test]
     fn to_string() {
-        assert_eq!(Hsv::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(), "hsv(0.0, 0.0, 0.0)");
-        assert_eq!(Hsv::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(), "hsv(1.0, 1.0, 1.0)");
-        assert_eq!(Hsv::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(), "hsva(0.0, 0.0, 0.0, 0.0)");
-        assert_eq!(Hsv::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(), "hsva(0.3, 0.6, 0.9, 0.5)");
-        assert_eq!(Hsv::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(), "hsva(0.33, 0.666, 0.999, 0.5555)");
+        assert_eq!(
+            Hsv::new_with_alpha(0.0, 0.0, 0.0, 1.0).to_string(),
+            "hsv(0.0, 0.0, 0.0)"
+        );
+        assert_eq!(
+            Hsv::new_with_alpha(1.0, 1.0, 1.0, 1.0).to_string(),
+            "hsv(1.0, 1.0, 1.0)"
+        );
+        assert_eq!(
+            Hsv::new_with_alpha(0.0, 0.0, 0.0, 0.0).to_string(),
+            "hsva(0.0, 0.0, 0.0, 0.0)"
+        );
+        assert_eq!(
+            Hsv::new_with_alpha(0.3, 0.6, 0.9, 0.5).to_string(),
+            "hsva(0.3, 0.6, 0.9, 0.5)"
+        );
+        assert_eq!(
+            Hsv::new_with_alpha(0.33, 0.666, 0.999, 0.5555).to_string(),
+            "hsva(0.33, 0.666, 0.999, 0.5555)"
+        );
     }
 
     #[test]

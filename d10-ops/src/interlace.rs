@@ -1,5 +1,5 @@
-use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::Color;
+use d10_core::pixelbuffer::PixelBuffer;
 
 pub fn interlace<C: Color>(buffer: &PixelBuffer<C>, offset: u32) -> PixelBuffer<C> {
     let offset = offset as i32;

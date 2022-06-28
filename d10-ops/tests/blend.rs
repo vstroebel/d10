@@ -54,5 +54,3 @@ pub fn test_darken() {
 pub fn test_lighten() {
     test_image(BlendOp::Lighten, "lighten.png");
 }
-
-

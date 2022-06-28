@@ -1,9 +1,9 @@
-use d10_core::pixelbuffer::PixelBuffer;
 use d10_core::color::Rgb;
 use d10_core::errors::ParseEnumError;
+use d10_core::pixelbuffer::PixelBuffer;
 
-use std::str::FromStr;
 use std::f32::consts::PI;
+use std::str::FromStr;
 
 #[derive(Copy, Clone, Debug)]
 pub enum FilterMode {
@@ -23,7 +23,7 @@ impl FromStr for FilterMode {
             "bilinear" => Ok(Bilinear),
             "bicubic" => Ok(Bicubic),
             "lanczos3" | "Lanczos" => Ok(Lanczos3),
-            _ => Err(ParseEnumError::new(value, "FilterMode"))
+            _ => Err(ParseEnumError::new(value, "FilterMode")),
         }
     }
 }
@@ -66,10 +66,7 @@ fn cubic_hermite_interpolate(v1: f32, v2: f32, v3: f32, v4: f32, t: f32) -> f32 
     let o3 = -v1 / 2.0 + v3 / 2.0;
     let o4 = v2;
 
-    o1 * t * t * t
-        + o2 * t * t
-        + o3 * t
-        + o4
+    o1 * t * t * t + o2 * t * t + o3 * t + o4
 }
 
 /// Get the pixel at the given position applying a bicubic filter
@@ -110,7 +107,6 @@ pub fn get_pixel_bicubic(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Rgb {
     Rgb::new_with_alpha(calc(0), calc(1), calc(2), calc(3))
 }
 
-
 /// sinc used for lanczos
 fn sinc(v: f32) -> f32 {
     if v == 0.0 {
@@ -130,7 +126,6 @@ fn lanczos3(v: f32) -> f32 {
         0.0
     }
 }
-
 
 /// Get the pixel at the given position applying a lanczos filter with a window of 3
 // Silence clippy because this would result in a mixture of range and non range loops...

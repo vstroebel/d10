@@ -1,9 +1,9 @@
+use crate::{compose, despeckle, gaussian_blur, unsharp};
+use d10_core::color::{Color, Intensity, Rgb};
 use d10_core::pixelbuffer::PixelBuffer;
-use d10_core::color::{Rgb, Intensity, Color};
-use crate::{compose, gaussian_blur, unsharp, despeckle};
 
-use std::str::FromStr;
 use d10_core::errors::ParseEnumError;
+use std::str::FromStr;
 
 #[derive(Debug, Copy, Clone)]
 pub enum DrawingMode {
@@ -28,11 +28,7 @@ impl FromStr for DrawingMode {
 pub fn drawing(buffer: &PixelBuffer<Rgb>, radius: u32, mode: DrawingMode) -> PixelBuffer<Rgb> {
     let orig = buffer;
 
-    let lightened = orig.map_colors(|c| {
-        c.map_channels(|v| {
-            v * 0.8 + 0.2
-        })
-    });
+    let lightened = orig.map_colors(|c| c.map_channels(|v| v * 0.8 + 0.2));
 
     let b1 = {
         let b = gaussian_blur(&lightened, 1, None);
@@ -72,7 +68,8 @@ pub fn drawing(buffer: &PixelBuffer<Rgb>, radius: u32, mode: DrawingMode) -> Pix
             (v1 / (1.0 - v2 + 0.01).min(1.0)).abs()
         };
 
-        let diff = v1.iter()
+        let diff = v1
+            .iter()
             .zip(v2.iter())
             .map(|(v1, v2)| c(*v1, *v2))
             .fold(1.0f32, |a, b| a.min(b));
@@ -116,29 +113,32 @@ fn merge_color_reduced(drawing: PixelBuffer<Rgb>, orig: &PixelBuffer<Rgb>) -> Pi
         c.to_rgb()
     });
 
-    let out1 = compose([&drawing, &gaussian_blur(&reduced_color, 2, None)], Rgb::NONE, |_, _, [c1, c2]| {
-        c1.to_hsv()
-            .with_saturation(c2.to_hsv().saturation())
-            .to_rgb()
-    });
+    let out1 = compose(
+        [&drawing, &gaussian_blur(&reduced_color, 2, None)],
+        Rgb::NONE,
+        |_, _, [c1, c2]| {
+            c1.to_hsv()
+                .with_saturation(c2.to_hsv().saturation())
+                .to_rgb()
+        },
+    );
 
-    let out1 = compose([&out1, &gaussian_blur(orig, 3, None)], Rgb::NONE, |_, _, [c1, c2]| {
-        c1.to_hsv()
-            .with_hue(c2.to_hsv().hue())
-            .to_rgb()
-    });
+    let out1 = compose(
+        [&out1, &gaussian_blur(orig, 3, None)],
+        Rgb::NONE,
+        |_, _, [c1, c2]| c1.to_hsv().with_hue(c2.to_hsv().hue()).to_rgb(),
+    );
 
-    let out1 = compose([&out1, &gaussian_blur(orig, 4, None)], Rgb::NONE, |_, _, [c1, c2]| {
-        let c = c1.to_hsv();
+    let out1 = compose(
+        [&out1, &gaussian_blur(orig, 4, None)],
+        Rgb::NONE,
+        |_, _, [c1, c2]| {
+            let c = c1.to_hsv();
 
-        c.with_value(c.value() * c2.to_hsv().value())
-            .to_rgb()
-    });
+            c.with_value(c.value() * c2.to_hsv().value()).to_rgb()
+        },
+    );
 
     unsharp(&out1, 3, 1.5, None)
-        .map_colors(|x|
-            x.with_saturation(1.3)
-                .with_gamma(1.1)
-                .with_vibrance(0.3)
-        )
+        .map_colors(|x| x.with_saturation(1.3).with_gamma(1.1).with_vibrance(0.3))
 }
