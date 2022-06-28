@@ -4,13 +4,8 @@ use pyo3::types::{PyFunction, PyList};
 
 #[cfg(feature = "numpy")]
 use {
-    d10::{Color,
-          Hsl as D10Hsl,
-          Hsv as D10Hsv,
-          Srgb as D10Srgb,
-          Xyz as D10Xyz,
-          Yuv as D10Yuv},
-    numpy::PyArray,
+    d10::Color,
+    numpy::{PyArray, PyArrayDyn},
     numpy_helper::*,
 };
 use d10::{BmpColorType, EncodingFormat as D10EncodingFormat, FilterMode, IcoColorType, Image as D10Image, PngColorType, PngCompression, PngFilterType, Rgb as D10Rgb, WebPPreset};
@@ -18,7 +13,7 @@ use d10::illuminant::D65;
 use d10::observer::O2;
 use d10::ops::BlendOp;
 
-use crate::color::{D10LabD65O2, D10LchD65O2, Rgb};
+use crate::color::Rgb;
 use crate::IntoPyErr;
 
 #[pyclass]
@@ -425,106 +420,43 @@ impl Image {
     #[cfg(feature = "numpy")]
     #[staticmethod]
     pub fn from_np_array(array: &PyAny, colorspace: Option<&str>) -> PyResult<Image> {
-        let (ndims, dims, mut iter) = numpy_helper::into_f32_array(array)?;
+        /* WARNING: In order to find out what data type this numpy array has, we
+         *         blindly cast it into a f32 one, which might result into an
+         *         array with broken data. This seems to be "save" on the rust side
+         *         but might still cause undefined behavior...
+         */
+        //TODO: Find a way to not use this hackish way to do it
 
-        let width = dims[1];
-        let height = dims[0];
+        let py_array: &PyArrayDyn<f32> = array.cast_as()?;
 
-        let colorspace = colorspace.unwrap_or("auto");
+        let data_type = extract_data_type(Some(py_array.dtype().typeobj()))?;
 
-        let data: Vec<D10Rgb> = if ndims == 3 {
-            if dims[2] == 4 {
-                match colorspace {
-                    "rgba" | "rgb" | "auto" => chunked::<4>(&mut iter)
-                        .into_iter()
-                        .map(|chunk| D10Rgb::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]))
-                        .collect(),
-                    "srgba" | "srgb" => chunked::<4>(&mut iter)
-                        .into_iter()
-                        .map(|chunk| D10Srgb::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
-                        .collect(),
-                    "hsla" | "hsl" => chunked::<4>(&mut iter)
-                        .into_iter()
-                        .map(|chunk| D10Hsl::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
-                        .collect(),
-                    "hsva" | "hsv" => chunked::<4>(&mut iter)
-                        .into_iter()
-                        .map(|chunk| D10Hsv::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
-                        .collect(),
-                    "yuva" | "yuv" => chunked::<4>(&mut iter)
-                        .into_iter()
-                        .map(|chunk| D10Yuv::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
-                        .collect(),
-                    "xyza" | "xyz" => chunked::<4>(&mut iter)
-                        .into_iter()
-                        .map(|chunk| D10Xyz::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
-                        .collect(),
-                    "laba" | "lab" => chunked::<4>(&mut iter)
-                        .into_iter()
-                        .map(|chunk| D10LabD65O2::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
-                        .collect(),
-                    "lcha" | "lch" => chunked::<4>(&mut iter)
-                        .into_iter()
-                        .map(|chunk| D10LabD65O2::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
-                        .collect(),
-                    _ => return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)))
-                }
-            } else if dims[2] == 3 {
-                match colorspace {
-                    "rgb" | "auto" => chunked::<3>(&mut iter)
-                        .into_iter()
-                        .map(|chunk| D10Rgb::new(chunk[0], chunk[1], chunk[2]))
-                        .collect(),
-                    "srgb" => chunked::<3>(&mut iter)
-                        .into_iter()
-                        .map(|chunk| D10Srgb::new(chunk[0], chunk[1], chunk[2]).to_rgb())
-                        .collect(),
-                    "hsl" => chunked::<3>(&mut iter)
-                        .into_iter()
-                        .map(|chunk| D10Hsl::new(chunk[0], chunk[1], chunk[2]).to_rgb())
-                        .collect(),
-                    "hsv" => chunked::<3>(&mut iter)
-                        .into_iter()
-                        .map(|chunk| D10Hsv::new(chunk[0], chunk[1], chunk[2]).to_rgb())
-                        .collect(),
-                    "yuv" => chunked::<3>(&mut iter)
-                        .into_iter()
-                        .map(|chunk| D10Yuv::new(chunk[0], chunk[1], chunk[2]).to_rgb())
-                        .collect(),
-                    "xyz" => chunked::<3>(&mut iter)
-                        .into_iter()
-                        .map(|chunk| D10Xyz::new(chunk[0], chunk[1], chunk[2]).to_rgb())
-                        .collect(),
-                    "lab" => chunked::<3>(&mut iter)
-                        .into_iter()
-                        .map(|chunk| D10LabD65O2::new(chunk[0], chunk[1], chunk[2]).to_rgb())
-                        .collect(),
-                    "lch" => chunked::<3>(&mut iter)
-                        .into_iter()
-                        .map(|chunk| D10LchD65O2::new(chunk[0], chunk[1], chunk[2]).to_rgb())
-                        .collect(),
-                    _ => return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)))
-                }
-            } else if dims[2] == 1 {
-                if colorspace != "gray" && colorspace != "auto" {
-                    return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)));
-                }
-                iter.map(|value| D10Rgb::new_with_alpha(value, value, value, 1.0)).collect()
-            } else {
-                return Err(PyOSError::new_err(format!("Bad color dimensions: {}", dims[2])));
+        let ndims = py_array.ndim();
+        let dims = py_array.dims();
+
+        match data_type {
+            DataType::Float32 => from_np_array_iter(ndims, dims, py_array.readonly().as_array().iter().copied(), colorspace),
+            DataType::Float64 => {
+                let py_array: &PyArrayDyn<f64> = array.cast_as()?;
+                from_np_array_iter(ndims, dims, py_array.readonly().as_array().iter().map(|v| (*v) as f32), colorspace)
             }
-        } else if ndims == 2 {
-            if colorspace != "gray" && colorspace != "auto" {
-                return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)));
+            DataType::Bool => {
+                let py_array: &PyArrayDyn<bool> = array.cast_as()?;
+                from_np_array_iter(ndims, dims, py_array.readonly().as_array().iter().map(|v| if *v { 0.0f32 } else { 1.0f32 }), colorspace)
             }
-            iter.map(|value| D10Rgb::new_with_alpha(value, value, value, 1.0)).collect()
-        } else {
-            return Err(PyOSError::new_err(format!("Bad number of dimensions: {}", ndims)));
-        };
-
-        assert!(width * height == data.len());
-
-        Ok(D10Image::new_from_raw(width as u32, height as u32, data).into())
+            DataType::Uint8 => {
+                let py_array: &PyArrayDyn<u8> = array.cast_as()?;
+                from_np_array_iter(ndims, dims, py_array.readonly().as_array().iter().map(|v| (*v as f32) / 255.0), colorspace)
+            }
+            DataType::Uint16 => {
+                let py_array: &PyArrayDyn<u16> = array.cast_as()?;
+                from_np_array_iter(ndims, dims, py_array.readonly().as_array().iter().map(|v| (*v as f32) / 65535.0), colorspace)
+            }
+            DataType::Uint32 => {
+                let py_array: &PyArrayDyn<u32> = array.cast_as()?;
+                from_np_array_iter(ndims, dims, py_array.readonly().as_array().iter().map(|v| (*v as f32) / 4294967295.0), colorspace)
+            }
+        }
     }
 }
 
@@ -643,9 +575,20 @@ impl EncodingFormat {
 
 #[cfg(feature = "numpy")]
 mod numpy_helper {
-    use numpy::{IxDyn, PyArrayDyn};
+    use numpy::IxDyn;
     use pyo3::{PyAny, PyResult};
     use pyo3::exceptions::PyOSError;
+    use crate::image::Image;
+    use crate::color::{D10LabD65O2, D10LchD65O2};
+    use d10::{Color,
+              Image as D10Image,
+              Hsl as D10Hsl,
+              Hsv as D10Hsv,
+              Srgb as D10Srgb,
+              Rgb as D10Rgb,
+              Xyz as D10Xyz,
+              Yuv as D10Yuv,
+    };
 
     pub enum DataType {
         Float32,
@@ -687,46 +630,105 @@ mod numpy_helper {
         };
     }
 
-    pub fn into_f32_array<'a>(array: &'a PyAny) -> PyResult<(usize, IxDyn, Box<dyn Iterator<Item=f32> + 'a>)> {
-        /* WARNING: In order to find out what data type this numpy array has, we
-         *         blindly cast it into a f32 one, which might result into an
-         *         array with broken data. This seems to be "save" on the rust side
-         *         but might still cause undefined behavior...
-         */
-        //TODO: Find a way to not use this hackish way to do it
+    pub fn from_np_array_iter<I: Iterator<Item=f32>>(ndims: usize, dims: IxDyn, mut iter: I, colorspace: Option<&str>) -> PyResult<Image> {
+        let width = dims[1];
+        let height = dims[0];
 
-        let py_array: &PyArrayDyn<f32> = array.cast_as()?;
+        let colorspace = colorspace.unwrap_or("auto");
 
-        let data_type = extract_data_type(Some(py_array.dtype().typeobj()))?;
-
-        let ndims = py_array.ndim();
-        let dims = py_array.dims();
-
-        let iter: Box<dyn Iterator<Item=f32> + 'a> = match data_type {
-            DataType::Float32 => Box::new(py_array.readonly().iter()?.copied()),
-            DataType::Float64 => {
-                let py_array: &PyArrayDyn<f64> = array.cast_as()?;
-                Box::new(py_array.readonly().iter()?.map(|v| (*v) as f32))
+        let data: Vec<D10Rgb> = if ndims == 3 {
+            if dims[2] == 4 {
+                match colorspace {
+                    "rgba" | "rgb" | "auto" => chunked::<4>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10Rgb::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]))
+                        .collect(),
+                    "srgba" | "srgb" => chunked::<4>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10Srgb::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
+                        .collect(),
+                    "hsla" | "hsl" => chunked::<4>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10Hsl::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
+                        .collect(),
+                    "hsva" | "hsv" => chunked::<4>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10Hsv::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
+                        .collect(),
+                    "yuva" | "yuv" => chunked::<4>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10Yuv::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
+                        .collect(),
+                    "xyza" | "xyz" => chunked::<4>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10Xyz::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
+                        .collect(),
+                    "laba" | "lab" => chunked::<4>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10LabD65O2::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
+                        .collect(),
+                    "lcha" | "lch" => chunked::<4>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10LabD65O2::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb())
+                        .collect(),
+                    _ => return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)))
+                }
+            } else if dims[2] == 3 {
+                match colorspace {
+                    "rgb" | "auto" => chunked::<3>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10Rgb::new(chunk[0], chunk[1], chunk[2]))
+                        .collect(),
+                    "srgb" => chunked::<3>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10Srgb::new(chunk[0], chunk[1], chunk[2]).to_rgb())
+                        .collect(),
+                    "hsl" => chunked::<3>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10Hsl::new(chunk[0], chunk[1], chunk[2]).to_rgb())
+                        .collect(),
+                    "hsv" => chunked::<3>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10Hsv::new(chunk[0], chunk[1], chunk[2]).to_rgb())
+                        .collect(),
+                    "yuv" => chunked::<3>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10Yuv::new(chunk[0], chunk[1], chunk[2]).to_rgb())
+                        .collect(),
+                    "xyz" => chunked::<3>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10Xyz::new(chunk[0], chunk[1], chunk[2]).to_rgb())
+                        .collect(),
+                    "lab" => chunked::<3>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10LabD65O2::new(chunk[0], chunk[1], chunk[2]).to_rgb())
+                        .collect(),
+                    "lch" => chunked::<3>(&mut iter)
+                        .into_iter()
+                        .map(|chunk| D10LchD65O2::new(chunk[0], chunk[1], chunk[2]).to_rgb())
+                        .collect(),
+                    _ => return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)))
+                }
+            } else if dims[2] == 1 {
+                if colorspace != "gray" && colorspace != "auto" {
+                    return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)));
+                }
+                iter.map(|value| D10Rgb::new_with_alpha(value, value, value, 1.0)).collect()
+            } else {
+                return Err(PyOSError::new_err(format!("Bad color dimensions: {}", dims[2])));
             }
-            DataType::Bool => {
-                let py_array: &PyArrayDyn<bool> = array.cast_as()?;
-                Box::new(py_array.readonly().iter()?.map(|v| if *v { 0.0f32 } else { 1.0f32 }))
+        } else if ndims == 2 {
+            if colorspace != "gray" && colorspace != "auto" {
+                return Err(PyOSError::new_err(format!("Bad colorspace {} for dimensions: {}", colorspace, ndims)));
             }
-            DataType::Uint8 => {
-                let py_array: &PyArrayDyn<u8> = array.cast_as()?;
-                Box::new(py_array.readonly().iter()?.map(|v| (*v as f32) / 255.0))
-            }
-            DataType::Uint16 => {
-                let py_array: &PyArrayDyn<u16> = array.cast_as()?;
-                Box::new(py_array.readonly().iter()?.map(|v| (*v as f32) / 65535.0))
-            }
-            DataType::Uint32 => {
-                let py_array: &PyArrayDyn<u32> = array.cast_as()?;
-                Box::new(py_array.readonly().iter()?.map(|v| (*v as f32) / 4294967295.0))
-            }
+            iter.map(|value| D10Rgb::new_with_alpha(value, value, value, 1.0)).collect()
+        } else {
+            return Err(PyOSError::new_err(format!("Bad number of dimensions: {}", ndims)));
         };
 
-        Ok((ndims, dims, iter))
+        assert!(width * height == data.len());
+
+        Ok(D10Image::new_from_raw(width as u32, height as u32, data).into())
     }
 
     pub struct ColorIter<const N: usize> {
