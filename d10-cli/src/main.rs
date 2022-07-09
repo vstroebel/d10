@@ -1,18 +1,28 @@
 use d10::{FilterMode, Intensity};
 
 use d10_commands::{Cmd, Cmd::*, Queue};
-use std::error::Error;
 use std::ffi::OsString;
+use std::process::exit;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() {
     let args: Vec<OsString> = std::env::args_os().collect();
 
     if args.len() == 1 {
-        Err("Missing arguments".into())
+        eprintln!("Missing arguments");
+        exit(1);
     } else {
-        let queue = create_args().parse(args)?;
-        queue.run()?;
-        Ok(())
+        let queue = match create_args().parse(args) {
+            Ok(q) => q,
+            Err(err) => {
+                eprintln!("{}", err);
+                exit(1);
+            }
+        };
+
+        if let Err(err) = queue.run() {
+            eprintln!("{}", err);
+            exit(1);
+        }
     }
 }
 
