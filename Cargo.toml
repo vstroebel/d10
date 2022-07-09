@@ -4,6 +4,7 @@ members = [
     "d10-codecs",
     "d10-ops",
     "d10",
+    "d10-commands",
     "d10-cli",
     "d10-python",
 ]

@@ -1,15 +1,9 @@
 [package]
-name = "d10-cli"
+name = "d10-commands"
 version = "0.1.0"
 authors = ["Volker Ströbel <volkerstroebel@mysurdity.de>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
 
-[[bin]]
-name = "d10"
-path = "src/main.rs"
-doc = false
-
 [dependencies]
 d10 = { path = "../d10" }
-d10-commands = { path = "../d10-commands" }

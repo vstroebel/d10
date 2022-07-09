@@ -1,9 +1,6 @@
-mod commands;
-mod log;
-
 use d10::{FilterMode, Intensity};
 
-use commands::{run, Cmd, Cmd::*};
+use d10_commands::commands::{Cmd, Cmd::*, run};
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {

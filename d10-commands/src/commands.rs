@@ -1,7 +1,7 @@
 use d10::{FilterMode, Image, Intensity};
 
-use crate::log::Log;
 use std::error::Error;
+use crate::log::Log;
 
 #[derive(Debug)]
 pub enum Cmd {
