@@ -1,7 +1,7 @@
 use d10::{FilterMode, Image, Intensity};
 
-use std::error::Error;
 use crate::log::Log;
+use std::error::Error;
 
 #[derive(Debug)]
 pub enum Cmd {
@@ -33,12 +33,12 @@ pub enum Cmd {
 }
 
 impl Cmd {
-    fn ignore_in_log(&self) -> bool {
+    pub(crate) fn ignore_in_log(&self) -> bool {
         matches!(self, Cmd::Silent)
     }
 }
 
-struct Context {
+pub(crate) struct Context {
     pub image: Option<Image>,
 }
 
@@ -48,19 +48,11 @@ impl Context {
     }
 }
 
-pub fn run(commands: &[Cmd]) -> Result<(), Box<dyn Error>> {
-    let mut ctx = Context { image: None };
-
-    let total = commands.iter().filter(|cmd| !cmd.ignore_in_log()).count();
-
-    let mut log = Log::new(total);
-
-    execute(&mut ctx, commands, &mut log)?;
-
-    Ok(())
-}
-
-fn execute(ctx: &mut Context, commands: &[Cmd], log: &mut Log) -> Result<(), Box<dyn Error>> {
+pub(crate) fn execute(
+    ctx: &mut Context,
+    commands: &[Cmd],
+    log: &mut Log,
+) -> Result<(), Box<dyn Error>> {
     for cmd in commands {
         if !cmd.ignore_in_log() {
             log.log_command_step(cmd);

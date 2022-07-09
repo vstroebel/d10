@@ -1,6 +1,6 @@
 use d10::{FilterMode, Intensity};
 
-use d10_commands::commands::{Cmd, Cmd::*, run};
+use d10_commands::{Cmd, Cmd::*, Queue};
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -9,8 +9,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     if args.len() == 1 {
         Err("Missing arguments".into())
     } else {
-        let commands = create_args().parse(args)?;
-        run(&commands)?;
+        let queue = create_args().parse(args)?;
+        queue.run()?;
         Ok(())
     }
 }
@@ -132,8 +132,8 @@ impl Args {
         self
     }
 
-    pub fn parse(&self, args: Vec<String>) -> Result<Vec<Cmd>, String> {
-        let mut commands = vec![];
+    pub fn parse(&self, args: Vec<String>) -> Result<Queue, String> {
+        let mut queue = Queue::new();
         let mut iter = args.into_iter();
         iter.next();
 
@@ -144,17 +144,17 @@ impl Args {
                     .iter()
                     .find(|arg_info| arg_info.name.eq(&arg[1..]))
                 {
-                    Some(arg) => commands.push(self.parse_arg(arg, &mut iter)?),
+                    Some(arg) => queue.push(self.parse_arg(arg, &mut iter)?),
                     None => return Err(format!("Unknown argument: {}", arg)),
                 }
-            } else if commands.is_empty() {
-                commands.push(Open(arg))
+            } else if queue.is_empty() {
+                queue.push(Open(arg))
             } else {
-                commands.push(Save(arg))
+                queue.push(Save(arg))
             }
         }
 
-        Ok(commands)
+        Ok(queue)
     }
 
     fn parse_arg(&self, arg: &Arg, iter: &mut impl Iterator<Item = String>) -> Result<Cmd, String> {
