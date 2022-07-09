@@ -1,3 +1,4 @@
+use std::path::{Path, PathBuf};
 use d10::{FilterMode, Image, Intensity};
 
 use crate::log::Log;
@@ -6,8 +7,8 @@ use crate::{CommandError, CommandResult};
 #[derive(Debug)]
 pub enum Cmd {
     Silent,
-    Open(String),
-    Save(String),
+    Open(PathBuf),
+    Save(PathBuf),
     ToGray(Intensity),
     Invert,
     Gamma(f32),
@@ -84,12 +85,12 @@ pub(crate) fn execute(ctx: &mut Context, commands: &[Cmd], log: &mut Log) -> Com
     Ok(())
 }
 
-fn execute_open(ctx: &mut Context, path: &str) -> CommandResult<()> {
+fn execute_open(ctx: &mut Context, path: &Path) -> CommandResult<()> {
     ctx.image = Some(Image::open(path)?);
     Ok(())
 }
 
-fn execute_save(ctx: &mut Context, path: &str) -> CommandResult<()> {
+fn execute_save(ctx: &mut Context, path: &Path) -> CommandResult<()> {
     ctx.image()?.save(path).map_err(|err| err.into())
 }
 

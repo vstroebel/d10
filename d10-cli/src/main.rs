@@ -2,9 +2,10 @@ use d10::{FilterMode, Intensity};
 
 use d10_commands::{Cmd, Cmd::*, Queue};
 use std::error::Error;
+use std::ffi::OsString;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let args: Vec<String> = std::env::args().collect();
+    let args: Vec<OsString> = std::env::args_os().collect();
 
     if args.len() == 1 {
         Err("Missing arguments".into())
@@ -18,8 +19,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 fn create_args() -> Args {
     Args::new()
         .none_arg("silent", || Silent)
-        .string_arg("open", |v| Ok(Open(v)))
-        .string_arg("save", |v| Ok(Save(v)))
+        .os_string_arg("open", |v| Ok(Open(v.into())))
+        .os_string_arg("save", |v| Ok(Save(v.into())))
         .string_arg("grayscale", |v| Ok(ToGray(parse_intensity(&v)?)))
         .none_arg("invert", || Invert)
         .number_arg("gamma", |v| Ok(Gamma(v)))
@@ -57,6 +58,7 @@ fn parse_intensity(arg: &str) -> Result<Intensity, String> {
 enum ArgHandler {
     None(fn() -> Cmd),
     String(fn(String) -> Result<Cmd, String>),
+    OsString(fn(OsString) -> Result<Cmd, String>),
     Number(fn(f32) -> Result<Cmd, String>),
     Number2(fn(f32, f32) -> Result<Cmd, String>),
     Number3(fn(f32, f32, f32) -> Result<Cmd, String>),
@@ -92,6 +94,18 @@ impl Args {
         self.args.push(Arg {
             name,
             handler: ArgHandler::String(handler),
+        });
+        self
+    }
+
+    pub fn os_string_arg(
+        mut self,
+        name: &'static str,
+        handler: fn(OsString) -> Result<Cmd, String>,
+    ) -> Self {
+        self.args.push(Arg {
+            name,
+            handler: ArgHandler::OsString(handler),
         });
         self
     }
@@ -132,41 +146,51 @@ impl Args {
         self
     }
 
-    pub fn parse(&self, args: Vec<String>) -> Result<Queue, String> {
+    pub fn parse(&self, args: Vec<OsString>) -> Result<Queue, String> {
         let mut queue = Queue::new();
         let mut iter = args.into_iter();
         iter.next();
 
         while let Some(arg) = iter.next() {
-            if arg.starts_with('-') {
+            let string_arg = arg.to_string_lossy();
+            if string_arg.starts_with('-') {
                 match self
                     .args
                     .iter()
-                    .find(|arg_info| arg_info.name.eq(&arg[1..]))
+                    .find(|arg_info| arg_info.name.eq(&string_arg[1..]))
                 {
                     Some(arg) => queue.push(self.parse_arg(arg, &mut iter)?),
-                    None => return Err(format!("Unknown argument: {}", arg)),
+                    None => return Err(format!("Unknown argument: {}", string_arg)),
                 }
             } else if queue.is_empty() {
-                queue.push(Open(arg))
+                queue.push(Open(arg.into()))
             } else {
-                queue.push(Save(arg))
+                queue.push(Save(arg.into()))
             }
         }
 
         Ok(queue)
     }
 
-    fn parse_arg(&self, arg: &Arg, iter: &mut impl Iterator<Item = String>) -> Result<Cmd, String> {
+    fn parse_arg(
+        &self,
+        arg: &Arg,
+        iter: &mut impl Iterator<Item = OsString>,
+    ) -> Result<Cmd, String> {
         use ArgHandler::*;
         match arg.handler {
             None(h) => Ok(h()),
             String(h) => h(iter
                 .next()
+                .map(|s| s.to_string_lossy().into_owned())
+                .ok_or_else(|| format!("Missing parameter for argument: {}", arg.name))?),
+            OsString(h) => h(iter
+                .next()
                 .ok_or_else(|| format!("Missing parameter for argument: {}", arg.name))?),
             Number(h) => {
                 let v = iter
                     .next()
+                    .map(|s| s.to_string_lossy().into_owned())
                     .ok_or_else(|| format!("Missing parameter for argument: {}", arg.name))?;
                 match v.parse() {
                     Ok(v) => h(v),
@@ -176,6 +200,7 @@ impl Args {
             Number2(h) => {
                 let v = iter
                     .next()
+                    .map(|s| s.to_string_lossy().into_owned())
                     .ok_or_else(|| format!("Missing parameter for argument: {}", arg.name))?
                     .split(',')
                     .map(|v| v.to_owned())
@@ -201,6 +226,7 @@ impl Args {
             Number3(h) => {
                 let v = iter
                     .next()
+                    .map(|s| s.to_string_lossy().into_owned())
                     .ok_or_else(|| format!("Missing parameter for argument: {}", arg.name))?
                     .split(',')
                     .map(|v| v.to_owned())
