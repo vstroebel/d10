@@ -1,6 +1,5 @@
 use crate::commands::{execute, Cmd, Context};
-use crate::Log;
-use std::error::Error;
+use crate::{CommandResult, Log};
 
 pub struct Queue {
     pub(crate) commands: Vec<Cmd>,
@@ -11,7 +10,7 @@ impl Queue {
         Queue { commands: vec![] }
     }
 
-    pub fn run(&self) -> Result<(), Box<dyn Error>> {
+    pub fn run(&self) -> CommandResult<()> {
         let mut ctx = Context { image: None };
 
         let total = self

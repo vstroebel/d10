@@ -11,8 +11,8 @@ pub use crate::core::pixelbuffer::*;
 mod image;
 
 pub use codecs::{
-    BmpColorType, EncodingFormat, IcoColorType, JpegSamplingFactor, PngColorType, PngCompression,
-    PngFilterType, WebPPreset,
+    BmpColorType, DecodingError, EncodingError, EncodingFormat, IcoColorType, JpegSamplingFactor,
+    PngColorType, PngCompression, PngFilterType, WebPPreset,
 };
 pub use image::Image;
 pub use ops::FilterMode;

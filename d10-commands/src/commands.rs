@@ -1,7 +1,7 @@
 use d10::{FilterMode, Image, Intensity};
 
 use crate::log::Log;
-use std::error::Error;
+use crate::{CommandError, CommandResult};
 
 #[derive(Debug)]
 pub enum Cmd {
@@ -43,16 +43,12 @@ pub(crate) struct Context {
 }
 
 impl Context {
-    fn image(&mut self) -> Result<&mut Image, Box<dyn Error>> {
-        self.image.as_mut().ok_or_else(|| "Missing image".into())
+    fn image(&mut self) -> CommandResult<&mut Image> {
+        self.image.as_mut().ok_or(CommandError::MissingImage)
     }
 }
 
-pub(crate) fn execute(
-    ctx: &mut Context,
-    commands: &[Cmd],
-    log: &mut Log,
-) -> Result<(), Box<dyn Error>> {
+pub(crate) fn execute(ctx: &mut Context, commands: &[Cmd], log: &mut Log) -> CommandResult<()> {
     for cmd in commands {
         if !cmd.ignore_in_log() {
             log.log_command_step(cmd);
@@ -88,27 +84,27 @@ pub(crate) fn execute(
     Ok(())
 }
 
-fn execute_open(ctx: &mut Context, path: &str) -> Result<(), Box<dyn Error>> {
+fn execute_open(ctx: &mut Context, path: &str) -> CommandResult<()> {
     ctx.image = Some(Image::open(path)?);
     Ok(())
 }
 
-fn execute_save(ctx: &mut Context, path: &str) -> Result<(), Box<dyn Error>> {
+fn execute_save(ctx: &mut Context, path: &str) -> CommandResult<()> {
     ctx.image()?.save(path).map_err(|err| err.into())
 }
 
-fn execute_to_gray(ctx: &mut Context, intensity: Intensity) -> Result<(), Box<dyn Error>> {
+fn execute_to_gray(ctx: &mut Context, intensity: Intensity) -> CommandResult<()> {
     ctx.image()?
         .mod_colors(|c| c.to_gray_with_intensity(intensity));
     Ok(())
 }
 
-fn execute_invert(ctx: &mut Context) -> Result<(), Box<dyn Error>> {
+fn execute_invert(ctx: &mut Context) -> CommandResult<()> {
     ctx.image()?.mod_colors(|c| c.invert());
     Ok(())
 }
 
-fn execute_gamma(ctx: &mut Context, gamma: f32) -> Result<(), Box<dyn Error>> {
+fn execute_gamma(ctx: &mut Context, gamma: f32) -> CommandResult<()> {
     ctx.image()?.mod_colors(|c| c.with_gamma(gamma));
     Ok(())
 }
@@ -118,18 +114,18 @@ fn execute_level(
     black_point: f32,
     white_point: f32,
     gamma: f32,
-) -> Result<(), Box<dyn Error>> {
+) -> CommandResult<()> {
     ctx.image()?
         .mod_colors(|c| c.with_level(black_point, white_point, gamma));
     Ok(())
 }
 
-fn execute_brightness(ctx: &mut Context, brightness: f32) -> Result<(), Box<dyn Error>> {
+fn execute_brightness(ctx: &mut Context, brightness: f32) -> CommandResult<()> {
     ctx.image()?.mod_colors(|c| c.with_brightness(brightness));
     Ok(())
 }
 
-fn execute_contrast(ctx: &mut Context, contrast: f32) -> Result<(), Box<dyn Error>> {
+fn execute_contrast(ctx: &mut Context, contrast: f32) -> CommandResult<()> {
     ctx.image()?.mod_colors(|c| c.with_contrast(contrast));
     Ok(())
 }
@@ -138,38 +134,34 @@ fn execute_brightness_contrast(
     ctx: &mut Context,
     brightness: f32,
     contrast: f32,
-) -> Result<(), Box<dyn Error>> {
+) -> CommandResult<()> {
     ctx.image()?
         .mod_colors(|c| c.with_brightness_contrast(brightness, contrast));
     Ok(())
 }
 
-fn execute_saturation(ctx: &mut Context, saturation: f32) -> Result<(), Box<dyn Error>> {
+fn execute_saturation(ctx: &mut Context, saturation: f32) -> CommandResult<()> {
     ctx.image()?.mod_colors(|c| c.with_saturation(saturation));
     Ok(())
 }
 
-fn execute_stretch_saturation(ctx: &mut Context, saturation: f32) -> Result<(), Box<dyn Error>> {
+fn execute_stretch_saturation(ctx: &mut Context, saturation: f32) -> CommandResult<()> {
     ctx.image()?
         .mod_colors(|c| c.stretch_saturation(saturation));
     Ok(())
 }
 
-fn execute_lightness(ctx: &mut Context, lightness: f32) -> Result<(), Box<dyn Error>> {
+fn execute_lightness(ctx: &mut Context, lightness: f32) -> CommandResult<()> {
     ctx.image()?.mod_colors(|c| c.with_lightness(lightness));
     Ok(())
 }
 
-fn execute_hue_rotate(ctx: &mut Context, rotation: f32) -> Result<(), Box<dyn Error>> {
+fn execute_hue_rotate(ctx: &mut Context, rotation: f32) -> CommandResult<()> {
     ctx.image()?.mod_colors(|c| c.with_hue_rotate(rotation));
     Ok(())
 }
 
-fn execute_rotate(
-    ctx: &mut Context,
-    radians: f32,
-    filter: FilterMode,
-) -> Result<(), Box<dyn Error>> {
+fn execute_rotate(ctx: &mut Context, radians: f32, filter: FilterMode) -> CommandResult<()> {
     ctx.image = Some(ctx.image()?.rotate(radians, filter));
     Ok(())
 }
