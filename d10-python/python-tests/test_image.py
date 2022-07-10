@@ -265,6 +265,19 @@ class TestImage(unittest.TestCase):
         self.assertEqual(image.width, 2)
         self.assertEqual(image.height, 3)
 
+    def test_rgb_noise(self):
+        image = Image(2, 3).rgb_noise(0.5)
+
+        self.assertEqual(image.width, 2)
+        self.assertEqual(image.height, 3)
+
+    def test_add_rgb_noise(self):
+        image = Image(2, 3)
+        image.add_rgb_noise(0.5)
+
+        self.assertEqual(image.width, 2)
+        self.assertEqual(image.height, 3)
+
     def test_gaussian_noise(self):
         image = Image(2, 3).gaussian_noise(0.5)
 

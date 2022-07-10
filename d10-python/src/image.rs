@@ -223,6 +223,14 @@ impl Image {
         self.inner.add_salt_n_pepper_noise(threshold);
     }
 
+    pub fn rgb_noise(&self, threshold: f32) -> Image {
+        self.inner.rgb_noise(threshold).into()
+    }
+
+    pub fn add_rgb_noise(&mut self, threshold: f32) {
+        self.inner.add_rgb_noise(threshold);
+    }
+
     pub fn gaussian_noise(&self, alpha: f32) -> Image {
         self.inner.gaussian_noise(alpha).into()
     }

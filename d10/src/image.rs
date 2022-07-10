@@ -300,6 +300,16 @@ impl Image {
         ops::add_salt_n_pepper_noise(&mut self.buffer, threshold);
     }
 
+    /// Return a new image with rgb noise
+    pub fn rgb_noise(&self, threshold: f32) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::rgb_noise(&self.buffer, threshold))
+    }
+
+    /// Add rgb noise to the image
+    pub fn add_rgb_noise(&mut self, threshold: f32) {
+        ops::add_rgb_noise(&mut self.buffer, threshold);
+    }
+
     /// Return a new image with gaussian noise
     pub fn gaussian_noise(&self, alpha: f32) -> Image {
         Self::new_from_buffer_with_meta(self, ops::gaussian_noise(&self.buffer, alpha))
@@ -629,6 +639,22 @@ mod tests {
         let mut img_in = test_image_3_2();
 
         img_in.add_salt_n_pepper_noise(0.5);
+    }
+
+    #[test]
+    fn rgb_noise() {
+        //TODO:  Add real test that checks if there is actually a noise added
+
+        let img_in = test_image_3_2();
+
+        let img_out = img_in.rgb_noise(0.5);
+
+        assert_eq!(img_in.width(), img_out.width());
+        assert_eq!(img_in.height(), img_out.height());
+
+        let mut img_in = test_image_3_2();
+
+        img_in.add_rgb_noise(0.5);
     }
 
     #[test]
