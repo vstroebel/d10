@@ -621,14 +621,14 @@ mod tests {
 
         let img_in = test_image_3_2();
 
-        let img_out = img_in.random_noise(0.5);
+        let img_out = img_in.salt_n_pepper_noise(0.5);
 
         assert_eq!(img_in.width(), img_out.width());
         assert_eq!(img_in.height(), img_out.height());
 
         let mut img_in = test_image_3_2();
 
-        img_in.add_random_noise(0.5);
+        img_in.add_salt_n_pepper_noise(0.5);
     }
 
     #[test]
