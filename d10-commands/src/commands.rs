@@ -1,5 +1,5 @@
-use std::path::{Path, PathBuf};
 use d10::{FilterMode, Image, Intensity};
+use std::path::{Path, PathBuf};
 
 use crate::log::Log;
 use crate::{CommandError, CommandResult};
@@ -31,6 +31,9 @@ pub enum Cmd {
         radians: f32,
         filter: FilterMode,
     },
+    RandomNoise(f32),
+    SaltNPepperNoise(f32),
+    RgbNoise(f32),
 }
 
 impl Cmd {
@@ -79,6 +82,9 @@ pub(crate) fn execute(ctx: &mut Context, commands: &[Cmd], log: &mut Log) -> Com
             Lightness(lightness) => execute_lightness(ctx, *lightness)?,
             HueRotate(rotation) => execute_hue_rotate(ctx, *rotation)?,
             Rotate { radians, filter } => execute_rotate(ctx, *radians, *filter)?,
+            RandomNoise(alpha) => execute_random_noise(ctx, *alpha)?,
+            SaltNPepperNoise(threshold) => execute_salt_n_pepper_noise(ctx, *threshold)?,
+            RgbNoise(threshold) => execute_rgb_noise(ctx, *threshold)?,
         };
     }
 
@@ -164,5 +170,20 @@ fn execute_hue_rotate(ctx: &mut Context, rotation: f32) -> CommandResult<()> {
 
 fn execute_rotate(ctx: &mut Context, radians: f32, filter: FilterMode) -> CommandResult<()> {
     ctx.image = Some(ctx.image()?.rotate(radians, filter));
+    Ok(())
+}
+
+fn execute_random_noise(ctx: &mut Context, alpha: f32) -> CommandResult<()> {
+    ctx.image = Some(ctx.image()?.random_noise(alpha));
+    Ok(())
+}
+
+fn execute_salt_n_pepper_noise(ctx: &mut Context, threshold: f32) -> CommandResult<()> {
+    ctx.image = Some(ctx.image()?.salt_n_pepper_noise(threshold));
+    Ok(())
+}
+
+fn execute_rgb_noise(ctx: &mut Context, threshold: f32) -> CommandResult<()> {
+    ctx.image = Some(ctx.image()?.rgb_noise(threshold));
     Ok(())
 }

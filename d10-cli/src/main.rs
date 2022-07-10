@@ -59,6 +59,9 @@ fn create_args() -> Args {
                 filter: FilterMode::Bilinear,
             })
         })
+        .number_arg("random-noise", |v| Ok(RandomNoise(v)))
+        .number_arg("salt-n-pepper-noise", |v| Ok(SaltNPepperNoise(v)))
+        .number_arg("rgb-noise", |v| Ok(RgbNoise(v)))
 }
 
 fn parse_intensity(arg: &str) -> Result<Intensity, String> {
