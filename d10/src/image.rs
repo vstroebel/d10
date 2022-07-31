@@ -3,7 +3,7 @@ use std::io::Write;
 use std::path::Path;
 
 use d10_codecs::{DecodingError, EncodingError, EncodingFormat};
-use d10_ops::{blend_image, BlendOp, DrawingMode, FilterMode};
+use d10_ops::{blend_image, BlendOp, DrawingMode, FilterMode, SaturationMode};
 
 use crate::{ops, PixelBuffer, Rgb};
 
@@ -413,6 +413,10 @@ impl Image {
     /// threshold: Value between 0 and 1000. Sane values are between 0.0 and 1.0
     pub fn stretch_contrast(&mut self, threshold: f32) -> Image {
         Self::new_from_buffer_with_meta(self, ops::stretch_contrast(&self.buffer, threshold))
+    }
+
+    pub fn optimize_saturation(&mut self, offset: f32, mode: SaturationMode) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::optimize_saturation(&self.buffer, offset, mode))
     }
 }
 

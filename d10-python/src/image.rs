@@ -4,7 +4,7 @@ use pyo3::types::{PyFunction, PyList};
 
 use d10::illuminant::D65;
 use d10::observer::O2;
-use d10::ops::BlendOp;
+use d10::ops::{BlendOp, SaturationMode};
 use d10::{
     BmpColorType, EncodingFormat as D10EncodingFormat, FilterMode, IcoColorType, Image as D10Image,
     PngColorType, PngCompression, PngFilterType, Rgb as D10Rgb, WebPPreset,
@@ -313,6 +313,12 @@ impl Image {
     pub fn stretch_contrast(&mut self, threshold: Option<f32>) -> PyResult<Image> {
         let threshold = threshold.unwrap_or(0.5);
         Ok(self.inner.stretch_contrast(threshold).into())
+    }
+
+    pub fn optimize_saturation(&mut self, offset: Option<f32>, mode: Option<&str>) -> PyResult<Image> {
+        let mode: SaturationMode = mode.unwrap_or("hsl").parse().py_err()?;
+        let offset = offset.unwrap_or(1.0);
+        Ok(self.inner.optimize_saturation(offset, mode).into())
     }
 
     fn __len__(&self) -> PyResult<usize> {
