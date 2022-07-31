@@ -19,6 +19,7 @@ mod salt_n_pepper_noise;
 mod saturation;
 mod sobel;
 mod stretch_contrast;
+mod temperature;
 mod unsharp;
 
 pub use apply_palette::{apply_palette, apply_palette_in_place};
@@ -42,4 +43,5 @@ pub use salt_n_pepper_noise::{add_salt_n_pepper_noise, salt_n_pepper_noise};
 pub use saturation::{optimize_saturation, SaturationMode};
 pub use sobel::sobel_edge_detection;
 pub use stretch_contrast::stretch_contrast;
+pub use temperature::{change_color_temperature, optimize_color_temperature};
 pub use unsharp::unsharp;

@@ -418,6 +418,20 @@ impl Image {
     pub fn optimize_saturation(&mut self, offset: f32, mode: SaturationMode) -> Image {
         Self::new_from_buffer_with_meta(self, ops::optimize_saturation(&self.buffer, offset, mode))
     }
+
+    pub fn change_color_temperature(&self, orig_temp: f32, new_temp: f32, tint_correction: f32) -> Image {
+        Self::new_from_buffer_with_meta(
+            self,
+            ops::change_color_temperature(&self.buffer, orig_temp, new_temp, tint_correction),
+        )
+    }
+
+    pub fn optimize_color_temperature(&self, factor: f32, tint_correction: f32) -> Image {
+        Self::new_from_buffer_with_meta(
+            self,
+            ops::optimize_color_temperature(&self.buffer, factor, tint_correction),
+        )
+    }
 }
 
 #[cfg(test)]

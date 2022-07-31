@@ -321,6 +321,14 @@ impl Image {
         Ok(self.inner.optimize_saturation(offset, mode).into())
     }
 
+    pub fn change_color_temperature(&self, orig_temp: f32, new_temp: f32, tint_correction: Option<f32>) -> PyResult<Image> {
+        Ok(self.inner.change_color_temperature(orig_temp, new_temp, tint_correction.unwrap_or(0.0)).into())
+    }
+
+    pub fn optimize_color_temperature(&self, factor: f32, tint_correction: Option<f32>) -> PyResult<Image> {
+        Ok(self.inner.optimize_color_temperature(factor, tint_correction.unwrap_or(0.0)).into())
+    }
+
     fn __len__(&self) -> PyResult<usize> {
         Ok(self.inner.data().len())
     }
