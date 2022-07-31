@@ -267,7 +267,7 @@ impl Image {
         self.inner.apply_palette_in_place(&palette.inner);
     }
 
-    pub fn despeckle(&mut self, threshold: Option<f32>, amount: Option<u8>) -> Image {
+    pub fn despeckle(&self, threshold: Option<f32>, amount: Option<u8>) -> Image {
         self.inner
             .despeckle(threshold.unwrap_or(0.1), amount.unwrap_or(1))
             .into()
@@ -300,7 +300,7 @@ impl Image {
     }
 
     pub fn blend(
-        &mut self,
+        &self,
         image: &Image,
         blend_op: Option<&str>,
         intensity: Option<f32>,
@@ -310,23 +310,38 @@ impl Image {
         Ok(self.inner.blend(&image.inner, blend_op, intensity).into())
     }
 
-    pub fn stretch_contrast(&mut self, threshold: Option<f32>) -> PyResult<Image> {
+    pub fn stretch_contrast(&self, threshold: Option<f32>) -> PyResult<Image> {
         let threshold = threshold.unwrap_or(0.5);
         Ok(self.inner.stretch_contrast(threshold).into())
     }
 
-    pub fn optimize_saturation(&mut self, offset: Option<f32>, mode: Option<&str>) -> PyResult<Image> {
+    pub fn optimize_saturation(&self, offset: Option<f32>, mode: Option<&str>) -> PyResult<Image> {
         let mode: SaturationMode = mode.unwrap_or("hsl").parse().py_err()?;
         let offset = offset.unwrap_or(1.0);
         Ok(self.inner.optimize_saturation(offset, mode).into())
     }
 
-    pub fn change_color_temperature(&self, orig_temp: f32, new_temp: f32, tint_correction: Option<f32>) -> PyResult<Image> {
-        Ok(self.inner.change_color_temperature(orig_temp, new_temp, tint_correction.unwrap_or(0.0)).into())
+    pub fn change_color_temperature(
+        &self,
+        orig_temp: f32,
+        new_temp: f32,
+        tint_correction: Option<f32>,
+    ) -> PyResult<Image> {
+        Ok(self
+            .inner
+            .change_color_temperature(orig_temp, new_temp, tint_correction.unwrap_or(0.0))
+            .into())
     }
 
-    pub fn optimize_color_temperature(&self, factor: f32, tint_correction: Option<f32>) -> PyResult<Image> {
-        Ok(self.inner.optimize_color_temperature(factor, tint_correction.unwrap_or(0.0)).into())
+    pub fn optimize_color_temperature(
+        &self,
+        factor: f32,
+        tint_correction: Option<f32>,
+    ) -> PyResult<Image> {
+        Ok(self
+            .inner
+            .optimize_color_temperature(factor, tint_correction.unwrap_or(0.0))
+            .into())
     }
 
     fn __len__(&self) -> PyResult<usize> {

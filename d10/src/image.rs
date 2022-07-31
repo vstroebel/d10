@@ -403,7 +403,7 @@ impl Image {
         ops::apply_palette_in_place(&mut self.buffer, &palette.buffer);
     }
 
-    pub fn despeckle(&mut self, threshold: f32, amount: u8) -> Image {
+    pub fn despeckle(&self, threshold: f32, amount: u8) -> Image {
         Self::new_from_buffer_with_meta(self, ops::despeckle(&self.buffer, threshold, amount))
     }
 
@@ -411,11 +411,11 @@ impl Image {
     ///
     /// # Arguments
     /// threshold: Value between 0 and 1000. Sane values are between 0.0 and 1.0
-    pub fn stretch_contrast(&mut self, threshold: f32) -> Image {
+    pub fn stretch_contrast(&self, threshold: f32) -> Image {
         Self::new_from_buffer_with_meta(self, ops::stretch_contrast(&self.buffer, threshold))
     }
 
-    pub fn optimize_saturation(&mut self, offset: f32, mode: SaturationMode) -> Image {
+    pub fn optimize_saturation(&self, offset: f32, mode: SaturationMode) -> Image {
         Self::new_from_buffer_with_meta(self, ops::optimize_saturation(&self.buffer, offset, mode))
     }
 
