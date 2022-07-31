@@ -1,8 +1,14 @@
 use std::str::FromStr;
 
+use d10_core::color::illuminant::D65;
+use d10_core::color::observer::O2;
 use d10_core::color::{Color, Rgb};
 use d10_core::errors::ParseEnumError;
 use d10_core::pixelbuffer::PixelBuffer;
+
+fn apply_intensity(v1: f32, v2: f32, intensity: f32) -> f32 {
+    v1 * (1.0 - intensity) + v2 * intensity
+}
 
 fn blend_color<F>(c1: Rgb, c2: Rgb, intensity: f32, func: F) -> Rgb
 where
@@ -10,10 +16,7 @@ where
 {
     let intensity = intensity * c2.alpha();
 
-    let blend_values = |v1: f32, v2: f32| -> f32 {
-        let v2 = func(v1, v2);
-        v1 * (1.0 - intensity) + v2 * intensity
-    };
+    let blend_values = |v1: f32, v2: f32| -> f32 { apply_intensity(v1, func(v1, v2), intensity) };
 
     Rgb::new_with_alpha(
         blend_values(c1.data[0], c2.data[0]),
@@ -55,6 +58,13 @@ pub enum BlendOp {
     Subtract,
     Darken,
     Lighten,
+    HslDarken,
+    HslLighten,
+    LchDarken,
+    LchLighten,
+    LchHue,
+    LchSaturation,
+    LchColor,
 }
 
 impl FromStr for BlendOp {
@@ -68,6 +78,13 @@ impl FromStr for BlendOp {
             "subtract" => Ok(Subtract),
             "darken" => Ok(Darken),
             "lighten" => Ok(Lighten),
+            "hsl_darken" => Ok(HslDarken),
+            "hsl_lighten" => Ok(HslLighten),
+            "lch_darken" => Ok(LchDarken),
+            "lch_lighten" => Ok(LchLighten),
+            "lch_hue" => Ok(LchHue),
+            "lch_saturation" => Ok(LchSaturation),
+            "lch_color" => Ok(LchColor),
             _ => Err(ParseEnumError::new(value, "BlendOp")),
         }
     }
@@ -85,6 +102,15 @@ pub fn blend_image(
         BlendOp::Subtract => blend_image_with_func(img1, img2, intensity, blend_subtract),
         BlendOp::Darken => blend_image_with_func(img1, img2, intensity, blend_darken),
         BlendOp::Lighten => blend_image_with_func(img1, img2, intensity, blend_lighten),
+        BlendOp::HslDarken => blend_image_with_func(img1, img2, intensity, blend_hsl_darken),
+        BlendOp::HslLighten => blend_image_with_func(img1, img2, intensity, blend_hsl_lighten),
+        BlendOp::LchDarken => blend_image_with_func(img1, img2, intensity, blend_lch_darken),
+        BlendOp::LchLighten => blend_image_with_func(img1, img2, intensity, blend_lch_lighten),
+        BlendOp::LchHue => blend_image_with_func(img1, img2, intensity, blend_lch_hue),
+        BlendOp::LchSaturation => {
+            blend_image_with_func(img1, img2, intensity, blend_lch_saturation)
+        }
+        BlendOp::LchColor => blend_image_with_func(img1, img2, intensity, blend_lch_color),
     }
 }
 
@@ -106,4 +132,77 @@ pub fn blend_darken(c1: Rgb, c2: Rgb, intensity: f32) -> Rgb {
 
 pub fn blend_lighten(c1: Rgb, c2: Rgb, intensity: f32) -> Rgb {
     blend_color(c1, c2, intensity, |v1, v2| v1.max(v2))
+}
+
+pub fn blend_hsl_darken(c1: Rgb, c2: Rgb, intensity: f32) -> Rgb {
+    let c1 = c1.to_hsl();
+    let c2 = c2.to_hsl();
+
+    let l1 = c1.lightness();
+    let l2 = c1.lightness().min(c2.lightness());
+
+    let l = apply_intensity(l1, l2, intensity);
+
+    c1.with_lightness(l).to_rgb()
+}
+
+pub fn blend_hsl_lighten(c1: Rgb, c2: Rgb, intensity: f32) -> Rgb {
+    let c1 = c1.to_hsl();
+    let c2 = c2.to_hsl();
+
+    let l1 = c1.lightness();
+    let l2 = c1.lightness().max(c2.lightness());
+
+    let l = apply_intensity(l1, l2, intensity);
+
+    c1.with_lightness(l).to_rgb()
+}
+
+pub fn blend_lch_darken(c1: Rgb, c2: Rgb, intensity: f32) -> Rgb {
+    let c1 = c1.to_lch::<D65, O2>();
+    let c2 = c2.to_lch::<D65, O2>();
+
+    let l1 = c1.l();
+    let l2 = c1.l().min(c2.l());
+
+    let l = apply_intensity(l1, l2, intensity);
+
+    c1.with_l(l).to_rgb()
+}
+
+pub fn blend_lch_lighten(c1: Rgb, c2: Rgb, intensity: f32) -> Rgb {
+    let c1 = c1.to_lch::<D65, O2>();
+    let c2 = c2.to_lch::<D65, O2>();
+
+    let l1 = c1.l();
+    let l2 = c1.l().max(c2.l());
+
+    let l = apply_intensity(l1, l2, intensity);
+
+    c1.with_l(l).to_rgb()
+}
+
+pub fn blend_lch_hue(c1: Rgb, c2: Rgb, intensity: f32) -> Rgb {
+    let c1 = c1.to_lch::<D65, O2>();
+    let c2 = c2.to_lch::<D65, O2>();
+
+    c1.with_h(apply_intensity(c1.h(), c2.h(), intensity))
+        .to_rgb()
+}
+
+pub fn blend_lch_saturation(c1: Rgb, c2: Rgb, intensity: f32) -> Rgb {
+    let c1 = c1.to_lch::<D65, O2>();
+    let c2 = c2.to_lch::<D65, O2>();
+
+    c1.with_c(apply_intensity(c1.c(), c2.c(), intensity))
+        .to_rgb()
+}
+
+pub fn blend_lch_color(c1: Rgb, c2: Rgb, intensity: f32) -> Rgb {
+    let c1 = c1.to_lch::<D65, O2>();
+    let c2 = c2.to_lch::<D65, O2>();
+
+    c1.with_c(apply_intensity(c1.c(), c2.c(), intensity))
+        .with_h(apply_intensity(c1.h(), c2.h(), intensity))
+        .to_rgb()
 }
