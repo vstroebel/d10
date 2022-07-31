@@ -310,6 +310,11 @@ impl Image {
         Ok(self.inner.blend(&image.inner, blend_op, intensity).into())
     }
 
+    pub fn stretch_contrast(&mut self, threshold: Option<f32>) -> PyResult<Image> {
+        let threshold = threshold.unwrap_or(0.5);
+        Ok(self.inner.stretch_contrast(threshold).into())
+    }
+
     fn __len__(&self) -> PyResult<usize> {
         Ok(self.inner.data().len())
     }

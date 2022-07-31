@@ -406,6 +406,14 @@ impl Image {
     pub fn despeckle(&mut self, threshold: f32, amount: u8) -> Image {
         Self::new_from_buffer_with_meta(self, ops::despeckle(&self.buffer, threshold, amount))
     }
+
+    /// Automatically stretch contrast
+    ///
+    /// # Arguments
+    /// threshold: Value between 0 and 1000. Sane values are between 0.0 and 1.0
+    pub fn stretch_contrast(&mut self, threshold: f32) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::stretch_contrast(&self.buffer, threshold))
+    }
 }
 
 #[cfg(test)]

@@ -17,6 +17,7 @@ mod rotate;
 mod rotate_90;
 mod salt_n_pepper_noise;
 mod sobel;
+mod stretch_contrast;
 mod unsharp;
 
 pub use apply_palette::{apply_palette, apply_palette_in_place};
@@ -38,4 +39,5 @@ pub use rotate::rotate;
 pub use rotate_90::{rotate180, rotate270, rotate90};
 pub use salt_n_pepper_noise::{add_salt_n_pepper_noise, salt_n_pepper_noise};
 pub use sobel::sobel_edge_detection;
+pub use stretch_contrast::stretch_contrast;
 pub use unsharp::unsharp;
