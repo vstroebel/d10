@@ -189,6 +189,19 @@ impl Rgb {
         .to_rgb()
     }
 
+    pub fn with_gamma_saturation(&self, gamma: f32) -> Rgb {
+        let hsl = self.to_hsl();
+        Hsl {
+            data: [
+                hsl.hue(),
+                clamp(hsl.saturation()).powf(1.0 / gamma),
+                hsl.lightness(),
+                self.alpha(),
+            ],
+        }
+        .to_rgb()
+    }
+
     pub fn with_lightness(&self, factor: f32) -> Rgb {
         let hsl = self.to_hsl();
         Hsl {

@@ -251,6 +251,10 @@ fn stretch_saturation(&self, factor: f32) -> Rgb {
     self.inner.stretch_saturation(factor).into()
 }
 
+fn with_gamma_saturation(&self, gamma: f32) -> Rgb {
+    self.inner.with_gamma_saturation(gamma).into()
+}
+
 fn with_lightness(&self, factor: f32) -> Rgb {
     self.inner.with_lightness(factor).into()
 }
