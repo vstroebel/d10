@@ -11,12 +11,12 @@ pub fn change_color_temperature(
     let factors = calculate_factors(orig_temp, new_temp);
 
     let tint_pow = if tint_correction > 0.0 {
-        get_tint_pow(buffer, tint_correction).max(0.0)
+        get_green_tint_pow(buffer, tint_correction).max(0.0)
     } else {
         0.0
     };
 
-    if tint_pow > 0.0 {
+    let mut res = if tint_pow > 0.0 {
         buffer.map_colors(|c| {
             Rgb::new_with_alpha(
                 c.red() * factors[0],
@@ -34,7 +34,20 @@ pub fn change_color_temperature(
                 c.alpha(),
             )
         })
+    };
+
+    let red_pow = get_red_tint_pow(buffer, tint_correction);
+    let blue_pow = get_blue_tint_pow(buffer, tint_correction);
+
+    if red_pow > 0.0 {
+        res.mod_colors(|c| c.with_red(c.red().powf(red_pow)));
     }
+
+    if blue_pow > 0.0 {
+        res.mod_colors(|c| c.with_blue(c.blue().powf(blue_pow)));
+    }
+
+    res
 }
 
 fn calculate_factors(orig_temp: f32, new_temp: f32) -> [f32; 3] {
@@ -87,7 +100,11 @@ const TEMPERATURE_TABLE: [(f64, f64); 12] = [
     (0.271782994107569, 0.277561259748537),
 ];
 
-fn get_tint_pow(buffer: &PixelBuffer<Rgb>, tint_correction: f32) -> f32 {
+fn get_green_tint_pow(buffer: &PixelBuffer<Rgb>, tint_correction: f32) -> f32 {
+    if tint_correction <= 0.0 {
+        return 0.0;
+    }
+
     let mut sum = 0.0;
 
     for c in buffer.data() {
@@ -97,7 +114,47 @@ fn get_tint_pow(buffer: &PixelBuffer<Rgb>, tint_correction: f32) -> f32 {
     let avg = sum * tint_correction / buffer.data().len() as f32;
 
     if avg > 0.0 {
-        1.0 / (1.0 - avg)
+        1.0 / (1.0 - avg.tanh())
+    } else {
+        0.0
+    }
+}
+
+fn get_red_tint_pow(buffer: &PixelBuffer<Rgb>, tint_correction: f32) -> f32 {
+    if tint_correction <= 0.0 {
+        return 0.0;
+    }
+
+    let mut sum = 0.0;
+
+    for c in buffer.data() {
+        sum += c.red() - c.green() + c.red() - c.blue();
+    }
+
+    let avg = 0.25 * sum * tint_correction / buffer.data().len() as f32;
+
+    if avg > 0.0 {
+        1.0 / (1.0 - avg.tanh())
+    } else {
+        0.0
+    }
+}
+
+fn get_blue_tint_pow(buffer: &PixelBuffer<Rgb>, tint_correction: f32) -> f32 {
+    if tint_correction <= 0.0 {
+        return 0.0;
+    }
+
+    let mut sum = 0.0;
+
+    for c in buffer.data() {
+        sum += c.blue() - c.green() + c.blue() - c.red();
+    }
+
+    let avg = 0.33 * sum * tint_correction / buffer.data().len() as f32;
+
+    if avg > 0.0 {
+        1.0 / (1.0 - avg.tanh())
     } else {
         0.0
     }
