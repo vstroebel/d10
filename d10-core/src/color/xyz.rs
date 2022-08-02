@@ -1,4 +1,4 @@
-use crate::color::{apply_matrix, format_color, Color, Rgb, EPSILON};
+use crate::color::{format_color, Color, Rgb, EPSILON, apply_matrix_clamped};
 use std::fmt::Display;
 
 pub(crate) const RGB_TO_XYZ: [[f32; 3]; 3] = [
@@ -90,9 +90,8 @@ impl Color for Xyz {
 
     fn to_rgb(&self) -> Rgb {
         Rgb {
-            data: apply_matrix(&self.data, &XYZ_TO_RGB),
+            data: apply_matrix_clamped(&self.data, &XYZ_TO_RGB),
         }
-        .to_rgb()
     }
 
     fn data(&self) -> &[f32] {

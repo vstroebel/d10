@@ -278,6 +278,15 @@ pub(crate) fn apply_matrix(color: &[f32; 4], matrix: &[[f32; 3]; 3]) -> [f32; 4]
     ]
 }
 
+pub(crate) fn apply_matrix_clamped(color: &[f32; 4], matrix: &[[f32; 3]; 3]) -> [f32; 4] {
+    [
+        clamp(color[0] * matrix[0][0] + color[1] * matrix[0][1] + color[2] * matrix[0][2]),
+        clamp(color[0] * matrix[1][0] + color[1] * matrix[1][1] + color[2] * matrix[1][2]),
+        clamp(color[0] * matrix[2][0] + color[1] * matrix[2][1] + color[2] * matrix[2][2]),
+        color[3],
+    ]
+}
+
 mod private {
     use crate::color::Color;
 
