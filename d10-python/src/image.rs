@@ -315,6 +315,11 @@ impl Image {
         Ok(self.inner.stretch_contrast(threshold).into())
     }
 
+    pub fn white_balance(&self, threshold: Option<f32>) -> PyResult<Image> {
+        let threshold = threshold.unwrap_or(0.5);
+        Ok(self.inner.white_balance(threshold).into())
+    }
+
     pub fn optimize_saturation(&self, offset: Option<f32>, mode: Option<&str>) -> PyResult<Image> {
         let mode: SaturationMode = mode.unwrap_or("hsl").parse().py_err()?;
         let offset = offset.unwrap_or(1.0);
