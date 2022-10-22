@@ -315,20 +315,6 @@ impl Image {
         Ok(self.inner.stretch_contrast(threshold).into())
     }
 
-    pub fn white_balance(&self, threshold: Option<f32>) -> PyResult<Image> {
-        let threshold = threshold.unwrap_or(0.5);
-        Ok(self.inner.white_balance(threshold).into())
-    }
-
-    pub fn balance(&self, mode: Option<&str>, threshold: Option<f32>) -> PyResult<Image> {
-        let mode = match mode {
-            Some(mode) => mode.parse().py_err()?,
-            None => BalanceMode::Rgb,
-        };
-        let threshold = threshold.unwrap_or(0.5);
-        Ok(self.inner.balance(mode, threshold).into())
-    }
-
     pub fn optimize_saturation(&self, offset: Option<f32>, mode: Option<&str>) -> PyResult<Image> {
         let mode: SaturationMode = mode.unwrap_or("hsl").parse().py_err()?;
         let offset = offset.unwrap_or(1.0);
@@ -887,42 +873,50 @@ mod numpy_helper {
             if dims[2] == 4 {
                 match colorspace {
                     "rgba" | "rgb" | "auto" => chunked::<4>(&mut iter)
+                        .into_iter()
                         .map(|chunk| D10Rgb::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]))
                         .collect(),
                     "srgba" | "srgb" => chunked::<4>(&mut iter)
+                        .into_iter()
                         .map(|chunk| {
                             D10Srgb::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb()
                         })
                         .collect(),
                     "hsla" | "hsl" => chunked::<4>(&mut iter)
+                        .into_iter()
                         .map(|chunk| {
                             D10Hsl::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb()
                         })
                         .collect(),
                     "hsva" | "hsv" => chunked::<4>(&mut iter)
+                        .into_iter()
                         .map(|chunk| {
                             D10Hsv::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb()
                         })
                         .collect(),
                     "yuva" | "yuv" => chunked::<4>(&mut iter)
+                        .into_iter()
                         .map(|chunk| {
                             D10Yuv::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb()
                         })
                         .collect(),
                     "xyza" | "xyz" => chunked::<4>(&mut iter)
+                        .into_iter()
                         .map(|chunk| {
                             D10Xyz::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3]).to_rgb()
                         })
                         .collect(),
                     "laba" | "lab" => chunked::<4>(&mut iter)
+                        .into_iter()
                         .map(|chunk| {
                             D10LabD65O2::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3])
                                 .to_rgb()
                         })
                         .collect(),
                     "lcha" | "lch" => chunked::<4>(&mut iter)
+                        .into_iter()
                         .map(|chunk| {
-                            D10LchD65O2::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3])
+                            D10LabD65O2::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3])
                                 .to_rgb()
                         })
                         .collect(),
@@ -936,27 +930,35 @@ mod numpy_helper {
             } else if dims[2] == 3 {
                 match colorspace {
                     "rgb" | "auto" => chunked::<3>(&mut iter)
+                        .into_iter()
                         .map(|chunk| D10Rgb::new(chunk[0], chunk[1], chunk[2]))
                         .collect(),
                     "srgb" => chunked::<3>(&mut iter)
+                        .into_iter()
                         .map(|chunk| D10Srgb::new(chunk[0], chunk[1], chunk[2]).to_rgb())
                         .collect(),
                     "hsl" => chunked::<3>(&mut iter)
+                        .into_iter()
                         .map(|chunk| D10Hsl::new(chunk[0], chunk[1], chunk[2]).to_rgb())
                         .collect(),
                     "hsv" => chunked::<3>(&mut iter)
+                        .into_iter()
                         .map(|chunk| D10Hsv::new(chunk[0], chunk[1], chunk[2]).to_rgb())
                         .collect(),
                     "yuv" => chunked::<3>(&mut iter)
+                        .into_iter()
                         .map(|chunk| D10Yuv::new(chunk[0], chunk[1], chunk[2]).to_rgb())
                         .collect(),
                     "xyz" => chunked::<3>(&mut iter)
+                        .into_iter()
                         .map(|chunk| D10Xyz::new(chunk[0], chunk[1], chunk[2]).to_rgb())
                         .collect(),
                     "lab" => chunked::<3>(&mut iter)
+                        .into_iter()
                         .map(|chunk| D10LabD65O2::new(chunk[0], chunk[1], chunk[2]).to_rgb())
                         .collect(),
                     "lch" => chunked::<3>(&mut iter)
+                        .into_iter()
                         .map(|chunk| D10LchD65O2::new(chunk[0], chunk[1], chunk[2]).to_rgb())
                         .collect(),
                     _ => {
