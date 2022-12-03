@@ -235,6 +235,10 @@ fn with_gamma(&self, gamma: f32) -> Rgb {
     self.inner.with_gamma(gamma).into()
 }
 
+fn with_gamma_opt(&self, gamma: f32) -> Rgb {
+    self.inner.with_gamma_opt(gamma).into()
+}
+
 fn with_level(&self, black_point: f32, white_point: f32, gamma: f32) -> Rgb {
     self.inner.with_level(black_point, white_point, gamma).into()
 }
