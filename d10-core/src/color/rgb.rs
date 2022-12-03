@@ -144,6 +144,16 @@ impl Rgb {
         self.map_channels(|v| clamp(v).powf(1.0 / gamma))
     }
 
+    pub fn with_gamma_opt(&self, gamma: f32) -> Rgb {
+        self.map_channels(|v| {
+            if v > 0.5 {
+                clamp((v - 0.5) * 2.0).powf(1.0 / gamma) / 2.0 + 0.5
+            } else {
+                clamp(v * 2.0).powf(1.0 * gamma) / 2.0
+            }
+        })
+    }
+
     pub fn with_level(&self, black_point: f32, white_point: f32, gamma: f32) -> Rgb {
         self.map_channels(|v| {
             let diff = white_point - black_point;
