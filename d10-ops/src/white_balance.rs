@@ -7,9 +7,9 @@ fn get_color_values(buffer: &PixelBuffer<Rgb>) -> [[f32; 256]; 3] {
     let len = buffer.data().len() as f32;
 
     for c in buffer.data() {
-        for channel in 0..3 {
+        for (channel, res) in result.iter_mut().enumerate() {
             let v = (c.data[channel] * 255.0).clamp(0.0, 255.0) as u8;
-            result[channel][v as usize] += 1.0 / len;
+            res[v as usize] += 1.0 / len;
         }
     }
 
