@@ -8,7 +8,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 image = { version = "0.24", default-features = false, features = ["bmp", "ico"] }
 png = "0.17"
-gif = "0.11"
+gif = "0.12"
 jpeg-encoder = "0.5"
 jpeg-decoder = "0.2"
 libwebp-sys = "0.6"
