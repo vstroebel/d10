@@ -3,6 +3,7 @@ use crate::errors::ParseEnumError;
 
 use std::fmt::Display;
 use std::str::FromStr;
+use crate::color::Srgb;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Intensity {
@@ -129,7 +130,15 @@ impl Rgb {
     }
 
     pub fn invert(&self) -> Rgb {
-        self.map_channels_unclamped(|v| 1.0 - v)
+        let c = self.to_srgb();
+        Srgb {
+            data: [
+                1.0 - c.data[0],
+                1.0 - c.data[1],
+                1.0 - c.data[2],
+                c.alpha(),
+            ],
+        }.to_rgb()
     }
 
     pub fn difference(&self, color: &Rgb) -> Rgb {
