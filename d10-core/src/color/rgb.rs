@@ -4,6 +4,7 @@ use crate::errors::ParseEnumError;
 use std::fmt::Display;
 use std::array::from_fn;
 use std::str::FromStr;
+use crate::color::Srgb;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Intensity {
@@ -53,12 +54,6 @@ impl Rgb {
     pub fn new_with_alpha(red: f32, green: f32, blue: f32, alpha: f32) -> Rgb {
         Rgb {
             data: [clamp(red), clamp(green), clamp(blue), clamp(alpha)],
-        }
-    }
-
-    pub fn new_from_fn<F: Fn(usize) -> f32>(func: F) -> Rgb {
-        Rgb {
-            data: from_fn(|i| clamp(func(i)))
         }
     }
 
@@ -193,7 +188,7 @@ impl Rgb {
                 self.alpha(),
             ],
         }
-            .to_rgb()
+        .to_rgb()
     }
 
     pub fn stretch_saturation(&self, factor: f32) -> Rgb {
@@ -205,7 +200,7 @@ impl Rgb {
         Hsl {
             data: [hsl.hue(), clamp(s), hsl.lightness(), self.alpha()],
         }
-            .to_rgb()
+        .to_rgb()
     }
 
     pub fn with_gamma_saturation(&self, gamma: f32) -> Rgb {
@@ -218,7 +213,7 @@ impl Rgb {
                 self.alpha(),
             ],
         }
-            .to_rgb()
+        .to_rgb()
     }
 
     pub fn with_lightness(&self, factor: f32) -> Rgb {
@@ -231,7 +226,7 @@ impl Rgb {
                 self.alpha(),
             ],
         }
-            .to_rgb()
+        .to_rgb()
     }
 
     pub fn with_hue_rotate(&self, radians: f32) -> Rgb {
@@ -247,7 +242,7 @@ impl Rgb {
         Hsl {
             data: [hue, hsl.saturation(), hsl.lightness(), self.alpha()],
         }
-            .to_rgb()
+        .to_rgb()
     }
 
     pub fn with_contrast(&self, factor: f32) -> Rgb {
@@ -285,7 +280,7 @@ impl Rgb {
 
         let s = s + (s * std::f32::consts::PI).sin() * scale;
 
-        Hsl::new(hsl.hue(), s.clamp(0.0, 1.0), hsl.lightness()).to_rgb()
+        Hsl::new(hsl.hue(), s.min(1.0).max(0.0), hsl.lightness()).to_rgb()
     }
 
     pub fn with_sepia(&self) -> Rgb {
@@ -397,10 +392,6 @@ impl Color for Rgb {
 
     fn data(&self) -> &[f32] {
         &self.data
-    }
-
-    fn data_mut(&mut self) -> &mut [f32] {
-        &mut self.data
     }
 
     fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(
