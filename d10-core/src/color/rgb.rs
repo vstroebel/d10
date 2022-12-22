@@ -1,9 +1,9 @@
 use super::{clamp, format_color, Color, Hsl, EPSILON};
 use crate::errors::ParseEnumError;
 
+use crate::color::Srgb;
 use std::fmt::Display;
 use std::str::FromStr;
-use crate::color::Srgb;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Intensity {
@@ -132,13 +132,9 @@ impl Rgb {
     pub fn invert(&self) -> Rgb {
         let c = self.to_srgb();
         Srgb {
-            data: [
-                1.0 - c.data[0],
-                1.0 - c.data[1],
-                1.0 - c.data[2],
-                c.alpha(),
-            ],
-        }.to_rgb()
+            data: [1.0 - c.data[0], 1.0 - c.data[1], 1.0 - c.data[2], c.alpha()],
+        }
+        .to_rgb()
     }
 
     pub fn difference(&self, color: &Rgb) -> Rgb {
@@ -285,7 +281,7 @@ impl Rgb {
 
         let s = s + (s * std::f32::consts::PI).sin() * scale;
 
-        Hsl::new(hsl.hue(), s.min(1.0).max(0.0), hsl.lightness()).to_rgb()
+        Hsl::new(hsl.hue(), s.clamp(0.0, 1.0), hsl.lightness()).to_rgb()
     }
 
     pub fn with_sepia(&self) -> Rgb {

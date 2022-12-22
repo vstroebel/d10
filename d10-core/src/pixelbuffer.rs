@@ -252,8 +252,8 @@ impl<T: Color> PixelBuffer<T> {
 
     pub fn get_pixel_clamped(&self, x: i32, y: i32) -> &T {
         self.get_pixel(
-            x.max(0).min((self.width - 1) as i32) as u32,
-            y.max(0).min((self.height - 1) as i32) as u32,
+            x.clamp(0, (self.width - 1) as i32) as u32,
+            y.clamp(0, (self.height - 1) as i32) as u32,
         )
     }
 
