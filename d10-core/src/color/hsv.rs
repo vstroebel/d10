@@ -132,6 +132,10 @@ impl Color for Hsv {
         &self.data
     }
 
+    fn data_mut(&mut self) -> &mut [f32] {
+        &mut self.data
+    }
+
     fn try_map_color_channels<E, F: FnMut(f32) -> Result<f32, E>>(
         &self,
         mut func: F,

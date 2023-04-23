@@ -46,6 +46,8 @@ pub trait Color:
 
     fn data(&self) -> &[f32];
 
+    fn data_mut(&mut self) -> &mut [f32];
+
     fn to_srgb(&self) -> Srgb {
         let rgb = self.to_rgb();
 

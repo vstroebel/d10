@@ -98,6 +98,10 @@ impl Color for Yuv {
         &self.data
     }
 
+    fn data_mut(&mut self) -> &mut [f32] {
+        &mut self.data
+    }
+
     fn alpha(&self) -> f32 {
         self.data[3]
     }

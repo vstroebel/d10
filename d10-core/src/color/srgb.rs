@@ -96,6 +96,10 @@ impl Color for Srgb {
         &self.data
     }
 
+    fn data_mut(&mut self) -> &mut [f32] {
+        &mut self.data
+    }
+
     fn to_srgb(&self) -> Srgb {
         *self
     }

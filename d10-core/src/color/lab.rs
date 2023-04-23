@@ -210,6 +210,10 @@ impl<I: Illuminant, O: Observer> Color for Lab<I, O> {
         &self.data
     }
 
+    fn data_mut(&mut self) -> &mut [f32] {
+        &mut self.data
+    }
+
     fn alpha(&self) -> f32 {
         self.data[3]
     }
@@ -336,6 +340,10 @@ impl<I: Illuminant, O: Observer> Color for Lch<I, O> {
 
     fn data(&self) -> &[f32] {
         &self.data
+    }
+
+    fn data_mut(&mut self) -> &mut [f32] {
+        &mut self.data
     }
 
     fn alpha(&self) -> f32 {
