@@ -4,7 +4,7 @@ use pyo3::types::{PyFunction, PyList};
 
 use d10::illuminant::D65;
 use d10::observer::O2;
-use d10::ops::{BlendOp, SaturationMode};
+use d10::ops::{BalanceMode, BlendOp, SaturationMode};
 use d10::{
     BmpColorType, EncodingFormat as D10EncodingFormat, FilterMode, IcoColorType, Image as D10Image,
     PngColorType, PngCompression, PngFilterType, Rgb as D10Rgb, WebPPreset,
@@ -318,6 +318,15 @@ impl Image {
     pub fn white_balance(&self, threshold: Option<f32>) -> PyResult<Image> {
         let threshold = threshold.unwrap_or(0.5);
         Ok(self.inner.white_balance(threshold).into())
+    }
+
+    pub fn balance(&self, mode: Option<&str>, threshold: Option<f32>) -> PyResult<Image> {
+        let mode = match mode {
+            Some(mode) => mode.parse().py_err()?,
+            None => BalanceMode::Rgb,
+        };
+        let threshold = threshold.unwrap_or(0.5);
+        Ok(self.inner.balance(mode, threshold).into())
     }
 
     pub fn optimize_saturation(&self, offset: Option<f32>, mode: Option<&str>) -> PyResult<Image> {

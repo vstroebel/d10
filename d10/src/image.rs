@@ -3,7 +3,7 @@ use std::io::Write;
 use std::path::Path;
 
 use d10_codecs::{DecodingError, EncodingError, EncodingFormat};
-use d10_ops::{blend_image, BlendOp, DrawingMode, FilterMode, SaturationMode};
+use d10_ops::{BalanceMode, blend_image, BlendOp, DrawingMode, FilterMode, SaturationMode};
 
 use crate::{ops, PixelBuffer, Rgb};
 
@@ -420,7 +420,11 @@ impl Image {
     /// # Arguments
     /// threshold: Value between 0 and 1000. Sane values are between 0.0 and 1.0
     pub fn white_balance(&self, threshold: f32) -> Image {
-        Self::new_from_buffer_with_meta(self, ops::white_balance(&self.buffer, threshold))
+        Self::new_from_buffer_with_meta(self, ops::balance(&self.buffer, BalanceMode::Rgb, threshold))
+    }
+
+    pub fn balance(&self, mode: BalanceMode, threshold: f32) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::balance(&self.buffer, mode, threshold))
     }
 
     pub fn optimize_saturation(&self, offset: f32, mode: SaturationMode) -> Image {

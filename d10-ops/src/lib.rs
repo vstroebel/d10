@@ -1,4 +1,5 @@
 mod apply_palette;
+mod balance_channels;
 mod blend;
 mod compose;
 mod crop;
@@ -21,10 +22,9 @@ mod sobel;
 mod stretch_contrast;
 mod temperature;
 mod unsharp;
-mod white_balance;
-mod balance_channels;
 
 pub use apply_palette::{apply_palette, apply_palette_in_place};
+pub use balance_channels::{balance, BalanceMode};
 pub use blend::*;
 pub use compose::{compose, compose_slice, try_compose, try_compose_slice};
 pub use crop::crop;
@@ -47,5 +47,3 @@ pub use sobel::sobel_edge_detection;
 pub use stretch_contrast::stretch_contrast;
 pub use temperature::{change_color_temperature, optimize_color_temperature};
 pub use unsharp::unsharp;
-pub use white_balance::white_balance;
-pub use balance_channels::balance;
