@@ -217,6 +217,81 @@ pub trait Color:
     fn type_name(&self) -> &'static str;
 }
 
+macro_rules! color_from {
+    ($from:ident, $to:ident, $to_func:ident) => {
+        impl From<$from> for $to {
+            fn from(value: $from) -> Self {
+                value.$to_func()
+            }
+        }
+    };
+}
+
+color_from!(Rgb, Srgb, to_srgb);
+color_from!(Hsl, Srgb, to_srgb);
+color_from!(Hsv, Srgb, to_srgb);
+color_from!(Yuv, Srgb, to_srgb);
+color_from!(Xyz, Srgb, to_srgb);
+color_from!(Lab, Srgb, to_srgb);
+color_from!(Lch, Srgb, to_srgb);
+
+color_from!(Srgb, Rgb, to_rgb);
+color_from!(Hsl, Rgb, to_rgb);
+color_from!(Hsv, Rgb, to_rgb);
+color_from!(Yuv, Rgb, to_rgb);
+color_from!(Xyz, Rgb, to_rgb);
+color_from!(Lab, Rgb, to_rgb);
+color_from!(Lch, Rgb, to_rgb);
+
+color_from!(Rgb, Hsl, to_hsl);
+color_from!(Srgb, Hsl, to_hsl);
+color_from!(Hsv, Hsl, to_hsl);
+color_from!(Yuv, Hsl, to_hsl);
+color_from!(Xyz, Hsl, to_hsl);
+color_from!(Lab, Hsl, to_hsl);
+color_from!(Lch, Hsl, to_hsl);
+
+color_from!(Rgb, Hsv, to_hsv);
+color_from!(Srgb, Hsv, to_hsv);
+color_from!(Hsl, Hsv, to_hsv);
+color_from!(Yuv, Hsv, to_hsv);
+color_from!(Xyz, Hsv, to_hsv);
+color_from!(Lab, Hsv, to_hsv);
+color_from!(Lch, Hsv, to_hsv);
+
+color_from!(Rgb, Yuv, to_yuv);
+color_from!(Srgb, Yuv, to_yuv);
+color_from!(Hsl, Yuv, to_yuv);
+color_from!(Hsv, Yuv, to_yuv);
+color_from!(Xyz, Yuv, to_yuv);
+color_from!(Lab, Yuv, to_yuv);
+color_from!(Lch, Yuv, to_yuv);
+
+color_from!(Rgb, Xyz, to_xyz);
+color_from!(Srgb, Xyz, to_xyz);
+color_from!(Hsl, Xyz, to_xyz);
+color_from!(Hsv, Xyz, to_xyz);
+color_from!(Yuv, Xyz, to_xyz);
+color_from!(Lab, Xyz, to_xyz);
+color_from!(Lch, Xyz, to_xyz);
+
+color_from!(Rgb, Lab, to_lab);
+color_from!(Srgb, Lab, to_lab);
+color_from!(Hsl, Lab, to_lab);
+color_from!(Hsv, Lab, to_lab);
+color_from!(Yuv, Lab, to_lab);
+color_from!(Xyz, Lab, to_lab);
+color_from!(Lch, Lab, to_lab);
+
+color_from!(Rgb, Lch, to_lch);
+color_from!(Srgb, Lch, to_lch);
+color_from!(Hsl, Lch, to_lch);
+color_from!(Hsv, Lch, to_lch);
+color_from!(Yuv, Lch, to_lch);
+color_from!(Xyz, Lch, to_lch);
+color_from!(Lab, Lch, to_lch);
+
+
 // A generic implementation to format a color as a CSS alike string used to implement the Display trait
 //
 // TODO: Improve performance by directly writing parts to the formatter
