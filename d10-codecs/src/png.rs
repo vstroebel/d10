@@ -87,8 +87,6 @@ pub enum PngCompression {
     Default,
     Fast,
     Best,
-    Huffman,
-    Rle,
 }
 
 impl From<PngCompression> for Compression {
@@ -97,8 +95,6 @@ impl From<PngCompression> for Compression {
             PngCompression::Default => Compression::Default,
             PngCompression::Fast => Compression::Fast,
             PngCompression::Best => Compression::Best,
-            PngCompression::Huffman => Compression::Huffman,
-            PngCompression::Rle => Compression::Rle,
         }
     }
 }
@@ -112,8 +108,6 @@ impl FromStr for PngCompression {
             "default" => Ok(Default),
             "fast" => Ok(Fast),
             "best" => Ok(Best),
-            "huffman" => Ok(Huffman),
-            "rle" => Ok(Rle),
             _ => Err(ParseEnumError::new(value, "PngCompression")),
         }
     }
