@@ -930,7 +930,7 @@ mod numpy_helper {
                     "lcha" | "lch" => chunked::<4>(&mut iter)
                         .into_iter()
                         .map(|chunk| {
-                            D10LabD65O2::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3])
+                            D10LchD65O2::new_with_alpha(chunk[0], chunk[1], chunk[2], chunk[3])
                                 .to_rgb()
                         })
                         .collect(),
