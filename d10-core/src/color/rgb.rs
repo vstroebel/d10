@@ -1,7 +1,6 @@
 use super::{clamp, format_color, Color, Hsl, EPSILON};
 use crate::errors::ParseEnumError;
 
-use crate::color::Srgb;
 use std::fmt::Display;
 use std::array::from_fn;
 use std::str::FromStr;
@@ -137,11 +136,9 @@ impl Rgb {
     }
 
     pub fn invert(&self) -> Rgb {
-        let c = self.to_srgb();
-        Srgb {
-            data: [1.0 - c.data[0], 1.0 - c.data[1], 1.0 - c.data[2], c.alpha()],
+        Rgb {
+            data: [1.0 - self.data[0], 1.0 - self.data[1], 1.0 - self.data[2], self.alpha()],
         }
-            .to_rgb()
     }
 
     pub fn difference(&self, color: &Rgb) -> Rgb {
