@@ -1,3 +1,4 @@
+use std::array::from_fn;
 use super::{apply_matrix, format_color, Color, Rgb, Srgb, EPSILON};
 use std::fmt::Display;
 
@@ -28,6 +29,12 @@ impl Yuv {
     pub fn new_with_alpha(y: f32, u: f32, v: f32, alpha: f32) -> Yuv {
         Yuv {
             data: [y, u, v, alpha],
+        }
+    }
+
+    pub fn new_from_fn<F: Fn(usize) -> f32>(func: F) -> Yuv {
+        Yuv {
+            data: from_fn(func)
         }
     }
 

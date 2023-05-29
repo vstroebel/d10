@@ -3,6 +3,7 @@ use crate::errors::ParseEnumError;
 
 use crate::color::Srgb;
 use std::fmt::Display;
+use std::array::from_fn;
 use std::str::FromStr;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -53,6 +54,12 @@ impl Rgb {
     pub fn new_with_alpha(red: f32, green: f32, blue: f32, alpha: f32) -> Rgb {
         Rgb {
             data: [clamp(red), clamp(green), clamp(blue), clamp(alpha)],
+        }
+    }
+
+    pub fn new_from_fn<F: Fn(usize) -> f32>(func: F) -> Rgb {
+        Rgb {
+            data: from_fn(|i| clamp(func(i)))
         }
     }
 
@@ -134,7 +141,7 @@ impl Rgb {
         Srgb {
             data: [1.0 - c.data[0], 1.0 - c.data[1], 1.0 - c.data[2], c.alpha()],
         }
-        .to_rgb()
+            .to_rgb()
     }
 
     pub fn difference(&self, color: &Rgb) -> Rgb {
@@ -189,7 +196,7 @@ impl Rgb {
                 self.alpha(),
             ],
         }
-        .to_rgb()
+            .to_rgb()
     }
 
     pub fn stretch_saturation(&self, factor: f32) -> Rgb {
@@ -201,7 +208,7 @@ impl Rgb {
         Hsl {
             data: [hsl.hue(), clamp(s), hsl.lightness(), self.alpha()],
         }
-        .to_rgb()
+            .to_rgb()
     }
 
     pub fn with_gamma_saturation(&self, gamma: f32) -> Rgb {
@@ -214,7 +221,7 @@ impl Rgb {
                 self.alpha(),
             ],
         }
-        .to_rgb()
+            .to_rgb()
     }
 
     pub fn with_lightness(&self, factor: f32) -> Rgb {
@@ -227,7 +234,7 @@ impl Rgb {
                 self.alpha(),
             ],
         }
-        .to_rgb()
+            .to_rgb()
     }
 
     pub fn with_hue_rotate(&self, radians: f32) -> Rgb {
@@ -243,7 +250,7 @@ impl Rgb {
         Hsl {
             data: [hue, hsl.saturation(), hsl.lightness(), self.alpha()],
         }
-        .to_rgb()
+            .to_rgb()
     }
 
     pub fn with_contrast(&self, factor: f32) -> Rgb {

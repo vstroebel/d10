@@ -1,3 +1,4 @@
+use std::array::from_fn;
 use crate::color::{format_color, Color, Rgb, EPSILON, apply_matrix_clamped};
 use std::fmt::Display;
 
@@ -29,6 +30,12 @@ impl Xyz {
     pub fn new_with_alpha(x: f32, y: f32, z: f32, alpha: f32) -> Xyz {
         Xyz {
             data: [x, y, z, alpha],
+        }
+    }
+
+    pub fn new_from_fn<F: Fn(usize) -> f32>(func: F) -> Xyz {
+        Xyz {
+            data: from_fn(func)
         }
     }
 

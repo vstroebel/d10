@@ -1,3 +1,4 @@
+use std::array::from_fn;
 use super::{format_color, Color, Rgb, Xyz, EPSILON};
 
 use crate::color::illuminant::D65;
@@ -127,6 +128,14 @@ impl<I: Illuminant, O: Observer> Lab<I, O> {
     pub fn new_with_alpha(l: f32, a: f32, b: f32, alpha: f32) -> Lab<I, O> {
         Lab {
             data: [l, a, b, alpha],
+            _phantom: PhantomData,
+            _phantom2: PhantomData,
+        }
+    }
+
+    pub fn new_from_fn<F: Fn(usize) -> f32>(func: F) ->  Lab<I, O> {
+        Lab {
+            data: from_fn(func),
             _phantom: PhantomData,
             _phantom2: PhantomData,
         }
@@ -279,6 +288,14 @@ impl<I: Illuminant, O: Observer> Lch<I, O> {
     pub fn new_with_alpha(l: f32, c: f32, h: f32, alpha: f32) -> Lch<I, O> {
         Lch {
             data: [l, c, h, alpha],
+            _phantom: PhantomData,
+            _phantom2: PhantomData,
+        }
+    }
+
+    pub fn new_from_fn<F: Fn(usize) -> f32>(func: F) ->  Lch<I, O> {
+        Lch {
+            data: from_fn(func),
             _phantom: PhantomData,
             _phantom2: PhantomData,
         }

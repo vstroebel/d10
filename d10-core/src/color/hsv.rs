@@ -1,5 +1,6 @@
 use super::{format_color, Color, Rgb, EPSILON};
 use std::fmt::Display;
+use std::array::from_fn;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Hsv {
@@ -16,6 +17,12 @@ impl Hsv {
     pub fn new_with_alpha(h: f32, s: f32, v: f32, alpha: f32) -> Hsv {
         Hsv {
             data: [h, s, v, alpha],
+        }
+    }
+
+    pub fn new_from_fn<F: Fn(usize) -> f32>(func: F) -> Hsv {
+        Hsv {
+            data: from_fn(func)
         }
     }
 

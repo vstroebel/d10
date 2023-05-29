@@ -1,3 +1,4 @@
+use std::array::from_fn;
 use super::{format_color, Color, Rgb, EPSILON};
 use std::fmt::Display;
 
@@ -16,6 +17,12 @@ impl Hsl {
     pub fn new_with_alpha(h: f32, s: f32, l: f32, alpha: f32) -> Hsl {
         Hsl {
             data: [h, s, l, alpha],
+        }
+    }
+
+    pub fn new_from_fn<F: Fn(usize) -> f32>(func: F) -> Hsl {
+        Hsl {
+            data: from_fn(func)
         }
     }
 

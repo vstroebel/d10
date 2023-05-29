@@ -1,3 +1,4 @@
+use std::array::from_fn;
 use crate::color::{clamp, format_color, Color, Rgb, EPSILON};
 use std::fmt::Display;
 
@@ -16,6 +17,12 @@ impl Srgb {
     pub fn new_with_alpha(red: f32, green: f32, blue: f32, alpha: f32) -> Srgb {
         Srgb {
             data: [clamp(red), clamp(green), clamp(blue), clamp(alpha)],
+        }
+    }
+
+    pub fn new_from_fn<F: Fn(usize) -> f32>(func: F) -> Srgb {
+        Srgb {
+            data: from_fn(|i| clamp(func(i)))
         }
     }
 
