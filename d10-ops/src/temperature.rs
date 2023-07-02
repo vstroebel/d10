@@ -62,13 +62,15 @@ fn calculate_factors(orig_temp: f32, new_temp: f32) -> [f32; 3] {
 }
 
 fn convert_kelvin_to_rgb(temperature: f32) -> Rgb {
-    let temperature = temperature.clamp(1000.0, 12000.0) as f64;
+    let temperature = temperature as usize;
+    let temperature = temperature.clamp(1000, 12000);
 
-    let i = temperature as usize / 1000;
+    let i = temperature / 1000;
 
     let (mut x, mut y) = TEMPERATURE_TABLE[i - 1];
 
     let floor_temp = (i * 1000) as f64;
+    let temperature = temperature  as f64;
 
     if (temperature - floor_temp).abs() > 1.0 {
         let (x2, y2) = TEMPERATURE_TABLE[i];
