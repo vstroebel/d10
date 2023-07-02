@@ -167,14 +167,14 @@ pub fn optimize_color_temperature(
     factor: f32,
     tint_correction: f32,
 ) -> PixelBuffer<Rgb> {
-    let mut sum = 0.0f32;
+    let mut sum = 0.0f64;
 
     for c in buffer.data() {
-        sum += c.red() - c.blue();
+        sum += c.red() as f64 - c.blue() as f64;
     }
 
-    let avg = sum / buffer.data().len() as f32;
-    let new_temp = (6500.0) - avg.tanh() * (factor * 4000.0);
+    let avg = sum / buffer.data().len() as f64;
+    let new_temp = ((6500.0) - avg.tanh() * (factor as f64 * 4000.0)) as f32;
 
     change_color_temperature(buffer, 6500.0, new_temp, tint_correction)
 }
