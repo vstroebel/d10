@@ -119,39 +119,54 @@ fn sinc(v: f32) -> f32 {
     }
 }
 
-fn lanczos3(v: f32) -> f32 {
+#[allow(clippy::collapsible_else_if)]
+fn lanczos<const N: usize>(v: f32) -> f32 {
     let v = v.abs();
 
-    if v < 3.0 {
-        sinc(v) * sinc(v / 3.0)
+    if N == 7 {
+        if v < 3.0 {
+            sinc(v) * sinc(v / 3.0)
+        } else {
+            0.0
+        }
     } else {
-        0.0
+        let size = N as f32;
+        let v = v / size * 3.0;
+        if v < 3.0 {
+            (sinc(v) * sinc(v / 3.0)) * (3.0 / size)
+        } else {
+            0.0
+        }
     }
 }
 
-/// Get the pixel at the given position applying a lanczos filter with a window of 3
+/// Get the pixel at the given position applying a lanczos filter with a window of 7
 // Silence clippy because this would result in a mixture of range and non range loops...
 #[allow(clippy::needless_range_loop)]
 pub fn get_pixel_lanczos3(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Rgb {
+    get_pixel_lanczos::<7>(buffer, x, y)
+}
+
+/// Get the pixel at the given position applying a lanczos filter with a window of N
+// Silence clippy because this would result in a mixture of range and non range loops...
+#[allow(clippy::needless_range_loop)]
+pub fn get_pixel_lanczos<const N: usize>(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Rgb {
     let (x, tx) = get_base_and_offset(x);
     let (y, ty) = get_base_and_offset(y);
 
-    let kernel = buffer.get_kernel::<7>(x, y);
+    let kernel = buffer.get_kernel::<N>(x, y);
 
-    let row_scale = [
-        lanczos3(-3.0 - tx),
-        lanczos3(-2.0 - tx),
-        lanczos3(-1.0 - tx),
-        lanczos3(0.0 - tx),
-        lanczos3(1.0 - tx),
-        lanczos3(2.0 - tx),
-        lanczos3(3.0 - tx),
-    ];
+    let size = ((N as f32) - 1.0) / 2.0;
 
-    let mut rows = [[0.0; 4]; 7];
+    let row_scale: [f32; N] = std::array::from_fn(|i| {
+        let pos = i as f32 - size;
+        lanczos::<N>(pos - tx)
+    });
 
-    for y in 0..7 {
-        for x in 0..7 {
+    let mut rows = [[0.0; 4]; N];
+
+    for y in 0..N {
+        for x in 0..N {
             let scale = row_scale[x];
             for i in 0..=3 {
                 let v = kernel[y][x].data[i];
@@ -162,8 +177,8 @@ pub fn get_pixel_lanczos3(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Rgb {
 
     let mut data = [0.0; 4];
 
-    for y in 0..7 {
-        let scale = lanczos3(y as f32 - 3.0 - ty);
+    for y in 0..N {
+        let scale = lanczos::<N>(y as f32 - size - ty);
         for i in 0..=3 {
             let v = rows[y][i];
             data[i] += v * scale;

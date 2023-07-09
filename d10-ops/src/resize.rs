@@ -57,7 +57,7 @@ fn resize_pixel_bicubic(
     crate::filters::get_pixel_bicubic(buffer, gx, gy)
 }
 
-fn resize_pixel_lanczos3(
+fn resize_pixel_lanczos<const N: usize>(
     buffer: &PixelBuffer<Rgb>,
     x: u32,
     y: u32,
@@ -66,28 +66,25 @@ fn resize_pixel_lanczos3(
 ) -> Rgb {
     let gx = (x as f32 + 0.5) / scale_x - 0.5;
     let gy = (y as f32 + 0.5) / scale_y - 0.5;
-    crate::filters::get_pixel_lanczos3(buffer, gx, gy)
+    crate::filters::get_pixel_lanczos::<N>(buffer, gx, gy)
 }
 
-fn resize_auto(
-    buffer: &PixelBuffer<Rgb>,
-    new_width: u32,
-    new_height: u32,
-) -> PixelBuffer<Rgb>
-{
+fn resize_auto(buffer: &PixelBuffer<Rgb>, new_width: u32, new_height: u32) -> PixelBuffer<Rgb> {
     let scale_x = (new_width as f32) / (buffer.width() as f32);
     let scale_y = (new_height as f32) / (buffer.height() as f32);
 
     let size = (1.0 / scale_x.min(scale_y) * 2.0).max(3.0).ceil() as usize;
 
-    if size == 3 {
-        resize_with_fn(buffer, new_width, new_height, resize_pixel_lanczos3)
-    } else {
-        PixelBuffer::new_from_func(new_width, new_height, |x, y| {
+    match size {
+        3 => resize_with_fn(buffer, new_width, new_height, resize_pixel_lanczos::<7>),
+        4 => resize_with_fn(buffer, new_width, new_height, resize_pixel_lanczos::<9>),
+        5 => resize_with_fn(buffer, new_width, new_height, resize_pixel_lanczos::<11>),
+        6 => resize_with_fn(buffer, new_width, new_height, resize_pixel_lanczos::<13>),
+        _ => PixelBuffer::new_from_func(new_width, new_height, |x, y| {
             let gx = (x as f32 + 0.5) / scale_x - 0.5;
             let gy = (y as f32 + 0.5) / scale_y - 0.5;
             crate::filters::get_pixel_lanczos_dyn(buffer, gx, gy, size)
-        })
+        }),
     }
 }
 
@@ -108,12 +105,12 @@ pub fn resize(
         }
         FilterMode::Bicubic => resize_with_fn(buffer, new_width, new_height, resize_pixel_bicubic),
         FilterMode::Lanczos3 => {
-            resize_with_fn(buffer, new_width, new_height, resize_pixel_lanczos3)
+            resize_with_fn(buffer, new_width, new_height, resize_pixel_lanczos::<7>)
         }
         FilterMode::Auto => {
             if buffer.width() <= new_width || buffer.height() <= new_height {
                 resize_with_fn(buffer, new_width, new_height, resize_pixel_bicubic)
-            } else{
+            } else {
                 resize_auto(buffer, new_width, new_height)
             }
         }
