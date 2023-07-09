@@ -11,6 +11,7 @@ pub enum FilterMode {
     Bilinear,
     Bicubic,
     Lanczos3,
+    Auto,
 }
 
 impl FromStr for FilterMode {
@@ -23,6 +24,7 @@ impl FromStr for FilterMode {
             "bilinear" => Ok(Bilinear),
             "bicubic" => Ok(Bicubic),
             "lanczos3" | "Lanczos" => Ok(Lanczos3),
+            "default" | "auto" => Ok(Auto),
             _ => Err(ParseEnumError::new(value, "FilterMode")),
         }
     }

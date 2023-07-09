@@ -82,7 +82,7 @@ pub fn rotate(
     match filter {
         FilterMode::Nearest => rotate_with_fn(buffer, radians, bg_color, rotate_pixel_nearest),
         FilterMode::Bilinear => rotate_with_fn(buffer, radians, bg_color, rotate_pixel_bilinear),
-        FilterMode::Bicubic => rotate_with_fn(buffer, radians, bg_color, rotate_pixel_bicubic),
+        FilterMode::Bicubic | FilterMode::Auto => rotate_with_fn(buffer, radians, bg_color, rotate_pixel_bicubic),
         FilterMode::Lanczos3 => rotate_with_fn(buffer, radians, bg_color, rotate_pixel_lanczos3),
     }
 }
