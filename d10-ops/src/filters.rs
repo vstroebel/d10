@@ -172,3 +172,61 @@ pub fn get_pixel_lanczos3(buffer: &PixelBuffer<Rgb>, x: f32, y: f32) -> Rgb {
 
     Rgb { data }
 }
+
+fn lanczos_dyn(v: f32, size: usize) -> f32 {
+    let size = size as f32;
+
+    let v = v.abs();
+
+    let v = v / size * 3.0;
+
+    if v < 3.0 {
+        (sinc(v) * sinc(v / 3.0)) * (3.0 / size)
+    } else {
+        0.0
+    }
+}
+
+/// Get the pixel at the given position applying a lanczos filter with a window of size
+// Silence clippy because this would result in a mixture of range and non range loops...
+#[allow(clippy::needless_range_loop)]
+pub fn get_pixel_lanczos_dyn(buffer: &PixelBuffer<Rgb>, x: f32, y: f32, size: usize) -> Rgb {
+    let (x, tx) = get_base_and_offset(x);
+    let (y, ty) = get_base_and_offset(y);
+
+    let rowsize = size * 2 + 1;
+
+    let kernel = buffer.get_kernel_dyn(x, y, rowsize);
+
+    let mut row_scale = Vec::with_capacity(rowsize);
+
+    let size = size as isize;
+
+    for i in 0..rowsize {
+        row_scale.push(lanczos_dyn((i as isize - size) as f32 - tx, size as usize))
+    }
+
+    let mut rows = vec![[0.0; 4]; rowsize];
+
+    for y in 0..rowsize {
+        for x in 0..rowsize {
+            let scale = row_scale[x];
+            for i in 0..=3 {
+                let v = kernel[y][x].data[i];
+                rows[y][i] += v * scale
+            }
+        }
+    }
+
+    let mut data = [0.0; 4];
+
+    for y in 0..rowsize {
+        let scale = lanczos_dyn((y as isize - size) as f32 - ty, size as usize);
+        for i in 0..=3 {
+            let v = rows[y][i];
+            data[i] += v * scale;
+        }
+    }
+
+    Rgb { data }
+}

@@ -1,5 +1,4 @@
-use d10_core::color::{Color, Rgb};
-use d10_core::kernel_dyn::KernelDyn;
+use d10_core::color::Rgb;
 use d10_core::pixelbuffer::PixelBuffer;
 
 use crate::FilterMode;
@@ -79,33 +78,17 @@ fn resize_auto(
     let scale_x = (new_width as f32) / (buffer.width() as f32);
     let scale_y = (new_height as f32) / (buffer.height() as f32);
 
-    let base_kernel_size = ((1.0 / scale_x.min(scale_y)) * 1.75).max(3.0);
+    let size = (1.0 / scale_x.min(scale_y) * 2.0).max(3.0).ceil() as usize;
 
-    let kernel_size = base_kernel_size.ceil() as u32;
-    let kernel_size2 = (base_kernel_size * 1.5).ceil() as u32;
-
-    let kernel = KernelDyn::new_gaussian(kernel_size, 2.0);
-    let kernel2 = KernelDyn::new_gaussian(kernel_size2, 4.0);
-
-    let factor = 0.5;
-
-    PixelBuffer::new_from_func(new_width, new_height, |x, y| {
-        let gx = ((x as f32 + 0.5) / scale_x - 0.5) as i32;
-        let gy = ((y as f32 + 0.5) / scale_y - 0.5) as i32;
-
-        let gx = gx.max(0).min(buffer.width() as i32 -1) as u32;
-        let gy = gy.max(0).min(buffer.height() as i32 -1) as u32;
-
-        let c1 = buffer.get_kernel_value(gx, gy, &kernel);
-        let c2 = buffer.get_kernel_value(gx, gy, &kernel2);
-
-        Rgb::new_with_alpha(
-            c1.red() + (c1.red() - c2.red()) * factor,
-            c1.green() + (c1.green() - c2.green()) * factor,
-            c1.blue() + (c1.blue() - c2.blue()) * factor,
-            c1.alpha() + (c1.alpha() - c2.alpha()) * factor
-        )
-    })
+    if size == 3 {
+        resize_with_fn(buffer, new_width, new_height, resize_pixel_lanczos3)
+    } else {
+        PixelBuffer::new_from_func(new_width, new_height, |x, y| {
+            let gx = (x as f32 + 0.5) / scale_x - 0.5;
+            let gy = (y as f32 + 0.5) / scale_y - 0.5;
+            crate::filters::get_pixel_lanczos_dyn(buffer, gx, gy, size)
+        })
+    }
 }
 
 pub fn resize(

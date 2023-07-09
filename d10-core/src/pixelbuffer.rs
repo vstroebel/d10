@@ -297,6 +297,34 @@ impl<T: Color> PixelBuffer<T> {
         values
     }
 
+    pub fn get_kernel_dyn(&self, x: i32, y: i32, size: usize) -> Vec<Vec<T>> {
+
+        let mut values = vec![vec![T::default(); size]; size];
+
+        let offset = size as i32 / 2;
+
+        let start_x = x - offset;
+        let start_y = y - offset;
+
+        if self.is_in_image(start_x, start_y) && self.is_in_image(x + offset, y + offset) {
+            // Fast path that can be used if we know the kernel is always inside the image
+
+            for (ty, row) in values.iter_mut().enumerate() {
+                let start = self.width as usize * (ty + start_y as usize) + start_x as usize;
+                let end = start + size;
+                (*row).copy_from_slice(&self.data[start..end]);
+            }
+        } else {
+            for (ty, row) in values.iter_mut().enumerate() {
+                for (tx, cell) in row.iter_mut().enumerate() {
+                    *cell = *self.get_pixel_clamped(tx as i32 + x - offset, ty as i32 + y - offset)
+                }
+            }
+        }
+
+        values
+    }
+
     pub fn has_transparency(&self) -> bool {
         self.data.iter().any(Color::has_transparency)
     }
