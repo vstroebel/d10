@@ -9,6 +9,8 @@ members = [
     "d10-python",
 ]
 
+resolver = "2"
+
 [profile.dev]
 opt-level = 1
 
