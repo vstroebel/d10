@@ -2,9 +2,7 @@ use super::{clamp, format_color, Color, Hsl, EPSILON};
 use crate::errors::ParseEnumError;
 
 use std::fmt::Display;
-use std::array::from_fn;
 use std::str::FromStr;
-use crate::color::Srgb;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Intensity {

@@ -177,7 +177,7 @@ pub trait ColorIter<T: Color>: Iterator<Item = T> {
     {
         ToRgbIter {
             iter: self,
-            _phantom: PhantomData::default(),
+            _phantom: PhantomData,
         }
     }
 
@@ -187,7 +187,7 @@ pub trait ColorIter<T: Color>: Iterator<Item = T> {
     {
         ToSrgbIter {
             iter: self,
-            _phantom: PhantomData::default(),
+            _phantom: PhantomData,
         }
     }
 
@@ -197,7 +197,7 @@ pub trait ColorIter<T: Color>: Iterator<Item = T> {
     {
         ToHslIter {
             iter: self,
-            _phantom: PhantomData::default(),
+            _phantom: PhantomData,
         }
     }
 
@@ -207,7 +207,7 @@ pub trait ColorIter<T: Color>: Iterator<Item = T> {
     {
         ToHsvIter {
             iter: self,
-            _phantom: PhantomData::default(),
+            _phantom: PhantomData,
         }
     }
 
@@ -217,7 +217,7 @@ pub trait ColorIter<T: Color>: Iterator<Item = T> {
     {
         ToYuvIter {
             iter: self,
-            _phantom: PhantomData::default(),
+            _phantom: PhantomData,
         }
     }
 
@@ -227,7 +227,7 @@ pub trait ColorIter<T: Color>: Iterator<Item = T> {
     {
         ToXyzIter {
             iter: self,
-            _phantom: PhantomData::default(),
+            _phantom: PhantomData,
         }
     }
 
@@ -237,9 +237,9 @@ pub trait ColorIter<T: Color>: Iterator<Item = T> {
     {
         ToLabIter {
             iter: self,
-            _phantom: PhantomData::default(),
-            _phantom2: PhantomData::default(),
-            _phantom3: PhantomData::default(),
+            _phantom: PhantomData,
+            _phantom2: PhantomData,
+            _phantom3: PhantomData,
         }
     }
 
@@ -249,9 +249,9 @@ pub trait ColorIter<T: Color>: Iterator<Item = T> {
     {
         ToLchIter {
             iter: self,
-            _phantom: PhantomData::default(),
-            _phantom2: PhantomData::default(),
-            _phantom3: PhantomData::default(),
+            _phantom: PhantomData,
+            _phantom2: PhantomData,
+            _phantom3: PhantomData,
         }
     }
 }
@@ -265,7 +265,7 @@ pub trait ColorIterRef<'a, C: Color, T: 'a + Color>: Iterator<Item = &'a T> {
     {
         ToRgbIter {
             iter: self.cloned(),
-            _phantom: PhantomData::default(),
+            _phantom: PhantomData,
         }
     }
 
@@ -275,7 +275,7 @@ pub trait ColorIterRef<'a, C: Color, T: 'a + Color>: Iterator<Item = &'a T> {
     {
         ToSrgbIter {
             iter: self.cloned(),
-            _phantom: PhantomData::default(),
+            _phantom: PhantomData,
         }
     }
 
@@ -285,7 +285,7 @@ pub trait ColorIterRef<'a, C: Color, T: 'a + Color>: Iterator<Item = &'a T> {
     {
         ToHslIter {
             iter: self.cloned(),
-            _phantom: PhantomData::default(),
+            _phantom: PhantomData,
         }
     }
 
@@ -295,7 +295,7 @@ pub trait ColorIterRef<'a, C: Color, T: 'a + Color>: Iterator<Item = &'a T> {
     {
         ToHsvIter {
             iter: self.cloned(),
-            _phantom: PhantomData::default(),
+            _phantom: PhantomData,
         }
     }
 
@@ -305,7 +305,7 @@ pub trait ColorIterRef<'a, C: Color, T: 'a + Color>: Iterator<Item = &'a T> {
     {
         ToYuvIter {
             iter: self.cloned(),
-            _phantom: PhantomData::default(),
+            _phantom: PhantomData,
         }
     }
 
@@ -315,7 +315,7 @@ pub trait ColorIterRef<'a, C: Color, T: 'a + Color>: Iterator<Item = &'a T> {
     {
         ToXyzIter {
             iter: self.cloned(),
-            _phantom: PhantomData::default(),
+            _phantom: PhantomData,
         }
     }
 
@@ -325,9 +325,9 @@ pub trait ColorIterRef<'a, C: Color, T: 'a + Color>: Iterator<Item = &'a T> {
     {
         ToLabIter {
             iter: self.cloned(),
-            _phantom: PhantomData::default(),
-            _phantom2: PhantomData::default(),
-            _phantom3: PhantomData::default(),
+            _phantom: PhantomData,
+            _phantom2: PhantomData,
+            _phantom3: PhantomData,
         }
     }
 
@@ -337,9 +337,9 @@ pub trait ColorIterRef<'a, C: Color, T: 'a + Color>: Iterator<Item = &'a T> {
     {
         ToLchIter {
             iter: self.cloned(),
-            _phantom: PhantomData::default(),
-            _phantom2: PhantomData::default(),
-            _phantom3: PhantomData::default(),
+            _phantom: PhantomData,
+            _phantom2: PhantomData,
+            _phantom3: PhantomData,
         }
     }
 }
