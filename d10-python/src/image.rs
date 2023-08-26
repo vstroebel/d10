@@ -344,6 +344,20 @@ impl Image {
             .into())
     }
 
+    pub fn white_balance(&self, threshold: Option<f32>) -> PyResult<Image> {
+        let threshold = threshold.unwrap_or(0.5);
+        Ok(self.inner.white_balance(threshold).into())
+    }
+
+    pub fn balance(&self, mode: Option<&str>, threshold: Option<f32>) -> PyResult<Image> {
+        let mode = match mode {
+            Some(mode) => mode.parse().py_err()?,
+            None => BalanceMode::Rgb,
+        };
+        let threshold = threshold.unwrap_or(0.5);
+        Ok(self.inner.balance(mode, threshold).into())
+    }
+
     fn __len__(&self) -> PyResult<usize> {
         Ok(self.inner.data().len())
     }

@@ -330,6 +330,18 @@ impl Image {
         Self::new_from_buffer_with_meta(self, ops::unsharp(&self.buffer, radius, factor, sigma))
     }
 
+    /// Automatically stretch contrast of all color channels
+    ///
+    /// # Arguments
+    /// threshold: Value between 0 and 1000. Sane values are between 0.0 and 1.0
+    pub fn white_balance(&self, threshold: f32) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::balance(&self.buffer, BalanceMode::Rgb, threshold))
+    }
+
+    pub fn balance(&self, mode: BalanceMode, threshold: f32) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::balance(&self.buffer, mode, threshold))
+    }
+
     pub fn try_compose<E, F, const N: usize>(
         images: [&Image; N],
         default: Rgb,
