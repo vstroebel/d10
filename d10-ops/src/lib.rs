@@ -23,7 +23,6 @@ mod stretch_contrast;
 mod temperature;
 mod unsharp;
 mod white_balance;
-mod balance_channels;
 
 pub use apply_palette::{apply_palette, apply_palette_in_place};
 pub use balance_channels::{balance, BalanceMode};
@@ -50,4 +49,3 @@ pub use stretch_contrast::stretch_contrast;
 pub use temperature::{change_color_temperature, optimize_color_temperature};
 pub use unsharp::unsharp;
 pub use white_balance::white_balance;
-pub use balance_channels::balance;
