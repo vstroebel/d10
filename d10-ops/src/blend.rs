@@ -1,3 +1,4 @@
+use std::f32::consts::PI;
 use std::str::FromStr;
 
 use d10_core::color::illuminant::D65;
@@ -11,8 +12,8 @@ fn apply_intensity(v1: f32, v2: f32, intensity: f32) -> f32 {
 }
 
 fn blend_color<F>(c1: Rgb, c2: Rgb, intensity: f32, func: F) -> Rgb
-where
-    F: Fn(f32, f32) -> f32,
+    where
+        F: Fn(f32, f32) -> f32,
 {
     let intensity = intensity * c2.alpha();
 
@@ -32,8 +33,8 @@ fn blend_image_with_func<F>(
     intensity: f32,
     func: F,
 ) -> PixelBuffer<Rgb>
-where
-    F: Fn(Rgb, Rgb, f32) -> Rgb,
+    where
+        F: Fn(Rgb, Rgb, f32) -> Rgb,
 {
     let width = img1.width().max(img2.width());
     let height = img1.height().max(img2.height());
@@ -186,7 +187,28 @@ pub fn blend_lch_hue(c1: Rgb, c2: Rgb, intensity: f32) -> Rgb {
     let c1 = c1.to_lch::<D65, O2>();
     let c2 = c2.to_lch::<D65, O2>();
 
-    c1.with_h(apply_intensity(c1.h(), c2.h(), intensity))
+    let h1 = c1.h();
+    let h2 = c2.h();
+
+    let diff = (h1 - h2).abs();
+
+    let h = if diff > PI {
+        let h = if h1 < 0.0 {
+            apply_intensity(h1 + 2.0 * PI, h2, intensity)
+        } else {
+            apply_intensity(h1, h2 + 2.0 * PI, intensity)
+        };
+
+        if h > PI {
+            h - 2.0 * PI
+        } else {
+            h
+        }
+    } else {
+        apply_intensity(h1, h2, intensity)
+    };
+
+    c1.with_h(h)
         .to_rgb()
 }
 
