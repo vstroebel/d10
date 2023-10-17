@@ -9,7 +9,7 @@ license = "MIT OR Apache-2.0"
 image = { version = "0.24", default-features = false, features = ["bmp", "ico"] }
 png = "0.17"
 gif = "0.12"
-jpeg-encoder = "0.5"
+jpeg-encoder = "0.6"
 jpeg-decoder = "0.3"
 libwebp-sys = "0.9"
 d10-core = { path = "../d10-core" }
