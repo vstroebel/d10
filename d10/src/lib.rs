@@ -15,4 +15,4 @@ pub use codecs::{
     PngColorType, PngCompression, PngFilterType, WebPPreset,
 };
 pub use image::Image;
-pub use ops::FilterMode;
+pub use ops::{EqualizeMode, FilterMode};

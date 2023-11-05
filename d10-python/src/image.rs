@@ -5,10 +5,7 @@ use pyo3::types::{PyFunction, PyList};
 use d10::illuminant::D65;
 use d10::observer::O2;
 use d10::ops::{BalanceMode, BlendOp, SaturationMode};
-use d10::{
-    BmpColorType, EncodingFormat as D10EncodingFormat, FilterMode, IcoColorType, Image as D10Image,
-    PngColorType, PngCompression, PngFilterType, Rgb as D10Rgb, WebPPreset,
-};
+use d10::{BmpColorType, EncodingFormat as D10EncodingFormat, EqualizeMode, FilterMode, IcoColorType, Image as D10Image, PngColorType, PngCompression, PngFilterType, Rgb as D10Rgb, WebPPreset};
 #[cfg(feature = "numpy")]
 use {
     d10::Color,
@@ -356,6 +353,14 @@ impl Image {
         };
         let threshold = threshold.unwrap_or(0.5);
         Ok(self.inner.balance(mode, threshold).into())
+    }
+
+    pub fn equalize(&self, mode: Option<&str>) -> PyResult<Image> {
+        let mode = match mode {
+            Some(mode) => mode.parse().py_err()?,
+            None => EqualizeMode::Srgb,
+        };
+        Ok(self.inner.equalize(mode).into())
     }
 
     fn __len__(&self) -> PyResult<usize> {

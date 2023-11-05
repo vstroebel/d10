@@ -3,7 +3,7 @@ use std::io::Write;
 use std::path::Path;
 
 use d10_codecs::{DecodingError, EncodingError, EncodingFormat};
-use d10_ops::{blend_image, BalanceMode, BlendOp, DrawingMode, FilterMode, SaturationMode};
+use d10_ops::{blend_image, BalanceMode, BlendOp, DrawingMode, FilterMode, SaturationMode, EqualizeMode};
 
 use crate::{ops, PixelBuffer, Rgb};
 
@@ -442,6 +442,13 @@ impl Image {
         Self::new_from_buffer_with_meta(
             self,
             ops::optimize_color_temperature(&self.buffer, factor, tint_correction),
+        )
+    }
+
+    pub fn equalize(&self, mode: EqualizeMode) -> Image {
+        Self::new_from_buffer_with_meta(
+            self,
+            ops::equalize(&self.buffer, mode),
         )
     }
 }
