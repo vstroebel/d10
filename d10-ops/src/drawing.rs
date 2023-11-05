@@ -62,9 +62,6 @@ pub fn drawing(buffer: &PixelBuffer<Rgb>, radius: u32, mode: DrawingMode) -> Pix
         }
 
         let c = |v1: f32, v2: f32| {
-            let v1 = v1; // + 1.0;
-            let v2 = v2; // + 1.0;
-
             (v1 / (1.0 - v2 + 0.01).min(1.0)).abs()
         };
 
