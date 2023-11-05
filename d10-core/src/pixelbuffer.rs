@@ -193,7 +193,7 @@ impl<T: Color> PixelBuffer<T> {
         Ok(())
     }
 
-    pub fn map_colors<F: FnMut(&T) -> T>(&self, func: F) -> PixelBuffer<T> {
+    pub fn map_colors<F: FnMut(&T) -> R, R: Color>(&self, func: F) -> PixelBuffer<R> {
         let data = self.data.iter().map(func).collect();
         PixelBuffer {
             width: self.width,
@@ -202,11 +202,11 @@ impl<T: Color> PixelBuffer<T> {
         }
     }
 
-    pub fn try_map_colors<E, F: FnMut(&T) -> Result<T, E>>(
+    pub fn try_map_colors<E, F: FnMut(&T) -> Result<R, E>, R: Color>(
         &self,
         func: F,
-    ) -> Result<PixelBuffer<T>, E> {
-        let data = self.data.iter().map(func).collect::<Result<Vec<T>, E>>()?;
+    ) -> Result<PixelBuffer<R>, E> {
+        let data = self.data.iter().map(func).collect::<Result<Vec<R>, E>>()?;
         Ok(PixelBuffer {
             width: self.width,
             height: self.height,
