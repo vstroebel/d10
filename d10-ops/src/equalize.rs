@@ -64,8 +64,15 @@ fn channel_histogram<C: Color, const NUM_CHANNELS: usize>(
     }
 
     for (i, h) in histogram.iter_mut().enumerate() {
-        for v in h.iter_mut() {
-            *v = (*v - min[i]) / (max[i] - min[i]);
+        let delta = max[i] - min[i];
+        if delta < f32::EPSILON {
+            for v in h.iter_mut() {
+                *v = 0.0;
+            }
+        } else {
+            for v in h.iter_mut() {
+                *v = (*v - min[i]) / (delta);
+            }
         }
     }
 
