@@ -126,9 +126,7 @@ impl Color for Hsl {
             )
         };
 
-        Rgb {
-            data: [red, green, blue, self.alpha()],
-        }
+        Rgb::new_with_alpha(red, green, blue, self.alpha())
     }
 
     fn alpha(&self) -> f32 {
