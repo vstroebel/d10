@@ -7,7 +7,7 @@ use d10_ops::{blend_image, BalanceMode, BlendOp, DrawingMode, FilterMode, Satura
 
 use crate::{ops, PixelBuffer, Rgb};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Image {
     buffer: PixelBuffer<Rgb>,
     bg_color: Option<Rgb>,
