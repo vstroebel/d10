@@ -3,7 +3,10 @@ use std::io::Write;
 use std::path::Path;
 
 use d10_codecs::{DecodingError, EncodingError, EncodingFormat};
-use d10_ops::{blend_image, BalanceMode, BlendOp, DrawingMode, FilterMode, SaturationMode, EqualizeMode};
+use d10_ops::{
+    blend_image, BalanceMode, BlendOp, DrawingMode, EdgeDetection, EqualizeMode, FilterMode,
+    SaturationMode,
+};
 
 use crate::{ops, PixelBuffer, Rgb};
 
@@ -245,11 +248,9 @@ impl Image {
         )
     }
 
-    /// Detect edges in the image with a sobel kernel
-    ///
-    /// If `normalize` is true the resulting color channel values will be between 0.0 and 1.0
-    pub fn sobel_edge_detection(&self, normalize: bool) -> Image {
-        Self::new_from_buffer_with_meta(self, ops::sobel_edge_detection(&self.buffer, normalize))
+    /// Detect edges in the image
+    pub fn edge_detection(&self, mode: EdgeDetection) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::edge_detection(&self.buffer, mode))
     }
 
     /// Resize image
@@ -335,7 +336,10 @@ impl Image {
     /// # Arguments
     /// threshold: Value between 0 and 1000. Sane values are between 0.0 and 1.0
     pub fn white_balance(&self, threshold: f32) -> Image {
-        Self::new_from_buffer_with_meta(self, ops::balance(&self.buffer, BalanceMode::Rgb, threshold))
+        Self::new_from_buffer_with_meta(
+            self,
+            ops::balance(&self.buffer, BalanceMode::Rgb, threshold),
+        )
     }
 
     pub fn balance(&self, mode: BalanceMode, threshold: f32) -> Image {
@@ -431,7 +435,12 @@ impl Image {
         Self::new_from_buffer_with_meta(self, ops::optimize_saturation(&self.buffer, offset, mode))
     }
 
-    pub fn change_color_temperature(&self, orig_temp: f32, new_temp: f32, tint_correction: f32) -> Image {
+    pub fn change_color_temperature(
+        &self,
+        orig_temp: f32,
+        new_temp: f32,
+        tint_correction: f32,
+    ) -> Image {
         Self::new_from_buffer_with_meta(
             self,
             ops::change_color_temperature(&self.buffer, orig_temp, new_temp, tint_correction),
@@ -446,10 +455,7 @@ impl Image {
     }
 
     pub fn equalize(&self, mode: EqualizeMode) -> Image {
-        Self::new_from_buffer_with_meta(
-            self,
-            ops::equalize(&self.buffer, mode),
-        )
+        Self::new_from_buffer_with_meta(self, ops::equalize(&self.buffer, mode))
     }
 }
 

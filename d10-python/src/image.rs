@@ -4,8 +4,11 @@ use pyo3::types::{PyFunction, PyList};
 
 use d10::illuminant::D65;
 use d10::observer::O2;
-use d10::ops::{BalanceMode, BlendOp, SaturationMode};
-use d10::{BmpColorType, EncodingFormat as D10EncodingFormat, EqualizeMode, FilterMode, IcoColorType, Image as D10Image, PngColorType, PngCompression, PngFilterType, Rgb as D10Rgb, WebPPreset};
+use d10::ops::{BalanceMode, BlendOp, EdgeDetection, SaturationMode};
+use d10::{
+    BmpColorType, EncodingFormat as D10EncodingFormat, EqualizeMode, FilterMode, IcoColorType,
+    Image as D10Image, PngColorType, PngCompression, PngFilterType, Rgb as D10Rgb, WebPPreset,
+};
 #[cfg(feature = "numpy")]
 use {
     d10::Color,
@@ -192,10 +195,13 @@ impl Image {
         Ok(self.inner.resize_pct(pct_100, filter).into())
     }
 
-    pub fn sobel_edge_detection(&self, normalize: Option<bool>) -> Image {
-        self.inner
-            .sobel_edge_detection(normalize.unwrap_or(false))
-            .into()
+    pub fn edge_detection(&self, mode: Option<&str>) -> PyResult<Image> {
+        let mode = match mode {
+            Some(mode) => mode.parse().py_err()?,
+            None => EdgeDetection::Sobel,
+        };
+
+        Ok(self.inner.edge_detection(mode).into())
     }
 
     pub fn with_jpeg_quality(&self, quality: u8, preserve_alpha: Option<bool>) -> Image {
