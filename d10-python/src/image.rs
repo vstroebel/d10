@@ -287,14 +287,14 @@ impl Image {
     }
 
     #[staticmethod]
-    pub fn compose(images: &PyList, default: Option<Rgb>, func: &PyFunction) -> PyResult<Image> {
+    pub fn compose(images: &PyList, func: &PyFunction, default: Option<Rgb>) -> PyResult<Image> {
         let default = default.map(|c| c.inner).unwrap_or_default();
 
         //TODO: Find out if we really need to map images three times to make the borrow checker happy
 
         let images: Vec<&PyCell<Image>> = images
             .iter()
-            .map(|i| i.cast_as::<PyCell<Image>>().map_err(|err| err.into()))
+            .map(|i| i.downcast::<PyCell<Image>>().map_err(|err| err.into()))
             .collect::<PyResult<Vec<_>>>()?;
 
         let images = images.into_iter().map(|r| r.borrow()).collect::<Vec<_>>();
@@ -641,7 +641,7 @@ impl Image {
          */
         //TODO: Find a way to not use this hackish way to do it
 
-        let py_array: &PyArrayDyn<f32> = array.cast_as()?;
+        let py_array: &PyArrayDyn<f32> = array.downcast()?;
 
         let data_type = extract_data_type(Some(py_array.dtype().typeobj()))?;
 
@@ -656,7 +656,7 @@ impl Image {
                 colorspace,
             ),
             DataType::Float64 => {
-                let py_array: &PyArrayDyn<f64> = array.cast_as()?;
+                let py_array: &PyArrayDyn<f64> = array.downcast()?;
                 from_np_array_iter(
                     ndims,
                     dims,
@@ -665,7 +665,7 @@ impl Image {
                 )
             }
             DataType::Bool => {
-                let py_array: &PyArrayDyn<bool> = array.cast_as()?;
+                let py_array: &PyArrayDyn<bool> = array.downcast()?;
                 from_np_array_iter(
                     ndims,
                     dims,
@@ -678,7 +678,7 @@ impl Image {
                 )
             }
             DataType::Uint8 => {
-                let py_array: &PyArrayDyn<u8> = array.cast_as()?;
+                let py_array: &PyArrayDyn<u8> = array.downcast()?;
                 from_np_array_iter(
                     ndims,
                     dims,
@@ -691,7 +691,7 @@ impl Image {
                 )
             }
             DataType::Uint16 => {
-                let py_array: &PyArrayDyn<u16> = array.cast_as()?;
+                let py_array: &PyArrayDyn<u16> = array.downcast()?;
                 from_np_array_iter(
                     ndims,
                     dims,
@@ -704,7 +704,7 @@ impl Image {
                 )
             }
             DataType::Uint32 => {
-                let py_array: &PyArrayDyn<u32> = array.cast_as()?;
+                let py_array: &PyArrayDyn<u32> = array.downcast()?;
                 from_np_array_iter(
                     ndims,
                     dims,
