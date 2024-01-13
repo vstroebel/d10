@@ -276,6 +276,16 @@ impl Image {
             .into()
     }
 
+    pub fn symmetric_nearest_neighbor(
+        &self,
+        radius: Option<usize>,
+        with_center: Option<bool>,
+    ) -> Image {
+        self.inner
+            .symmetric_nearest_neighbor(radius.unwrap_or(4), with_center.unwrap_or(true))
+            .into()
+    }
+
     #[staticmethod]
     pub fn compose(images: &PyList, default: Option<Rgb>, func: &PyFunction) -> PyResult<Image> {
         let default = default.map(|c| c.inner).unwrap_or_default();

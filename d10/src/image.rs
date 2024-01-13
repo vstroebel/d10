@@ -457,6 +457,10 @@ impl Image {
     pub fn equalize(&self, mode: EqualizeMode) -> Image {
         Self::new_from_buffer_with_meta(self, ops::equalize(&self.buffer, mode))
     }
+
+    pub fn symmetric_nearest_neighbor(&self, radius: usize, with_center: bool,) -> Image {
+        Self::new_from_buffer_with_meta(self, ops::symmetric_nearest_neighbor(&self.buffer, radius, with_center))
+    }
 }
 
 #[cfg(test)]
