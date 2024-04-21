@@ -357,6 +357,16 @@ impl Image {
             .into())
     }
 
+    pub fn optimize_lightness(
+        &self,
+        factor: f32,
+    ) -> PyResult<Image> {
+        Ok(self
+            .inner
+            .optimize_lightness(factor)
+            .into())
+    }
+
     pub fn white_balance(&self, threshold: Option<f32>) -> PyResult<Image> {
         let threshold = threshold.unwrap_or(0.5);
         Ok(self.inner.white_balance(threshold).into())

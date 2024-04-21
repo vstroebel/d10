@@ -454,6 +454,13 @@ impl Image {
         )
     }
 
+    pub fn optimize_lightness(&self, factor: f32) -> Image {
+        Self::new_from_buffer_with_meta(
+            self,
+            ops::optimize_lightness(&self.buffer, factor),
+        )
+    }
+
     pub fn equalize(&self, mode: EqualizeMode) -> Image {
         Self::new_from_buffer_with_meta(self, ops::equalize(&self.buffer, mode))
     }
