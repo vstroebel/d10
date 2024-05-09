@@ -53,13 +53,16 @@ pub fn get_max_value(values: &[f32; 256], threshold: f32) -> f32 {
 
 fn level_channel(value: f32, black_point: f32, white_point: f32) -> f32 {
     let diff = white_point - black_point;
-    let factor = if diff.abs() < f32::EPSILON {
-        1.0 / f32::EPSILON
-    } else {
-        1.0 / diff
-    };
 
-    (value - black_point) * factor
+    // Prevent channels with little differences to change too much
+    let scale = (diff.abs() * 10.0).tanh();
+
+    if scale <= f32::EPSILON {
+        value
+    } else {
+        let factor = 1.0 / diff;
+        (value - black_point * scale) * factor * scale
+    }
 }
 
 fn balance_buffer<C: Color + From<Rgb>, const START: usize, const NUM_CHANNELS: usize>(
@@ -77,6 +80,8 @@ fn balance_buffer<C: Color + From<Rgb>, const START: usize, const NUM_CHANNELS: 
         min[i] = get_min_value(&values[i], threshold);
         max[i] = get_max_value(&values[i], threshold);
     }
+
+    eprintln!("{:?} - {:?}", min, max);
 
     buffer.map_colors(|c| {
         let mut c: C = (*c).into();
