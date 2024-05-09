@@ -23,7 +23,6 @@ mod saturation;
 mod stretch_contrast;
 mod temperature;
 mod unsharp;
-mod white_balance;
 mod symmetric_nearest_neighbor;
 mod lightness;
 
@@ -52,6 +51,5 @@ pub use saturation::{optimize_saturation, SaturationMode};
 pub use stretch_contrast::stretch_contrast;
 pub use temperature::{change_color_temperature, optimize_color_temperature};
 pub use unsharp::unsharp;
-pub use white_balance::white_balance;
 pub use symmetric_nearest_neighbor::symmetric_nearest_neighbor;
 pub use lightness::optimize_lightness;

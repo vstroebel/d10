@@ -81,8 +81,6 @@ fn balance_buffer<C: Color + From<Rgb>, const START: usize, const NUM_CHANNELS: 
         max[i] = get_max_value(&values[i], threshold);
     }
 
-    eprintln!("{:?} - {:?}", min, max);
-
     buffer.map_colors(|c| {
         let mut c: C = (*c).into();
 
